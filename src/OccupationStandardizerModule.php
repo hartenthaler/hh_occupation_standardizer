@@ -37,6 +37,7 @@ use function assert;
 use function file_exists;
 use function preg_match_all;
 use function route;
+use function strip_tags;
 use function trim;
 
 final class OccupationStandardizerModule extends AbstractModule implements ModuleCustomInterface, ModuleConfigInterface, ModuleGlobalInterface, ModuleListInterface, RequestHandlerInterface
@@ -252,7 +253,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $source = Registry::sourceFactory()->make($xref, $fact->record()->tree());
 
             if ($source instanceof Source && $source->canShow()) {
-                $sources[] = $source->fullName();
+                $sources[] = trim(strip_tags($source->fullName()));
             }
         }
 
