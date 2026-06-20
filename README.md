@@ -4,15 +4,15 @@
 
 ![webtrees major version](https://img.shields.io/badge/webtrees-v2.2.x-green)
 
-This [webtrees](https://www.webtrees.net) module is intended to help administrators analyze and standardize historical occupation entries in genealogical sources.
+This [webtrees](https://www.webtrees.net) module helps analyze and standardize historical occupation entries in genealogical sources.
 
 Current module version: **2.2.6.0**.
 
 ## Purpose
 
-Historical church book entries often combine occupations, social status, offices, honorary offices, and spelling variants in a single phrase.
+Historical church book entries often combine occupations, social status, offices, honorary offices, employers, and spelling variants in a single phrase.
 
-This module will support the separation and standardization of these elements, for example:
+This module supports the separation and standardization of these elements, for example:
 
 * separating status from occupation, such as `Bürger und Weingärtner`
 * normalizing spelling variants, such as `Kieffer` to `Küfer`, `Schuster` to `Schuhmacher`, or `Beck` to `Bäcker`
@@ -20,9 +20,26 @@ This module will support the separation and standardization of these elements, f
 * keeping genuine master-compound occupations such as schoolmaster or mayor intact
 * preserving the original wording from the source while showing the standardized form as an additional value
 
-## Status
+## Current functionality
 
-This repository is in its initial planning stage.
+The first milestone provides a read-only occupation inventory as a new item in the webtrees lists menu.
+
+The list reads only individual `OCCU` facts and shows:
+
+* original occupation text
+* individual
+* date
+* place
+* employer or responsible agency from `AGNC`
+* `TYPE`
+* `NOTE`
+* linked sources
+
+The module does not change GEDCOM data in this milestone.
+
+## Scope
+
+This module focuses on collecting, reviewing, and standardizing occupation data. Statistical charts should not be duplicated here. Once normalized occupation data is available, integration with Rico Sonntag's `webtrees-statistics` module can be considered through separate pull requests.
 
 ## Requirements
 
