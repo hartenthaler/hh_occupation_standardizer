@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Http\RequestHandlers\ControlPanel;
+use Fisharebest\Webtrees\Http\RequestHandlers\ModulesAllPage;
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * @var string $title
+ * @var string $description
+ */
+?>
+
+<?= view('components/breadcrumbs', ['links' => [
+    route(ControlPanel::class) => I18N::translate('Control panel'),
+    route(ModulesAllPage::class) => I18N::translate('Modules'),
+    $title,
+]]) ?>
+
+<h1><?= e($title) ?></h1>
+<p><?= e($description) ?></p>
+
+<div class="card">
+    <div class="card-body">
+        <h2 class="h4"><?= I18N::translate('Planned functionality') ?></h2>
+        <p>
+            <?= I18N::translate('This module is being prepared to analyze, normalize, and classify historical occupation entries.') ?>
+        </p>
+    </div>
+</div>
