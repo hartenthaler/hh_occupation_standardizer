@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Tree;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+use Illuminate\Support\Collection;
+
+
+/**
+ * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>}> $rows
+ * @var string $title
+ * @var Tree   $tree
+ */
+?>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <p>
+        <?= I18N::translate('This list shows the original occupation facts.') ?>
+    </p>
+
+    <?php if ($rows->isEmpty()) : ?>
+        <p class="alert alert-info">
+            <?= I18N::translate('No occupation facts were found in this family tree.') ?>
+        </p>
+    <?php else : ?>
+        <table class="table table-bordered table-sm wt-table datatables d-none"
+            <?= view('lists/datatables-attributes') ?>
+        >
+            <thead>
+                <tr>
+                    <th><?= MoreI18N::xlate('Occupation') ?></th>
+                    <th><?= MoreI18N::xlate('Individual') ?></th>
+                    <th><?= MoreI18N::xlate('Date') ?></th>
+                    <th><?= MoreI18N::xlate('Place') ?></th>
+                    <th><?= MoreI18N::xlate('Employer') ?></th>
+                    <th><abbr title="GEDCOM TYPE">TYPE</abbr></th>
+                    <th><abbr title="GEDCOM NOTE">NOTE</abbr></th>
+                    <th><?= MoreI18N::xlate('Sources') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $row) : ?>
+                    <tr>
+                        <td data-sort="<?= e($row['occupation']) ?>"><bdi><?= e($row['occupation']) ?></bdi></td>
+                        <td data-sort="<?= e($row['individual']->sortName()) ?>">
+                            <a href="<?= e($row['individual']->url()) ?>"><?= $row['individual']->fullName() ?></a>
+                        </td>
+                        <td data-sort="<?= e(strip_tags($row['date'])) ?>"><?= $row['date'] ?></td>
+                        <td data-sort="<?= e($row['place_sort']) ?>"><?= $row['place'] ?></td>
+                        <td><bdi><?= e($row['employer']) ?></bdi></td>
+                        <td><bdi><?= e($row['type']) ?></bdi></td>
+                        <td><bdi><?= e($row['note']) ?></bdi></td>
+                        <td>
+                            <?php if ($row['sources'] !== []) : ?>
+                                <bdi><?= e(implode('; ', $row['sources'])) ?></bdi>
+                            <?php endif ?>
+                        </td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+</div>
+
