@@ -41,6 +41,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use function array_map;
 use function array_values;
 use function assert;
+use function class_exists;
 use function date;
 use function file_exists;
 use function implode;
@@ -117,6 +118,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
         View::registerCustomView('::fact', $this->name() . '::fact');
+
+        if (class_exists(\Vesta\VestaUtils::class)) {
+            View::registerCustomView(\Vesta\VestaUtils::vestaViewsNamespace() . '::fact', $this->name() . '::vesta-fact');
+        }
 
         Registry::routeFactory()->routeMap()
             ->get(static::class, self::ROUTE_URL, $this);
