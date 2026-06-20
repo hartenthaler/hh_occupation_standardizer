@@ -105,3 +105,21 @@ msgstr "erkannt"
 
 msgid "unclear"
 msgstr "unklar"
+
+msgid "ignored"
+msgstr "ignoriert"
+
+msgid "Normalization"
+msgstr "Normalisierung"
+
+msgid "Original part"
+msgstr "Originalteil"
+
+msgid "Normalized occupation"
+msgstr "Normierter Beruf"
+
+msgid "The normalization entry has been updated."
+msgstr "Der Normalisierungseintrag wurde aktualisiert."
+
+msgid "The normalization entry could not be updated."
+msgstr "Der Normalisierungseintrag konnte nicht aktualisiert werden."

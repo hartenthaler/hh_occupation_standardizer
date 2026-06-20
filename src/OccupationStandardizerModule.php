@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hartenthaler\Webtrees\Module\OccupationStandardizer;
 
+use Fig\Http\Message\RequestMethodInterface;
 use Fisharebest\Localization\Translation;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\DB;
@@ -65,6 +66,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const SUPPORT_URL = 'https://github.com/hartenthaler/hh_occupation_standardizer';
     private const ROUTE_URL = '/tree/{tree}/occupation-standardizer';
     private const FINGERPRINT_PREFIX = 'tree_occu_';
+    private const TASK_SAVE_NORMALIZATION_ENTRY = 'saveNormalizationEntry';
+    private const NORMALIZATION_STATUSES = [
+        OccupationNormalizationService::STATUS_RECOGNIZED,
+        OccupationNormalizationService::STATUS_UNCLEAR,
+        OccupationNormalizationService::STATUS_IGNORED,
+    ];
 
     public function title(): string
     {
@@ -123,8 +130,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             View::registerCustomView(\Vesta\VestaUtils::vestaViewsNamespace() . '::fact', $this->name() . '::vesta-fact');
         }
 
-        Registry::routeFactory()->routeMap()
-            ->get(static::class, self::ROUTE_URL, $this);
+        $route_map = Registry::routeFactory()->routeMap();
+        $route_map->get(static::class, self::ROUTE_URL, $this);
+        $route_map->post(static::class . ':save', self::ROUTE_URL, $this);
+        $route_map->allows(RequestMethodInterface::METHOD_POST);
     }
 
     public function getAdminAction(ServerRequestInterface $request): ResponseInterface
@@ -214,14 +223,26 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         Auth::checkComponentAccess($this, ModuleListInterface::class, $tree, $user);
 
-        if (Auth::isManager($tree)) {
+        if ($request->getMethod() === RequestMethodInterface::METHOD_POST) {
+            if (!$this->canManageNormalization($tree)) {
+                throw new HttpAccessDeniedException();
+            }
+
+            $this->saveNormalizationEntry($tree, (array) $request->getParsedBody());
+        }
+
+        $can_manage_normalization = $this->canManageNormalization($tree);
+
+        if ($can_manage_normalization) {
             $this->syncNormalizationRows($tree);
         }
 
         return $this->viewResponse($this->name() . '::occupation-list', [
-            'rows'  => $this->occupationRows($tree),
-            'title' => $this->listTitle(),
-            'tree'  => $tree,
+            'canManageNormalization' => $can_manage_normalization,
+            'rows'                   => $this->occupationRows($tree, $can_manage_normalization),
+            'statusOptions'          => self::NORMALIZATION_STATUSES,
+            'title'                  => $this->listTitle(),
+            'tree'                   => $tree,
         ]);
     }
 
@@ -233,12 +254,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,reviewed:bool,rule_numbers:string}>}>
      */
-    private function occupationRows(Tree $tree): Collection
+    private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
         $rows = new Collection();
         $label_service = new OccupationLabelService();
+        $normalization_rows_by_fact = $can_manage_normalization ? $this->normalizationRowsByFact($tree) : [];
 
         foreach ($this->occupationQuery($tree)->select(['i_id AS xref', 'i_gedcom AS gedcom'])->get() as $row) {
             $individual = Registry::individualFactory()->make($row->xref, $tree, $row->gedcom);
@@ -263,18 +285,20 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
                 $place = $fact->place();
                 $source_data = $this->sourceData($fact);
+                $normalization_entries = $normalization_rows_by_fact[$fact->id()] ?? [];
 
                 $rows->push([
-                    'occupation'     => $occupation,
-                    'individual'     => $individual,
-                    'date'           => $fact->date()->display(),
-                    'place'          => $place->gedcomName() !== '' ? $place->shortName() : '',
-                    'place_sort'     => $place->gedcomName(),
-                    'employer'       => trim($fact->attribute('AGNC')),
-                    'type'           => trim($fact->attribute('TYPE')),
-                    'note'           => trim($fact->attribute('NOTE')),
-                    'sources'        => $source_data['names'],
-                    'normalizations' => $label_service->labelsForOccupation($occupation),
+                    'occupation'           => $occupation,
+                    'individual'           => $individual,
+                    'date'                 => $fact->date()->display(),
+                    'place'                => $place->gedcomName() !== '' ? $place->shortName() : '',
+                    'place_sort'           => $place->gedcomName(),
+                    'employer'             => trim($fact->attribute('AGNC')),
+                    'type'                 => trim($fact->attribute('TYPE')),
+                    'note'                 => trim($fact->attribute('NOTE')),
+                    'sources'              => $source_data['names'],
+                    'normalizations'       => $normalization_entries !== [] ? $label_service->labelsForEntries($normalization_entries) : $label_service->labelsForOccupation($occupation),
+                    'normalizationEntries' => $normalization_entries,
                 ]);
             }
         }
@@ -283,6 +307,85 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return I18N::comparator()($a['occupation'], $b['occupation'])
                 ?: I18N::comparator()($a['individual']->sortName(), $b['individual']->sortName());
         })->values();
+    }
+
+    private function canManageNormalization(Tree $tree): bool
+    {
+        return Auth::isManager($tree) || Auth::isAdmin();
+    }
+
+    /**
+     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,reviewed:bool,rule_numbers:string}>>
+     */
+    private function normalizationRowsByFact(Tree $tree): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return [];
+        }
+
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('is_active', '=', true)
+            ->orderBy('part_index')
+            ->get()
+            ->groupBy('fact_id')
+            ->map(static fn (Collection $entries): array => $entries
+                ->map(static fn (object $entry): array => [
+                    'entry_key'             => (string) $entry->entry_key,
+                    'part_index'            => (int) $entry->part_index,
+                    'original_part_text'    => (string) $entry->original_part_text,
+                    'social_status'         => (string) ($entry->social_status ?? ''),
+                    'occupation_normalized' => (string) ($entry->occupation_normalized ?? ''),
+                    'office'                => (string) ($entry->office ?? ''),
+                    'qualification'         => (string) ($entry->qualification ?? ''),
+                    'code'                  => (string) ($entry->code ?? ''),
+                    'status'                => (string) $entry->status,
+                    'reviewed'              => (bool) $entry->reviewed,
+                    'rule_numbers'          => (string) $entry->rule_numbers,
+                ])
+                ->all())
+            ->all();
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function saveNormalizationEntry(Tree $tree, array $params): void
+    {
+        if ((string) ($params['task'] ?? '') !== self::TASK_SAVE_NORMALIZATION_ENTRY) {
+            return;
+        }
+
+        $entry_key = (string) ($params['entryKey'] ?? '');
+        $status = (string) ($params['status'] ?? OccupationNormalizationService::STATUS_UNCLEAR);
+
+        if (!in_array($status, self::NORMALIZATION_STATUSES, true)) {
+            $status = OccupationNormalizationService::STATUS_UNCLEAR;
+        }
+
+        $updated = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('entry_key', '=', $entry_key)
+            ->where('is_active', '=', true)
+            ->update([
+                'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
+                'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
+                'office'                => trim((string) ($params['office'] ?? '')),
+                'qualification'         => trim((string) ($params['qualification'] ?? '')),
+                'code'                  => trim((string) ($params['code'] ?? '')),
+                'status'                => $status,
+                'reviewed'              => (string) ($params['reviewed'] ?? '') === '1',
+                'manually_changed'      => true,
+                'updated_at'            => date('Y-m-d H:i:s'),
+            ]);
+
+        if ($updated > 0) {
+            FlashMessages::addMessage(I18N::translate('The normalization entry has been updated.'), 'success');
+
+            return;
+        }
+
+        FlashMessages::addMessage(I18N::translate('The normalization entry could not be updated.'), 'warning');
     }
 
     /**
@@ -394,7 +497,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         if ($existing !== null) {
             $values = $context;
 
-            if (!(bool) $existing->reviewed) {
+            if (!(bool) $existing->reviewed && !(bool) ($existing->manually_changed ?? false)) {
                 $values += $this->automaticNormalizationValues($entry);
             }
 
@@ -406,9 +509,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)->insert([
-            'entry_key'  => $entry_key,
-            'reviewed'   => false,
-            'created_at' => $now,
+            'entry_key'        => $entry_key,
+            'reviewed'         => false,
+            'manually_changed' => false,
+            'created_at'       => $now,
         ] + $context + $this->automaticNormalizationValues($entry));
     }
 

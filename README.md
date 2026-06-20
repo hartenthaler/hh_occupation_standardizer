@@ -39,7 +39,17 @@ The module does not change GEDCOM data in this milestone.
 
 The second milestone adds first automatic normalization suggestions. These suggestions are stored in a module-specific database table, one entry per detected occupation part. The GEDCOM data remains unchanged.
 
+Managers and administrators can edit the stored normalization entries directly in the occupation list. Saving a correction does not automatically mark the entry as reviewed; the reviewed flag is an explicit decision. Manual changes are kept in the module table and do not modify GEDCOM data.
+
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
+
+## Roadmap
+
+* M1: OCCU inventory and read-only preview.
+* M2: Local normalization rules, module-owned normalization table, occupation labels, and first manual editing of stored normalization entries.
+* M3: Review refinements and reusable normalization rules, including extended editing of copied OCCU context fields and promoting manual corrections to reusable rules.
+* M4: External norm data and exchange, including evaluation of FactGrid/OhdAB, Wikidata, GND, HISCO, licensing, hierarchy mapping, and export formats.
+* M5: Integration with `webtrees-statistics` through normalized and aggregated occupation data instead of building separate statistics in this module.
 
 ## Scope
 

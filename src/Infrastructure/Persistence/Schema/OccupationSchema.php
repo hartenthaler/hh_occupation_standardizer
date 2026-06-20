@@ -44,6 +44,7 @@ final class OccupationSchema
                 $table->string('code', 64)->nullable();
                 $table->string('status', 32);
                 $table->boolean('reviewed')->default(false);
+                $table->boolean('manually_changed')->default(false);
                 $table->boolean('is_active')->default(true);
                 $table->string('rule_numbers', 255);
                 $table->timestamp('created_at')->useCurrent();
@@ -63,6 +64,12 @@ final class OccupationSchema
             DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table): void {
                 $table->boolean('is_active')->default(true);
                 $table->index(['tree_id', 'is_active'], 'idx_occ_std_active');
+            });
+        }
+
+        if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'manually_changed')) {
+            DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table): void {
+                $table->boolean('manually_changed')->default(false);
             });
         }
 
