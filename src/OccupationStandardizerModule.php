@@ -112,6 +112,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
     public function boot(): void
     {
+        (new OccupationSchema())->ensureSchema();
+
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
 
         Registry::routeFactory()->routeMap()
@@ -206,7 +208,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         Auth::checkComponentAccess($this, ModuleListInterface::class, $tree, $user);
 
         if (Auth::isManager($tree)) {
-            (new OccupationSchema())->ensureSchema();
             $this->syncNormalizationRows($tree);
         }
 
@@ -466,8 +467,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return [];
         }
 
-        (new OccupationSchema())->ensureSchema();
-
         return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
             ->join('gedcom AS tree', 'tree.gedcom_id', '=', 'entries.tree_id')
             ->leftJoin('gedcom_setting AS title', static function ($join): void {
@@ -483,9 +482,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'tree.gedcom_name AS tree_name',
                 'title.setting_value AS tree_title',
                 DB::raw('COUNT(*) AS total_entries'),
-                DB::raw('SUM(CASE WHEN entries.is_active = 1 THEN 1 ELSE 0 END) AS active_entries'),
-                DB::raw('SUM(CASE WHEN entries.is_active = 0 THEN 1 ELSE 0 END) AS inactive_entries'),
-                DB::raw('SUM(CASE WHEN entries.reviewed = 1 THEN 1 ELSE 0 END) AS reviewed_entries'),
+                DB::raw('SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) AS active_entries'),
+                DB::raw('SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) AS inactive_entries'),
+                DB::raw('SUM(CASE WHEN reviewed = 1 THEN 1 ELSE 0 END) AS reviewed_entries'),
             ])
             ->get()
             ->map(static fn (object $row): array => [
@@ -510,8 +509,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
             return;
         }
-
-        (new OccupationSchema())->ensureSchema();
 
         $confirmed = (string) ($params['confirmDelete'] ?? '') === '1';
         $tree_id = (int) ($params['treeId'] ?? 0);
