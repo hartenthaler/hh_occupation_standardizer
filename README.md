@@ -37,6 +37,10 @@ The list reads only individual `OCCU` facts and shows:
 
 The module does not change GEDCOM data in this milestone.
 
+The second milestone adds first automatic normalization suggestions. These suggestions are stored in a module-specific database table, one entry per detected occupation part. The GEDCOM data remains unchanged.
+
+The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
+
 ## Scope
 
 This module focuses on collecting, reviewing, and standardizing occupation data. Statistical charts should not be duplicated here. Once normalized occupation data is available, integration with Rico Sonntag's `webtrees-statistics` module can be considered through separate pull requests.
