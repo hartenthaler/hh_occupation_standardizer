@@ -28,6 +28,7 @@ use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
 use Fisharebest\Webtrees\View;
 use Fisharebest\Webtrees\Webtrees;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
@@ -115,6 +116,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         (new OccupationSchema())->ensureSchema();
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
+        View::registerCustomView('::fact', $this->name() . '::fact');
 
         Registry::routeFactory()->routeMap()
             ->get(static::class, self::ROUTE_URL, $this);
@@ -231,7 +233,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private function occupationRows(Tree $tree): Collection
     {
         $rows = new Collection();
-        $normalizer = new OccupationNormalizationService();
+        $label_service = new OccupationLabelService();
 
         foreach ($this->occupationQuery($tree)->select(['i_id AS xref', 'i_gedcom AS gedcom'])->get() as $row) {
             $individual = Registry::individualFactory()->make($row->xref, $tree, $row->gedcom);
@@ -267,7 +269,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'type'           => trim($fact->attribute('TYPE')),
                     'note'           => trim($fact->attribute('NOTE')),
                     'sources'        => $source_data['names'],
-                    'normalizations' => $this->normalizationLabels($normalizer->normalize($occupation)),
+                    'normalizations' => $label_service->labelsForOccupation($occupation),
                 ]);
             }
         }
@@ -541,62 +543,4 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         ), 'success');
     }
 
-    /**
-     * @param list<array{part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string}> $entries
-     *
-     * @return list<array{label:string,title:string,status:string}>
-     */
-    private function normalizationLabels(array $entries): array
-    {
-        $labels = [];
-
-        foreach ($entries as $entry) {
-            $title_parts = [];
-
-            if ($entry['social_status'] !== '') {
-                $title_parts[] = I18N::translate('Social status') . ': ' . $entry['social_status'];
-            }
-
-            if ($entry['occupation_normalized'] !== '') {
-                $title_parts[] = MoreI18N::xlate('Occupation') . ': ' . $entry['occupation_normalized'];
-            }
-
-            if ($entry['office'] !== '') {
-                $title_parts[] = I18N::translate('Office') . ': ' . $entry['office'];
-            }
-
-            if ($entry['qualification'] !== '') {
-                $title_parts[] = I18N::translate('Qualification') . ': ' . $entry['qualification'];
-            }
-
-            if ($entry['code'] !== '') {
-                $title_parts[] = I18N::translate('Code') . ': ' . $entry['code'];
-            }
-
-            $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
-            $title_parts[] = I18N::translate('Rules') . ': ' . $entry['rule_numbers'];
-
-            $labels[] = [
-                'label'  => $this->normalizationLabel($entry),
-                'title'  => implode("\n", $title_parts),
-                'status' => $entry['status'],
-            ];
-        }
-
-        return $labels;
-    }
-
-    /**
-     * @param array{part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string} $entry
-     */
-    private function normalizationLabel(array $entry): string
-    {
-        foreach (['occupation_normalized', 'social_status', 'office', 'qualification', 'code'] as $key) {
-            if ($entry[$key] !== '') {
-                return $entry[$key];
-            }
-        }
-
-        return $entry['original_part_text'];
-    }
 }
