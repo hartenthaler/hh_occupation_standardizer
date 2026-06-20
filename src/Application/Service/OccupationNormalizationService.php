@@ -16,6 +16,7 @@ final class OccupationNormalizationService
 {
     public const STATUS_RECOGNIZED = 'recognized';
     public const STATUS_UNCLEAR = 'unclear';
+    public const STATUS_IGNORED = 'ignored';
 
     private const SOCIAL_STATUS = [
         'bürger' => 'Bürger',

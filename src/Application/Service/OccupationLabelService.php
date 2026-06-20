@@ -24,6 +24,16 @@ final class OccupationLabelService
      *
      * @return list<array{label:string,title:string,status:string}>
      */
+    public function labelsForEntries(array $entries): array
+    {
+        return $this->labels($entries);
+    }
+
+    /**
+     * @param list<array{part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string}> $entries
+     *
+     * @return list<array{label:string,title:string,status:string}>
+     */
     private function labels(array $entries): array
     {
         $labels = [];

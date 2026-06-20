@@ -39,6 +39,8 @@ The module does not change GEDCOM data in this milestone.
 
 The second milestone adds first automatic normalization suggestions. These suggestions are stored in a module-specific database table, one entry per detected occupation part. The GEDCOM data remains unchanged.
 
+Managers and administrators can edit the stored normalization entries directly in the occupation list. Saving a correction does not automatically mark the entry as reviewed; the reviewed flag is an explicit decision. Manual changes are kept in the module table and do not modify GEDCOM data.
+
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
 
 ## Scope
