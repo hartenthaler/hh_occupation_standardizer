@@ -29,3 +29,79 @@ msgstr "Diese Liste zeigt die ursprünglichen Berufsangaben."
 
 msgid "No occupation facts were found in this family tree."
 msgstr "In diesem Stammbaum wurden keine Berufsangaben gefunden."
+
+msgid "Planned functionality"
+msgstr "Geplante Funktionalität"
+
+msgid "This module is being prepared to analyze, normalize, and classify historical occupation entries."
+msgstr "Dieses Modul wird vorbereitet, um historische Berufsangaben zu analysieren, zu normalisieren und zu klassifizieren."
+
+msgid "Occupation standardization tables"
+msgstr "Tabellen zur Vereinheitlichung von Berufsangaben"
+
+msgid "No occupation standardization table data exists yet."
+msgstr "Es gibt noch keine Tabellendaten zur Vereinheitlichung von Berufsangaben."
+
+msgid "Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed."
+msgstr "Verwalter können die Tabellendaten zur Vereinheitlichung von Berufsangaben für einen Stammbaum löschen. GEDCOM-Daten werden nicht geändert."
+
+msgid "Family tree"
+msgstr "Stammbaum"
+
+msgid "Entries"
+msgstr "Einträge"
+
+msgid "Active"
+msgstr "Aktiv"
+
+msgid "Inactive"
+msgstr "Inaktiv"
+
+msgid "Reviewed"
+msgstr "Geprüft"
+
+msgid "Do you really want to delete the occupation standardization table data for the selected family tree?"
+msgstr "Sollen die Tabellendaten zur Vereinheitlichung von Berufsangaben für den ausgewählten Stammbaum wirklich gelöscht werden?"
+
+msgid "%s entry"
+msgid_plural "%s entries"
+msgstr[0] "%s Eintrag"
+msgstr[1] "%s Einträge"
+
+msgid "Yes, delete the occupation standardization table data for the selected family tree."
+msgstr "Ja, die Tabellendaten zur Vereinheitlichung von Berufsangaben für den ausgewählten Stammbaum löschen."
+
+msgid "Delete table data"
+msgstr "Tabellendaten löschen"
+
+msgid "There is no occupation standardization table to delete."
+msgstr "Es gibt keine Tabelle zur Vereinheitlichung von Berufsangaben, die gelöscht werden kann."
+
+msgid "The table was not deleted because the confirmation was missing or the selected tree was invalid."
+msgstr "Die Tabelle wurde nicht gelöscht, weil die Bestätigung fehlt oder der ausgewählte Stammbaum ungültig ist."
+
+msgid "Deleted %s occupation standardization entry."
+msgid_plural "Deleted %s occupation standardization entries."
+msgstr[0] "%s Eintrag zur Vereinheitlichung von Berufsangaben wurde gelöscht."
+msgstr[1] "%s Einträge zur Vereinheitlichung von Berufsangaben wurden gelöscht."
+
+msgid "Social status"
+msgstr "Stand"
+
+msgid "Office"
+msgstr "Amt"
+
+msgid "Qualification"
+msgstr "Qualifikation"
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Rules"
+msgstr "Regeln"
+
+msgid "recognized"
+msgstr "erkannt"
+
+msgid "unclear"
+msgstr "unklar"

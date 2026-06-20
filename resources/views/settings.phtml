@@ -9,6 +9,7 @@ use Fisharebest\Webtrees\I18N;
 /**
  * @var string $title
  * @var string $description
+ * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
  */
 ?>
 
@@ -27,5 +28,87 @@ use Fisharebest\Webtrees\I18N;
         <p>
             <?= I18N::translate('This module is being prepared to analyze, normalize, and classify historical occupation entries.') ?>
         </p>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h2 class="h4"><?= I18N::translate('Occupation standardization tables') ?></h2>
+
+        <?php if ($treeStatistics === []) : ?>
+            <p class="alert alert-info">
+                <?= I18N::translate('No occupation standardization table data exists yet.') ?>
+            </p>
+        <?php else : ?>
+            <p>
+                <?= I18N::translate('Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed.') ?>
+            </p>
+
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th><?= I18N::translate('Family tree') ?></th>
+                        <th class="text-end"><?= I18N::translate('Entries') ?></th>
+                        <th class="text-end"><?= I18N::translate('Active') ?></th>
+                        <th class="text-end"><?= I18N::translate('Inactive') ?></th>
+                        <th class="text-end"><?= I18N::translate('Reviewed') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($treeStatistics as $statistics) : ?>
+                        <tr>
+                            <td>
+                                <?= e($statistics['tree_title']) ?>
+                                <span class="text-muted">(<?= e($statistics['tree_name']) ?>)</span>
+                            </td>
+                            <td class="text-end"><?= I18N::number($statistics['total_entries']) ?></td>
+                            <td class="text-end"><?= I18N::number($statistics['active_entries']) ?></td>
+                            <td class="text-end"><?= I18N::number($statistics['inactive_entries']) ?></td>
+                            <td class="text-end"><?= I18N::number($statistics['reviewed_entries']) ?></td>
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+
+            <form method="post" onsubmit="return window.confirm(this.dataset.confirm)" data-confirm="<?= e(I18N::translate('Do you really want to delete the occupation standardization table data for the selected family tree?')) ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="task" value="deleteTreeTable">
+
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label" for="treeId">
+                        <?= I18N::translate('Family tree') ?>
+                    </label>
+                    <div class="col-sm-9">
+                        <select class="form-select" id="treeId" name="treeId">
+                            <?php foreach ($treeStatistics as $statistics) : ?>
+                                <option value="<?= e((string) $statistics['tree_id']) ?>">
+                                    <?= e($statistics['tree_title']) ?>
+                                    (<?= I18N::plural('%s entry', '%s entries', $statistics['total_entries'], I18N::number($statistics['total_entries'])) ?>)
+                                </option>
+                            <?php endforeach ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-9 offset-sm-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" name="confirmDelete" value="1" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                <?= I18N::translate('Yes, delete the occupation standardization table data for the selected family tree.') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-9 offset-sm-3">
+                        <button type="submit" class="btn btn-danger">
+                            <?= I18N::translate('Delete table data') ?>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        <?php endif ?>
     </div>
 </div>

@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 
 /**
- * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>}> $rows
+ * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>}> $rows
  * @var string $title
  * @var Tree   $tree
  */
@@ -46,7 +46,16 @@ use Illuminate\Support\Collection;
             <tbody>
                 <?php foreach ($rows as $row) : ?>
                     <tr>
-                        <td data-sort="<?= e($row['occupation']) ?>"><bdi><?= e($row['occupation']) ?></bdi></td>
+                        <td data-sort="<?= e($row['occupation']) ?>">
+                            <bdi><?= e($row['occupation']) ?></bdi>
+                            <?php foreach ($row['normalizations'] as $normalization) : ?>
+                                <?php if ($normalization['label'] !== '') : ?>
+                                    <span class="badge bg-secondary ms-1" title="<?= e($normalization['title']) ?>">
+                                        <?= e($normalization['label']) ?>
+                                    </span>
+                                <?php endif ?>
+                            <?php endforeach ?>
+                        </td>
                         <td data-sort="<?= e($row['individual']->sortName()) ?>">
                             <a href="<?= e($row['individual']->url()) ?>"><?= $row['individual']->fullName() ?></a>
                         </td>
