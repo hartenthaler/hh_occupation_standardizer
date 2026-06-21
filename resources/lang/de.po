@@ -181,6 +181,18 @@ msgstr "Normalisierung"
 msgid "Original part"
 msgstr "Originalteil"
 
+msgid "Copied OCCU context fields"
+msgstr "Kopierte OCCU-Kontextfelder"
+
+msgid "These values are copied into the module table only. Editing them does not change GEDCOM data."
+msgstr "Diese Werte werden nur in die Modultabelle kopiert. Eine Bearbeitung ändert keine GEDCOM-Daten."
+
+msgid "Location hierarchy"
+msgstr "Ortshierarchie"
+
+msgid "Source XREFs"
+msgstr "Quellen-XREFs"
+
 msgid "Normalized occupation"
 msgstr "Normierter Beruf"
 

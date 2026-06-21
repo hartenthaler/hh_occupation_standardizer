@@ -301,7 +301,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}>
      */
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
@@ -429,7 +429,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>>
+     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>>
      */
     private function normalizationRowsByFact(Tree $tree): array
     {
@@ -448,6 +448,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'entry_key'             => (string) $entry->entry_key,
                     'part_index'            => (int) $entry->part_index,
                     'original_part_text'    => (string) $entry->original_part_text,
+                    'date'                  => (string) ($entry->date ?? ''),
+                    'place'                 => (string) ($entry->place ?? ''),
+                    'location_xref'         => (string) ($entry->location_xref ?? ''),
+                    'location_hierarchy'    => (string) ($entry->location_hierarchy ?? ''),
+                    'employer'              => (string) ($entry->employer ?? ''),
+                    'type'                  => (string) ($entry->type ?? ''),
+                    'note'                  => (string) ($entry->note ?? ''),
+                    'source_xrefs'          => (string) ($entry->source_xrefs ?? ''),
+                    'source_names'          => (string) ($entry->source_names ?? ''),
                     'language'              => (string) ($entry->language ?? ''),
                     'social_status'         => (string) ($entry->social_status ?? ''),
                     'occupation_normalized' => (string) ($entry->occupation_normalized ?? ''),
@@ -492,6 +501,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->where('entry_key', '=', $entry_key)
             ->where('is_active', '=', true)
             ->update([
+                'date'                  => trim((string) ($params['date'] ?? '')),
+                'place'                 => trim((string) ($params['place'] ?? '')),
+                'location_xref'         => trim((string) ($params['locationXref'] ?? '')),
+                'location_hierarchy'    => trim((string) ($params['locationHierarchy'] ?? '')),
+                'employer'              => trim((string) ($params['employer'] ?? '')),
+                'type'                  => trim((string) ($params['type'] ?? '')),
+                'note'                  => trim((string) ($params['note'] ?? '')),
+                'source_xrefs'          => trim((string) ($params['sourceXrefs'] ?? '')),
+                'source_names'          => trim((string) ($params['sourceNames'] ?? '')),
                 'language'              => trim((string) ($params['language'] ?? '')),
                 'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
                 'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
@@ -634,7 +652,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->first();
 
         if ($existing !== null) {
-            $values = $context;
+            $values = [
+                'is_active'    => true,
+                'last_seen_at' => $now,
+                'updated_at'   => $now,
+            ];
+
+            if (!(bool) ($existing->manually_changed ?? false)) {
+                $values += $context;
+            }
 
             if (!(bool) $existing->reviewed && !(bool) ($existing->manually_changed ?? false)) {
                 $values += $this->automaticNormalizationValues($entry);

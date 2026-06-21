@@ -91,7 +91,8 @@ Synchronization is incremental:
 - A tree-level fingerprint of all current `INDI:OCCU` facts is stored in module metadata.
 - If the fingerprint has not changed, no database synchronization is performed.
 - If it has changed, current OCCU parts are inserted or updated by their stable entry key.
-- Manual normalization fields are updated only while an entry is not yet marked as reviewed.
+- Automatic normalization fields are updated only while an entry is not yet marked as reviewed or manually changed.
+- Copied context fields are updated only while an entry is not manually changed.
 - Entries that no longer correspond to a current OCCU part are marked inactive instead of being deleted.
 
 This preserves later review decisions and manual corrections while still reacting to added, changed, or deleted OCCU facts.

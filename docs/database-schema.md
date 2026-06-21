@@ -198,8 +198,10 @@ the module scans current `INDI:OCCU` facts and upserts rows in
 
 Automatic synchronization updates copied context fields and automatic
 normalization values only while an entry is neither reviewed nor manually
-changed. This allows a manager to save partial edits without losing them during
-the next synchronization.
+changed. Once a manager edits an entry, copied context fields such as date,
+place, employer, TYPE, NOTE, and source references are protected from later
+automatic overwrites. This allows a manager to save partial edits without
+losing them during the next synchronization.
 
 If an `OCCU` fact or split part disappears, the corresponding row is marked
 inactive. It is not immediately deleted.

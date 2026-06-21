@@ -15,7 +15,7 @@ $externalIdentifierService = new ExternalIdentifierService();
 /**
  * @var bool $canManageNormalization
  * @var array<string,string> $languageOptions
- * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
+ * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
  * @var list<string> $statusOptions
  * @var string       $title
  * @var Tree         $tree
@@ -97,6 +97,54 @@ $externalIdentifierService = new ExternalIdentifierService();
                                         </div>
 
                                         <div class="row g-1 align-items-end">
+                                            <div class="col-12">
+                                                <details class="border rounded p-2 mb-1">
+                                                    <summary class="small fw-bold">
+                                                        <?= I18N::translate('Copied OCCU context fields') ?>
+                                                    </summary>
+                                                    <p class="small text-muted mt-2 mb-2">
+                                                        <?= I18N::translate('These values are copied into the module table only. Editing them does not change GEDCOM data.') ?>
+                                                    </p>
+                                                    <div class="row g-1 align-items-end">
+                                                        <div class="col-12 col-xl-4">
+                                                            <label class="form-label small mb-0"><?= MoreI18N::xlate('Date') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="date" value="<?= e($entry['date']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-4">
+                                                            <label class="form-label small mb-0"><?= MoreI18N::xlate('Place') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="place" value="<?= e($entry['place']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-4">
+                                                            <label class="form-label small mb-0">_LOC</label>
+                                                            <input class="form-control form-control-sm" type="text" name="locationXref" value="<?= e($entry['location_xref']) ?>">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label small mb-0"><?= I18N::translate('Location hierarchy') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="locationHierarchy" value="<?= e($entry['location_hierarchy']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-4">
+                                                            <label class="form-label small mb-0"><?= MoreI18N::xlate('Employer') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="employer" value="<?= e($entry['employer']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-4">
+                                                            <label class="form-label small mb-0"><?= MoreI18N::xlate('Type') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="type" value="<?= e($entry['type']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-4">
+                                                            <label class="form-label small mb-0"><?= MoreI18N::xlate('Note') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="note" value="<?= e($entry['note']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-6">
+                                                            <label class="form-label small mb-0"><?= I18N::translate('Source XREFs') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="sourceXrefs" value="<?= e($entry['source_xrefs']) ?>">
+                                                        </div>
+                                                        <div class="col-12 col-xl-6">
+                                                            <label class="form-label small mb-0"><?= MoreI18N::xlate('Sources') ?></label>
+                                                            <input class="form-control form-control-sm" type="text" name="sourceNames" value="<?= e($entry['source_names']) ?>">
+                                                        </div>
+                                                    </div>
+                                                </details>
+                                            </div>
                                             <div class="col-12 col-xl-6">
                                                 <label class="form-label small mb-0"><?= I18N::translate('Language') ?></label>
                                                 <?= view('components/select', [
