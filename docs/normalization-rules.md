@@ -61,7 +61,6 @@ The table can store:
 - normalized occupation
 - social status
 - qualification
-- local code
 - HISCO code
 - GND identifier
 - OhdAB identifier

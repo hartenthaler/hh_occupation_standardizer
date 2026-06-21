@@ -10,9 +10,11 @@ use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\FlashMessages;
+use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Http\Exceptions\HttpAccessDeniedException;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Location;
 use Fisharebest\Webtrees\Menu;
 use Fisharebest\Webtrees\Module\AbstractModule;
 use Fisharebest\Webtrees\Module\ModuleConfigInterface;
@@ -44,13 +46,18 @@ use Psr\Http\Server\RequestHandlerInterface;
 use function array_map;
 use function array_values;
 use function array_filter;
+use function array_unique;
 use function assert;
 use function class_exists;
 use function date;
+use function explode;
 use function file_exists;
 use function implode;
 use function in_array;
+use function is_array;
+use function method_exists;
 use function preg_match_all;
+use function preg_match;
 use function route;
 use function sha1;
 use function strip_tags;
@@ -70,6 +77,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const ROUTE_URL = '/tree/{tree}/occupation-standardizer';
     private const FINGERPRINT_PREFIX = 'tree_occu_';
     private const TASK_SAVE_NORMALIZATION_ENTRY = 'saveNormalizationEntry';
+    private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
+    private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
+    private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
     private const NORMALIZATION_STATUSES = [
         OccupationNormalizationService::STATUS_RECOGNIZED,
         OccupationNormalizationService::STATUS_UNCLEAR,
@@ -148,6 +158,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $this->layout = Webtrees::LAYOUT_ADMINISTRATION;
 
         return $this->viewResponse($this->name() . '::settings', [
+            'builtinRules'       => $this->builtinRuleRows(),
             'description'        => $this->description(),
             'languageOptions'    => $this->languageOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
@@ -166,6 +177,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $this->layout = Webtrees::LAYOUT_ADMINISTRATION;
 
         $params = (array) $request->getParsedBody();
+
+        if ((string) ($params['task'] ?? '') === self::TASK_SAVE_BUILTIN_RULES) {
+            $this->saveBuiltinRuleSettings($params);
+        }
 
         if ((string) ($params['task'] ?? '') === 'deleteTreeTable') {
             $this->deleteNormalizationRowsForTree($params);
@@ -269,12 +284,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>}>
      */
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
         $rows = new Collection();
-        $label_service = new OccupationLabelService();
+        $label_service = new OccupationLabelService($this->activeBuiltinRuleOrder());
         $normalization_rows_by_fact = $can_manage_normalization ? $this->normalizationRowsByFact($tree) : [];
 
         foreach ($this->occupationQuery($tree)->select(['i_id AS xref', 'i_gedcom AS gedcom'])->get() as $row) {
@@ -298,7 +313,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     continue;
                 }
 
-                $place = $fact->place();
+                $place_data = $this->placeData($fact);
                 $source_data = $this->sourceData($fact);
                 $normalization_entries = $normalization_rows_by_fact[$fact->id()] ?? [];
 
@@ -306,8 +321,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'occupation'           => $occupation,
                     'individual'           => $individual,
                     'date'                 => $fact->date()->display(),
-                    'place'                => $place->gedcomName() !== '' ? $place->shortName() : '',
-                    'place_sort'           => $place->gedcomName(),
+                    'place'                => $place_data['display'],
+                    'place_sort'           => $place_data['sort'],
                     'employer'             => trim($fact->attribute('AGNC')),
                     'type'                 => trim($fact->attribute('TYPE')),
                     'note'                 => trim($fact->attribute('NOTE')),
@@ -324,13 +339,80 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         })->values();
     }
 
+    /**
+     * @return array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string}
+     */
+    private function placeData(Fact $fact): array
+    {
+        $place = $fact->place();
+        $place_name = $place->gedcomName();
+        $location_xref = $this->locationXref($fact);
+        $location_hierarchy = $this->locationHierarchy($fact, $location_xref);
+
+        if ($location_hierarchy !== '') {
+            return [
+                'display'            => '<span title="' . e($place_name) . '">' . e($location_hierarchy) . '</span>',
+                'sort'               => $location_hierarchy,
+                'place'              => $place_name,
+                'location_xref'      => $location_xref,
+                'location_hierarchy' => $location_hierarchy,
+            ];
+        }
+
+        return [
+            'display'            => $place_name !== '' ? $place->shortName() : '',
+            'sort'               => $place_name,
+            'place'              => $place_name,
+            'location_xref'      => $location_xref,
+            'location_hierarchy' => '',
+        ];
+    }
+
+    private function locationXref(Fact $fact): string
+    {
+        if (preg_match('/\n2 PLAC\b[^\n]*(?:\n[3-9].*)*/', $fact->gedcom(), $place_match) !== 1) {
+            return '';
+        }
+
+        if (preg_match('/\n3 _LOC @(' . Gedcom::REGEX_XREF . ')@/', $place_match[0], $loc_match) !== 1) {
+            return '';
+        }
+
+        return $loc_match[1];
+    }
+
+    private function locationHierarchy(Fact $fact, string $location_xref): string
+    {
+        if ($location_xref === '') {
+            return '';
+        }
+
+        $location = Registry::locationFactory()->make($location_xref, $fact->record()->tree());
+
+        if (!$location instanceof Location || !$location->canShow()) {
+            return '';
+        }
+
+        if (method_exists($location, 'namesAsPlaceStringsAt') && class_exists(\Vesta\Model\GedcomDateInterval::class)) {
+            $date_interval = \Vesta\Model\GedcomDateInterval::create($fact->attribute('DATE'), true);
+            $names = $location->namesAsPlaceStringsAt($date_interval);
+            $name = (string) ($names->first() ?? '');
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        return trim(strip_tags($location->fullName()));
+    }
+
     private function canManageNormalization(Tree $tree): bool
     {
         return Auth::isManager($tree) || Auth::isAdmin();
     }
 
     /**
-     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>>
+     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>>
      */
     private function normalizationRowsByFact(Tree $tree): array
     {
@@ -354,7 +436,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'occupation_normalized' => (string) ($entry->occupation_normalized ?? ''),
                     'office'                => (string) ($entry->office ?? ''),
                     'qualification'         => (string) ($entry->qualification ?? ''),
-                    'code'                  => (string) ($entry->code ?? ''),
                     'code_hisco'            => (string) ($entry->code_hisco ?? ''),
                     'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                     'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
@@ -392,7 +473,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
                 'office'                => trim((string) ($params['office'] ?? '')),
                 'qualification'         => trim((string) ($params['qualification'] ?? '')),
-                'code'                  => trim((string) ($params['code'] ?? '')),
                 'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
                 'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
                 'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
@@ -445,7 +525,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
-        $normalizer = new OccupationNormalizationService($this->normalizationRules());
+        $normalizer = new OccupationNormalizationService($this->normalizationRules(), $this->activeBuiltinRuleOrder());
         $tree_language = $tree->getPreference('LANGUAGE');
         $now = date('Y-m-d H:i:s');
         $seen_keys = [];
@@ -464,12 +544,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 }
 
                 $source_data = $this->sourceData($fact);
+                $place_data = $this->placeData($fact);
 
                 foreach ($normalizer->normalize($occupation, $tree_language) as $entry) {
                     $entry_key = sha1($tree->id() . '|' . $individual->xref() . '|' . $fact->id() . '|' . $entry['part_index']);
                     $seen_keys[] = $entry_key;
 
-                    $this->syncNormalizationEntry($tree, $individual, $fact, $entry_key, $entry, $source_data, $now);
+                    $this->syncNormalizationEntry($tree, $individual, $fact, $entry_key, $entry, $source_data, $place_data, $now);
                 }
             }
         }
@@ -490,10 +571,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      * @param array{xrefs:list<string>,names:list<string>} $source_data
+     * @param array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string} $place_data
      */
-    private function syncNormalizationEntry(Tree $tree, Individual $individual, Fact $fact, string $entry_key, array $entry, array $source_data, string $now): void
+    private function syncNormalizationEntry(Tree $tree, Individual $individual, Fact $fact, string $entry_key, array $entry, array $source_data, array $place_data, string $now): void
     {
         $context = [
             'tree_id'            => $tree->id(),
@@ -503,7 +585,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'original_fact_text' => trim($fact->value()),
             'original_part_text' => $entry['original_part_text'],
             'date'               => trim($fact->attribute('DATE')),
-            'place'              => $fact->place()->gedcomName(),
+            'place'              => $place_data['place'],
+            'location_xref'      => $place_data['location_xref'],
+            'location_hierarchy' => $place_data['location_hierarchy'],
             'employer'           => trim($fact->attribute('AGNC')),
             'type'               => trim($fact->attribute('TYPE')),
             'note'               => trim($fact->attribute('NOTE')),
@@ -541,9 +625,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      *
-     * @return array{language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
+     * @return array{language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
      */
     private function automaticNormalizationValues(array $entry): array
     {
@@ -553,7 +637,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'occupation_normalized' => $entry['occupation_normalized'],
             'office'                => $entry['office'],
             'qualification'         => $entry['qualification'],
-            'code'                  => $entry['code'],
             'code_hisco'            => $entry['code_hisco'],
             'code_gnd'              => $entry['code_gnd'],
             'code_ohdab'            => $entry['code_ohdab'],
@@ -598,6 +681,152 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
+     * @return list<array{id:string,label:string,description:string,enabled:bool}>
+     */
+    private function builtinRuleRows(): array
+    {
+        $enabled_rules = $this->enabledBuiltinRuleIds();
+        $definitions = $this->builtinRuleDefinitions();
+
+        return array_map(
+            static fn (string $rule_id): array => [
+                'id'          => $rule_id,
+                'label'       => $definitions[$rule_id]['label'],
+                'description' => $definitions[$rule_id]['description'],
+                'enabled'     => in_array($rule_id, $enabled_rules, true),
+            ],
+            $this->storedBuiltinRuleOrder()
+        );
+    }
+
+    /**
+     * @return array<string,array{label:string,description:string}>
+     */
+    private function builtinRuleDefinitions(): array
+    {
+        return [
+            'M2-R001' => [
+                'label'       => I18N::translate('Split multiple statements'),
+                'description' => I18N::translate('Splits occupation facts by separators and conjunctions.'),
+            ],
+            'M2-R010' => [
+                'label'       => I18N::translate('Social status is not an occupation'),
+                'description' => I18N::translate('Recognizes social status terms such as citizen without counting them as occupations.'),
+            ],
+            'M2-R020' => [
+                'label'       => I18N::translate('Widow compounds'),
+                'description' => I18N::translate('Recognizes widow compounds as social status hints.'),
+            ],
+            'M2-R030' => [
+                'label'       => I18N::translate('Craft qualification after colon'),
+                'description' => I18N::translate('Separates craft qualifications such as master, journeyman, or apprentice after a colon.'),
+            ],
+            'M2-R031' => [
+                'label'       => I18N::translate('Compound craft qualification'),
+                'description' => I18N::translate('Separates known compound craft qualifications from the normalized occupation.'),
+            ],
+            'M2-R032' => [
+                'label'       => I18N::translate('Independent master compounds are not split'),
+                'description' => I18N::translate('Keeps independent terms such as schoolmaster or mayor as one occupation.'),
+            ],
+            'M2-R050' => [
+                'label'       => I18N::translate('Site-managed normalization mapping table'),
+                'description' => I18N::translate('Applies the locally maintained mapping table for original and normalized occupation terms.'),
+            ],
+            'M2-R090' => [
+                'label'       => I18N::translate('Fallback for unknown terms'),
+                'description' => I18N::translate('Keeps unknown terms as unclear normalized occupation proposals.'),
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function storedBuiltinRuleOrder(): array
+    {
+        return $this->completeBuiltinRuleOrder(explode(',', $this->getPreference(
+            self::BUILTIN_RULE_ORDER_PREFERENCE,
+            implode(',', OccupationNormalizationService::defaultBuiltinRuleOrder())
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function activeBuiltinRuleOrder(): array
+    {
+        $enabled_rules = $this->enabledBuiltinRuleIds();
+
+        return array_values(array_filter(
+            $this->storedBuiltinRuleOrder(),
+            static fn (string $rule_id): bool => in_array($rule_id, $enabled_rules, true)
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function enabledBuiltinRuleIds(): array
+    {
+        return array_values(array_filter(
+            OccupationNormalizationService::defaultBuiltinRuleOrder(),
+            fn (string $rule_id): bool => $this->getPreference(self::BUILTIN_RULE_STATUS_PREFIX . $rule_id, '1') === '1'
+        ));
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function saveBuiltinRuleSettings(array $params): void
+    {
+        $order = (string) ($params['resetBuiltinRuleOrder'] ?? '') === '1'
+            ? OccupationNormalizationService::defaultBuiltinRuleOrder()
+            : $this->completeBuiltinRuleOrder(is_array($params['builtinRuleOrder'] ?? null) ? $params['builtinRuleOrder'] : []);
+
+        $this->setPreference(self::BUILTIN_RULE_ORDER_PREFERENCE, implode(',', $order));
+
+        foreach (OccupationNormalizationService::defaultBuiltinRuleOrder() as $rule_id) {
+            $this->setPreference(
+                self::BUILTIN_RULE_STATUS_PREFIX . $rule_id,
+                (string) ($params[self::BUILTIN_RULE_STATUS_PREFIX . $rule_id] ?? '') === '1' ? '1' : '0'
+            );
+        }
+
+        $this->clearOccupationFingerprints();
+        FlashMessages::addMessage(I18N::translate('The rule settings have been saved.'), 'success');
+    }
+
+    /**
+     * @param array<mixed> $order
+     *
+     * @return list<string>
+     */
+    private function completeBuiltinRuleOrder(array $order): array
+    {
+        $default_order = OccupationNormalizationService::defaultBuiltinRuleOrder();
+        $completed_order = [];
+
+        foreach ($order as $rule_id) {
+            $rule_id = (string) $rule_id;
+
+            if (in_array($rule_id, $default_order, true)) {
+                $completed_order[] = $rule_id;
+            }
+        }
+
+        $completed_order = array_values(array_unique($completed_order));
+
+        foreach ($default_order as $rule_id) {
+            if (!in_array($rule_id, $completed_order, true)) {
+                $completed_order[] = $rule_id;
+            }
+        }
+
+        return $completed_order;
+    }
+
+    /**
      * @return array<string,string>
      */
     private function languageOptions(): array
@@ -615,7 +844,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
+     * @return list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
      */
     private function normalizationRuleRows(): array
     {
@@ -623,18 +852,41 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return [];
         }
 
-        return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_RULES)
-            ->orderBy('language')
-            ->orderBy('original_text')
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_RULES . ' AS rules')
+            ->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', 'terms.id', '=', 'rules.normalized_term_id')
+            ->select([
+                'rules.id',
+                'rules.language',
+                'rules.original_text',
+                'rules.normalized_term_id',
+                'rules.social_status',
+                'rules.qualification',
+                'rules.enabled',
+                'terms.normalized_key',
+                'terms.occupation_de_male',
+                'terms.occupation_de_female',
+                'terms.occupation_en_male',
+                'terms.occupation_en_female',
+                'terms.code_hisco',
+                'terms.code_gnd',
+                'terms.code_ohdab',
+            ])
+            ->orderBy('rules.language')
+            ->orderBy('rules.original_text')
             ->get()
             ->map(static fn (object $row): array => [
                 'id'                    => (int) $row->id,
                 'language'              => (string) $row->language,
                 'original_text'         => (string) $row->original_text,
+                'normalized_term_id'    => (int) ($row->normalized_term_id ?? 0),
+                'normalized_key'        => (string) ($row->normalized_key ?? ''),
+                'occupation_de_male'    => (string) ($row->occupation_de_male ?? ''),
+                'occupation_de_female'  => (string) ($row->occupation_de_female ?? ''),
+                'occupation_en_male'    => (string) ($row->occupation_en_male ?? ''),
+                'occupation_en_female'  => (string) ($row->occupation_en_female ?? ''),
                 'social_status'         => (string) ($row->social_status ?? ''),
-                'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
+                'occupation_normalized' => (string) ($row->occupation_de_male ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
-                'code'                  => (string) ($row->code ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
@@ -644,7 +896,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
      */
     private function normalizationRules(): array
     {
@@ -655,7 +907,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'social_status'         => $rule['social_status'],
                 'occupation_normalized' => $rule['occupation_normalized'],
                 'qualification'         => $rule['qualification'],
-                'code'                  => $rule['code'],
                 'code_hisco'            => $rule['code_hisco'],
                 'code_gnd'              => $rule['code_gnd'],
                 'code_ohdab'            => $rule['code_ohdab'],
@@ -675,6 +926,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $id = (int) ($params['ruleId'] ?? 0);
         $original_text = trim((string) ($params['originalText'] ?? ''));
         $language = trim((string) ($params['language'] ?? ''));
+        $normalized_key = trim((string) ($params['normalizedKey'] ?? ''));
+
+        if ($normalized_key === '') {
+            $normalized_key = trim((string) ($params['occupationDeMale'] ?? ''));
+        }
 
         if ($original_text === '' || $language === '') {
             FlashMessages::addMessage(I18N::translate('The normalization rule was not saved because language or original text is missing.'), 'warning');
@@ -682,16 +938,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
+        $normalized_term_id = $this->saveNormalizationTerm($normalized_key, $params);
+
         $values = [
             'language'              => $language,
             'original_text'         => $original_text,
+            'normalized_term_id'    => $normalized_term_id > 0 ? $normalized_term_id : null,
             'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
-            'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
             'qualification'         => trim((string) ($params['qualification'] ?? '')),
-            'code'                  => trim((string) ($params['code'] ?? '')),
-            'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
-            'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
-            'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
             'enabled'               => (string) ($params['enabled'] ?? '') === '1',
             'updated_at'            => date('Y-m-d H:i:s'),
         ];
@@ -712,6 +966,36 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $this->clearOccupationFingerprints();
         FlashMessages::addMessage(I18N::translate('The normalization rule has been saved.'), 'success');
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function saveNormalizationTerm(string $normalized_key, array $params): int
+    {
+        if ($normalized_key === '') {
+            return 0;
+        }
+
+        DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)->updateOrInsert(
+            ['normalized_key' => $normalized_key],
+            [
+                'occupation_de_male'   => trim((string) ($params['occupationDeMale'] ?? '')) !== '' ? trim((string) ($params['occupationDeMale'] ?? '')) : $normalized_key,
+                'occupation_de_female' => trim((string) ($params['occupationDeFemale'] ?? '')),
+                'occupation_en_male'   => trim((string) ($params['occupationEnMale'] ?? '')),
+                'occupation_en_female' => trim((string) ($params['occupationEnFemale'] ?? '')),
+                'code_hisco'           => trim((string) ($params['codeHisco'] ?? '')),
+                'code_gnd'             => trim((string) ($params['codeGnd'] ?? '')),
+                'code_ohdab'           => trim((string) ($params['codeOhdab'] ?? '')),
+                'updated_at'           => date('Y-m-d H:i:s'),
+            ]
+        );
+
+        $term = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->where('normalized_key', '=', $normalized_key)
+            ->first();
+
+        return $term === null ? 0 : (int) $term->id;
     }
 
     /**

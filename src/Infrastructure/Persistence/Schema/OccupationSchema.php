@@ -6,11 +6,14 @@ namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Per
 
 use Illuminate\Database\Capsule\Manager as DB;
 
+use function date;
+
 final class OccupationSchema
 {
     public const TABLE_METADATA = 'occupation_standardizer_metadata';
     public const TABLE_NORMALIZED_ENTRIES = 'occupation_standardizer_entries';
     public const TABLE_NORMALIZATION_RULES = 'occupation_standardizer_rules';
+    public const TABLE_NORMALIZATION_TERMS = 'occupation_standardizer_terms';
 
     public function ensureSchema(): void
     {
@@ -33,6 +36,8 @@ final class OccupationSchema
                 $table->text('original_part_text');
                 $table->string('date', 255)->nullable();
                 $table->text('place')->nullable();
+                $table->string('location_xref', 32)->nullable();
+                $table->text('location_hierarchy')->nullable();
                 $table->text('employer')->nullable();
                 $table->text('type')->nullable();
                 $table->text('note')->nullable();
@@ -43,7 +48,6 @@ final class OccupationSchema
                 $table->string('occupation_normalized', 255)->nullable();
                 $table->string('office', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
-                $table->string('code', 64)->nullable();
                 $table->string('code_hisco', 64)->nullable();
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();
@@ -69,18 +73,36 @@ final class OccupationSchema
                 $table->increments('id');
                 $table->string('language', 35);
                 $table->string('original_text', 255);
+                $table->integer('normalized_term_id')->nullable();
                 $table->string('social_status', 255)->nullable();
-                $table->string('occupation_normalized', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
-                $table->string('code', 64)->nullable();
-                $table->string('code_hisco', 64)->nullable();
-                $table->string('code_gnd', 64)->nullable();
-                $table->string('code_ohdab', 64)->nullable();
                 $table->boolean('enabled')->default(true);
                 $table->timestamp('created_at')->useCurrent();
                 $table->timestamp('updated_at')->nullable();
 
                 $table->unique(['language', 'original_text'], 'idx_occ_std_rule_text');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_NORMALIZATION_TERMS)) {
+            DB::schema()->create(self::TABLE_NORMALIZATION_TERMS, static function ($table): void {
+                $table->increments('id');
+                $table->string('normalized_key', 255)->unique();
+                $table->string('occupation_de_male', 255)->nullable();
+                $table->string('occupation_de_female', 255)->nullable();
+                $table->string('occupation_en_male', 255)->nullable();
+                $table->string('occupation_en_female', 255)->nullable();
+                $table->string('code_hisco', 64)->nullable();
+                $table->string('code_gnd', 64)->nullable();
+                $table->string('code_ohdab', 64)->nullable();
+                $table->timestamp('created_at')->useCurrent();
+                $table->timestamp('updated_at')->nullable();
+            });
+        }
+
+        if (!DB::schema()->hasColumn(self::TABLE_NORMALIZATION_RULES, 'normalized_term_id')) {
+            DB::schema()->table(self::TABLE_NORMALIZATION_RULES, static function ($table): void {
+                $table->integer('normalized_term_id')->nullable();
             });
         }
 
@@ -98,16 +120,23 @@ final class OccupationSchema
         }
 
         foreach ([
-            'language'   => 35,
-            'code_hisco' => 64,
-            'code_gnd'   => 64,
-            'code_ohdab' => 64,
+            'language'      => 35,
+            'location_xref' => 32,
+            'code_hisco'    => 64,
+            'code_gnd'      => 64,
+            'code_ohdab'    => 64,
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table) use ($column, $length): void {
                     $table->string($column, $length)->nullable();
                 });
             }
+        }
+
+        if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'location_hierarchy')) {
+            DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table): void {
+                $table->text('location_hierarchy')->nullable();
+            });
         }
 
         if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'last_seen_at')) {
@@ -122,12 +151,25 @@ final class OccupationSchema
     private function seedDefaultNormalizationRules(): void
     {
         foreach ([
-            ['language' => 'de', 'original_text' => 'Ärztin', 'occupation_normalized' => 'Arzt'],
-            ['language' => 'de', 'original_text' => 'Beck', 'occupation_normalized' => 'Bäcker'],
-            ['language' => 'de', 'original_text' => 'Kieffer', 'occupation_normalized' => 'Küfer'],
-            ['language' => 'de', 'original_text' => 'Orgelbauerin', 'occupation_normalized' => 'Orgelbauer'],
-            ['language' => 'de', 'original_text' => 'Schuster', 'occupation_normalized' => 'Schuhmacher'],
+            ['language' => 'de', 'original_text' => 'Ärztin', 'occupation_normalized' => 'Arzt', 'occupation_de_female' => 'Ärztin'],
+            ['language' => 'de', 'original_text' => 'Beck', 'occupation_normalized' => 'Bäcker', 'occupation_de_female' => 'Bäckerin'],
+            ['language' => 'de', 'original_text' => 'Kieffer', 'occupation_normalized' => 'Küfer', 'occupation_de_female' => 'Küferin'],
+            ['language' => 'de', 'original_text' => 'Orgelbauerin', 'occupation_normalized' => 'Orgelbauer', 'occupation_de_female' => 'Orgelbauerin'],
+            ['language' => 'de', 'original_text' => 'Schuster', 'occupation_normalized' => 'Schuhmacher', 'occupation_de_female' => 'Schuhmacherin'],
         ] as $rule) {
+            DB::table(self::TABLE_NORMALIZATION_TERMS)->updateOrInsert(
+                ['normalized_key' => $rule['occupation_normalized']],
+                [
+                    'occupation_de_male'   => $rule['occupation_normalized'],
+                    'occupation_de_female' => $rule['occupation_de_female'],
+                    'updated_at'           => date('Y-m-d H:i:s'),
+                ]
+            );
+
+            $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
+                ->where('normalized_key', '=', $rule['occupation_normalized'])
+                ->first();
+
             $exists = DB::table(self::TABLE_NORMALIZATION_RULES)
                 ->where('language', '=', $rule['language'])
                 ->where('original_text', '=', $rule['original_text'])
@@ -135,11 +177,17 @@ final class OccupationSchema
 
             if (!$exists) {
                 DB::table(self::TABLE_NORMALIZATION_RULES)->insert([
-                    'language'              => $rule['language'],
-                    'original_text'         => $rule['original_text'],
-                    'occupation_normalized' => $rule['occupation_normalized'],
-                    'enabled'               => true,
+                    'language'           => $rule['language'],
+                    'original_text'      => $rule['original_text'],
+                    'normalized_term_id' => $term !== null ? (int) $term->id : null,
+                    'enabled'            => true,
                 ]);
+            } elseif ($term !== null) {
+                DB::table(self::TABLE_NORMALIZATION_RULES)
+                    ->where('language', '=', $rule['language'])
+                    ->where('original_text', '=', $rule['original_text'])
+                    ->whereNull('normalized_term_id')
+                    ->update(['normalized_term_id' => (int) $term->id]);
             }
         }
     }
