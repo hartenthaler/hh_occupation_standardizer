@@ -30,6 +30,9 @@ msgstr "Diese Liste zeigt die ursprünglichen Berufsangaben."
 msgid "No occupation facts were found in this family tree."
 msgstr "In diesem Stammbaum wurden keine Berufsangaben gefunden."
 
+msgid "Loading occupation list..."
+msgstr "Berufsliste wird geladen ..."
+
 msgid "Normalization rules"
 msgstr "Normalisierungsregeln"
 

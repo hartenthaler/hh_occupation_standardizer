@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Tree;
+use Fisharebest\Webtrees\View;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Support\Collection;
 
@@ -31,6 +32,11 @@ use Illuminate\Support\Collection;
             <?= I18N::translate('No occupation facts were found in this family tree.') ?>
         </p>
     <?php else : ?>
+        <div class="occupation-standardizer-loading d-flex align-items-center gap-2 alert alert-info" role="status" aria-live="polite">
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span><?= I18N::translate('Loading occupation list...') ?></span>
+        </div>
+
         <table class="table table-bordered table-sm wt-table datatables d-none"
             <?= view('lists/datatables-attributes') ?>
         >
@@ -161,4 +167,35 @@ use Illuminate\Support\Collection;
         </table>
     <?php endif ?>
 </div>
+
+<?php View::push('javascript') ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const loading = document.querySelector('.occupation-standardizer-loading');
+    const table = document.querySelector('.occupation-standardizer-loading + table.datatables');
+
+    if (loading === null || table === null) {
+        return;
+    }
+
+    const hideLoading = function () {
+        loading.classList.add('d-none');
+    };
+
+    if (window.jQuery !== undefined) {
+        window.jQuery(table).on('init.dt', hideLoading);
+    }
+
+    if (!table.classList.contains('d-none')) {
+        hideLoading();
+    }
+
+    setTimeout(function () {
+        if (!table.classList.contains('d-none')) {
+            hideLoading();
+        }
+    }, 250);
+});
+</script>
+<?php View::endpush() ?>
 
