@@ -115,6 +115,10 @@ use Fisharebest\Webtrees\View;
 
                 <div class="row g-2 align-items-end">
                     <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Original text') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="originalText" value="<?= e($rule['original_text']) ?>">
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label small mb-0"><?= I18N::translate('Language') ?></label>
                         <?= view('components/select', [
                             'id' => 'language-' . $rule['id'],
@@ -123,10 +127,6 @@ use Fisharebest\Webtrees\View;
                             'selected' => $rule['language'],
                             'class' => 'form-select-sm',
                         ]) ?>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small mb-0"><?= I18N::translate('Original text') ?></label>
-                        <input class="form-control form-control-sm" type="text" name="originalText" value="<?= e($rule['original_text']) ?>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small mb-0"><?= I18N::translate('Normalized occupation') ?></label>
@@ -180,6 +180,10 @@ use Fisharebest\Webtrees\View;
             <h3 class="h5"><?= I18N::translate('Add a normalization rule') ?></h3>
             <div class="row g-2 align-items-end">
                 <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Original text') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="originalText">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small mb-0"><?= I18N::translate('Language') ?></label>
                     <?= view('components/select', [
                         'id' => 'language-new',
@@ -188,10 +192,6 @@ use Fisharebest\Webtrees\View;
                         'selected' => 'de',
                         'class' => 'form-select-sm',
                     ]) ?>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-0"><?= I18N::translate('Original text') ?></label>
-                    <input class="form-control form-control-sm" type="text" name="originalText">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0"><?= I18N::translate('Normalized occupation') ?></label>
