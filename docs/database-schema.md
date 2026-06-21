@@ -73,7 +73,6 @@ written back to GEDCOM by the module.
 | `occupation_normalized` | `string(255)` nullable | Normalized occupation label shown as the main badge when present. |
 | `office` | `string(255)` nullable | Office or honorary office, separated from occupation. |
 | `qualification` | `string(255)` nullable | Qualification or craft grade such as `Meister`, `Geselle`, or `Lehrling`. |
-| `code` | `string(64)` nullable | Local or generic code. |
 | `code_hisco` | `string(64)` nullable | HISCO code. |
 | `code_gnd` | `string(64)` nullable | GND identifier. |
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier. |
@@ -124,7 +123,6 @@ The first seeded German examples are:
 | `social_status` | `string(255)` nullable | Social status to set. |
 | `occupation_normalized` | `string(255)` nullable | Normalized occupation to set. |
 | `qualification` | `string(255)` nullable | Qualification to set. |
-| `code` | `string(64)` nullable | Local or generic code to set. |
 | `code_hisco` | `string(64)` nullable | HISCO code to set. |
 | `code_gnd` | `string(64)` nullable | GND identifier to set. |
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier to set. |

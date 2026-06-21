@@ -273,7 +273,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>}>
      */
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
@@ -401,7 +401,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>>
+     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>>
      */
     private function normalizationRowsByFact(Tree $tree): array
     {
@@ -425,7 +425,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'occupation_normalized' => (string) ($entry->occupation_normalized ?? ''),
                     'office'                => (string) ($entry->office ?? ''),
                     'qualification'         => (string) ($entry->qualification ?? ''),
-                    'code'                  => (string) ($entry->code ?? ''),
                     'code_hisco'            => (string) ($entry->code_hisco ?? ''),
                     'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                     'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
@@ -463,7 +462,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
                 'office'                => trim((string) ($params['office'] ?? '')),
                 'qualification'         => trim((string) ($params['qualification'] ?? '')),
-                'code'                  => trim((string) ($params['code'] ?? '')),
                 'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
                 'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
                 'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
@@ -562,7 +560,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      * @param array{xrefs:list<string>,names:list<string>} $source_data
      * @param array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string} $place_data
      */
@@ -616,9 +614,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      *
-     * @return array{language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
+     * @return array{language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
      */
     private function automaticNormalizationValues(array $entry): array
     {
@@ -628,7 +626,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'occupation_normalized' => $entry['occupation_normalized'],
             'office'                => $entry['office'],
             'qualification'         => $entry['qualification'],
-            'code'                  => $entry['code'],
             'code_hisco'            => $entry['code_hisco'],
             'code_gnd'              => $entry['code_gnd'],
             'code_ohdab'            => $entry['code_ohdab'],
@@ -690,7 +687,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
+     * @return list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
      */
     private function normalizationRuleRows(): array
     {
@@ -709,7 +706,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'social_status'         => (string) ($row->social_status ?? ''),
                 'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
-                'code'                  => (string) ($row->code ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
@@ -719,7 +715,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
      */
     private function normalizationRules(): array
     {
@@ -730,7 +726,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'social_status'         => $rule['social_status'],
                 'occupation_normalized' => $rule['occupation_normalized'],
                 'qualification'         => $rule['qualification'],
-                'code'                  => $rule['code'],
                 'code_hisco'            => $rule['code_hisco'],
                 'code_gnd'              => $rule['code_gnd'],
                 'code_ohdab'            => $rule['code_ohdab'],
@@ -763,7 +758,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
             'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
             'qualification'         => trim((string) ($params['qualification'] ?? '')),
-            'code'                  => trim((string) ($params['code'] ?? '')),
             'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
             'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
             'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),

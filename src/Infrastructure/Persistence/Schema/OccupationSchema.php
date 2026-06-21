@@ -45,7 +45,6 @@ final class OccupationSchema
                 $table->string('occupation_normalized', 255)->nullable();
                 $table->string('office', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
-                $table->string('code', 64)->nullable();
                 $table->string('code_hisco', 64)->nullable();
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();
@@ -74,7 +73,6 @@ final class OccupationSchema
                 $table->string('social_status', 255)->nullable();
                 $table->string('occupation_normalized', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
-                $table->string('code', 64)->nullable();
                 $table->string('code_hisco', 64)->nullable();
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();

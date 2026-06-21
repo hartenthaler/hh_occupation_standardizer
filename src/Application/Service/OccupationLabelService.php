@@ -22,7 +22,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
@@ -32,7 +32,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
@@ -63,10 +63,6 @@ final class OccupationLabelService
                 $title_parts[] = I18N::translate('Qualification') . ': ' . $entry['qualification'];
             }
 
-            if ($entry['code'] !== '') {
-                $title_parts[] = I18N::translate('Code') . ': ' . $entry['code'];
-            }
-
             if (($entry['code_hisco'] ?? '') !== '') {
                 $title_parts[] = 'HISCO: ' . $entry['code_hisco'];
             }
@@ -93,11 +89,11 @@ final class OccupationLabelService
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string} $entry
      */
     private function label(array $entry): string
     {
-        foreach (['occupation_normalized', 'social_status', 'office', 'qualification', 'code'] as $key) {
+        foreach (['occupation_normalized', 'social_status', 'office', 'qualification'] as $key) {
             if ($entry[$key] !== '') {
                 return $entry[$key];
             }
@@ -107,7 +103,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
      */
     private function normalizationRules(): array
     {
@@ -124,7 +120,6 @@ final class OccupationLabelService
                 'social_status'         => (string) ($row->social_status ?? ''),
                 'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
-                'code'                  => (string) ($row->code ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
