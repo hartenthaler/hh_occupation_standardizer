@@ -7,7 +7,6 @@ namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Per
 use Illuminate\Database\Capsule\Manager as DB;
 
 use function date;
-use function trim;
 
 final class OccupationSchema
 {
@@ -76,11 +75,7 @@ final class OccupationSchema
                 $table->string('original_text', 255);
                 $table->integer('normalized_term_id')->nullable();
                 $table->string('social_status', 255)->nullable();
-                $table->string('occupation_normalized', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
-                $table->string('code_hisco', 64)->nullable();
-                $table->string('code_gnd', 64)->nullable();
-                $table->string('code_ohdab', 64)->nullable();
                 $table->boolean('enabled')->default(true);
                 $table->timestamp('created_at')->useCurrent();
                 $table->timestamp('updated_at')->nullable();
@@ -150,49 +145,7 @@ final class OccupationSchema
             });
         }
 
-        $this->migrateNormalizationTerms();
         $this->seedDefaultNormalizationRules();
-    }
-
-    private function migrateNormalizationTerms(): void
-    {
-        foreach (DB::table(self::TABLE_NORMALIZATION_RULES)->get() as $rule) {
-            if ((int) ($rule->normalized_term_id ?? 0) > 0) {
-                continue;
-            }
-
-            $normalized_key = trim((string) ($rule->occupation_normalized ?? ''));
-
-            if ($normalized_key === '') {
-                continue;
-            }
-
-            $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
-                ->where('normalized_key', '=', $normalized_key)
-                ->first();
-
-            if ($term === null) {
-                DB::table(self::TABLE_NORMALIZATION_TERMS)->insert([
-                    'normalized_key'      => $normalized_key,
-                    'occupation_de_male'  => (string) ($rule->occupation_normalized ?? ''),
-                    'code_hisco'          => (string) ($rule->code_hisco ?? ''),
-                    'code_gnd'            => (string) ($rule->code_gnd ?? ''),
-                    'code_ohdab'          => (string) ($rule->code_ohdab ?? ''),
-                    'created_at'          => date('Y-m-d H:i:s'),
-                    'updated_at'          => date('Y-m-d H:i:s'),
-                ]);
-
-                $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
-                    ->where('normalized_key', '=', $normalized_key)
-                    ->first();
-            }
-
-            if ($term !== null) {
-                DB::table(self::TABLE_NORMALIZATION_RULES)
-                    ->where('id', '=', (int) $rule->id)
-                    ->update(['normalized_term_id' => (int) $term->id]);
-            }
-        }
     }
 
     private function seedDefaultNormalizationRules(): void
@@ -224,11 +177,10 @@ final class OccupationSchema
 
             if (!$exists) {
                 DB::table(self::TABLE_NORMALIZATION_RULES)->insert([
-                    'language'              => $rule['language'],
-                    'original_text'         => $rule['original_text'],
-                    'occupation_normalized' => $rule['occupation_normalized'],
-                    'normalized_term_id'    => $term !== null ? (int) $term->id : null,
-                    'enabled'               => true,
+                    'language'           => $rule['language'],
+                    'original_text'      => $rule['original_text'],
+                    'normalized_term_id' => $term !== null ? (int) $term->id : null,
+                    'enabled'            => true,
                 ]);
             } elseif ($term !== null) {
                 DB::table(self::TABLE_NORMALIZATION_RULES)

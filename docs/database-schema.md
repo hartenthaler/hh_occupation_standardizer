@@ -149,11 +149,7 @@ The first seeded German examples are:
 | `original_text` | `string(255)` | Original occupation text to match. Matching is case-insensitive. |
 | `normalized_term_id` | integer nullable | Linked normalized term in `occupation_standardizer_terms`. |
 | `social_status` | `string(255)` nullable | Social status to set. |
-| `occupation_normalized` | `string(255)` nullable | Legacy cached normalized occupation used by older installations. New logic reads the linked term. |
 | `qualification` | `string(255)` nullable | Qualification to set. |
-| `code_hisco` | `string(64)` nullable | Legacy cached HISCO code. New logic reads the linked term. |
-| `code_gnd` | `string(64)` nullable | Legacy cached GND identifier. New logic reads the linked term. |
-| `code_ohdab` | `string(64)` nullable | Legacy cached OhdAB identifier. New logic reads the linked term. |
 | `enabled` | boolean | Whether the rule is active. |
 | `created_at` | timestamp | Creation time of the rule. |
 | `updated_at` | timestamp nullable | Last update time. |
