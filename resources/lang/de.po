@@ -102,6 +102,67 @@ msgstr "Mit externer OhdAB-Spezialdatenbank normalisieren"
 msgid "Uses the imported German OhdAB special database for normalized occupation terms."
 msgstr "Verwendet die importierte deutsche OhdAB-Spezialdatenbank für normierte Berufsbegriffe."
 
+msgid "OhdAB special database"
+msgstr "OhdAB-Spezialdatenbank"
+
+msgid "Upload a tailored German OhdAB XLSX file to import its normalized occupation terms, identifiers, and hierarchy into the module tables."
+msgstr "Laden Sie eine zugeschnittene deutsche OhdAB-XLSX-Datei hoch, um ihre normierten Berufsbegriffe, Kennungen und Hierarchie in die Modultabellen zu importieren."
+
+msgid "The uploaded file is used only for this import and is deleted afterwards."
+msgstr "Die hochgeladene Datei wird nur für diesen Import verwendet und anschließend gelöscht."
+
+msgid "Last import"
+msgstr "Letzter Import"
+
+msgid "%s row"
+msgid_plural "%s rows"
+msgstr[0] "%s Zeile"
+msgstr[1] "%s Zeilen"
+
+msgid "No OhdAB special database has been imported yet."
+msgstr "Es wurde noch keine OhdAB-Spezialdatenbank importiert."
+
+msgid "XLSX file"
+msgstr "XLSX-Datei"
+
+msgid "Import"
+msgstr "Importieren"
+
+msgid "No OhdAB special database file was received."
+msgstr "Es wurde keine Datei für die OhdAB-Spezialdatenbank empfangen."
+
+msgid "The OhdAB special database file could not be uploaded."
+msgstr "Die Datei für die OhdAB-Spezialdatenbank konnte nicht hochgeladen werden."
+
+msgid "The uploaded file could not be prepared for import."
+msgstr "Die hochgeladene Datei konnte nicht für den Import vorbereitet werden."
+
+msgid "The uploaded file could not be read."
+msgstr "Die hochgeladene Datei konnte nicht gelesen werden."
+
+msgid "The PHP ZIP extension is required to import XLSX files."
+msgstr "Die PHP-ZIP-Erweiterung wird benötigt, um XLSX-Dateien zu importieren."
+
+msgid "Only XLSX files can be imported."
+msgstr "Es können nur XLSX-Dateien importiert werden."
+
+msgid "The uploaded file could not be checked."
+msgstr "Die hochgeladene Datei konnte nicht geprüft werden."
+
+msgid "No usable occupation rows were found in the uploaded file."
+msgstr "In der hochgeladenen Datei wurden keine verwertbaren Berufszeilen gefunden."
+
+msgid "This OhdAB special database has already been imported."
+msgstr "Diese OhdAB-Spezialdatenbank wurde bereits importiert."
+
+msgid "The OhdAB special database has been imported."
+msgstr "Die OhdAB-Spezialdatenbank wurde importiert."
+
+msgid "%s row was processed."
+msgid_plural "%s rows were processed."
+msgstr[0] "%s Zeile wurde verarbeitet."
+msgstr[1] "%s Zeilen wurden verarbeitet."
+
 msgid "Fallback for unknown terms"
 msgstr "Standardregel für unbekannte Begriffe"
 

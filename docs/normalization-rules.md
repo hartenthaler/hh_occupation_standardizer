@@ -78,9 +78,9 @@ The first seeded German examples are:
 
 ## M4-R100: Normalize with external OhdAB special database
 
-If a tailored German OhdAB Excel file exists at `data/Berufe_hartenthaler.xlsx`,
-the module imports it into its own norm tables. The Excel file itself is local
-input data and is not stored in the repository.
+Administrators can upload a tailored German OhdAB Excel file in the module
+settings. The module imports it into its own norm tables and deletes the
+temporary uploaded file afterwards.
 
 This rule applies only to occupation parts whose language is German (`de` or a
 German language tag such as `de-DE`). It runs after the site-managed

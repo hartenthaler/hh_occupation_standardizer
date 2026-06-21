@@ -42,6 +42,7 @@ use Illuminate\Database\Capsule\Manager as DBManager;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use function array_map;
@@ -65,7 +66,13 @@ use function preg_match;
 use function route;
 use function sha1;
 use function strip_tags;
+use function sys_get_temp_dir;
+use function tempnam;
 use function trim;
+use function unlink;
+
+use const UPLOAD_ERR_NO_FILE;
+use const UPLOAD_ERR_OK;
 
 final class OccupationStandardizerModule extends AbstractModule implements ModuleCustomInterface, ModuleConfigInterface, ModuleGlobalInterface, ModuleListInterface, RequestHandlerInterface
 {
@@ -82,6 +89,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const FINGERPRINT_PREFIX = 'tree_occu_';
     private const TASK_SAVE_NORMALIZATION_ENTRY = 'saveNormalizationEntry';
     private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
+    private const TASK_IMPORT_OHDAB_SPECIAL_DATABASE = 'importOhdabSpecialDatabase';
     private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
     private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
     private const TREE_LANGUAGE_PREFIX = 'treeLanguage-';
@@ -141,7 +149,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     public function boot(): void
     {
         (new OccupationSchema())->ensureSchema();
-        (new OhdabSpecialDatabaseService())->importIfChanged(strtr(__DIR__ . '/../', DIRECTORY_SEPARATOR, '/'));
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
         View::registerCustomView('::fact', $this->name() . '::fact');
@@ -171,6 +178,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'normalizationTerms' => $this->normalizationTermRows(),
             'normalizationTermOptions' => $this->normalizationTermOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
+            'ohdabSpecialDatabase' => (new OhdabSpecialDatabaseService())->sourceInfo(),
             'title'              => $this->title(),
             'treeLanguages'      => $this->treeLanguageRows(),
             'treeStatistics'     => $this->normalizationTableStatistics(),
@@ -189,6 +197,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ((string) ($params['task'] ?? '') === self::TASK_SAVE_BUILTIN_RULES) {
             $this->saveBuiltinRuleSettings($params);
+        }
+
+        if ((string) ($params['task'] ?? '') === self::TASK_IMPORT_OHDAB_SPECIAL_DATABASE) {
+            $this->importOhdabSpecialDatabase($request);
         }
 
         if ((string) ($params['task'] ?? '') === 'saveTreeLanguages') {
@@ -216,6 +228,49 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $this->getAdminAction($request);
+    }
+
+    private function importOhdabSpecialDatabase(ServerRequestInterface $request): void
+    {
+        $file = $request->getUploadedFiles()['ohdabSpecialDatabase'] ?? null;
+
+        if (!$file instanceof UploadedFileInterface || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            FlashMessages::addMessage(I18N::translate('No OhdAB special database file was received.'), 'danger');
+
+            return;
+        }
+
+        if ($file->getError() !== UPLOAD_ERR_OK) {
+            FlashMessages::addMessage(I18N::translate('The OhdAB special database file could not be uploaded.'), 'danger');
+
+            return;
+        }
+
+        $temporary_file = tempnam(sys_get_temp_dir(), 'hh_ohdab_');
+
+        if ($temporary_file === false) {
+            FlashMessages::addMessage(I18N::translate('The uploaded file could not be prepared for import.'), 'danger');
+
+            return;
+        }
+
+        try {
+            $file->moveTo($temporary_file);
+            $result = (new OhdabSpecialDatabaseService())->importFile($temporary_file, $file->getClientFilename());
+            $message = I18N::translate($result['message']);
+
+            if ($result['row_count'] > 0) {
+                $message .= ' ' . I18N::plural('%s row was processed.', '%s rows were processed.', $result['row_count'], I18N::number($result['row_count']));
+            }
+
+            FlashMessages::addMessage($message, $result['imported'] ? 'success' : 'warning');
+        } catch (\Throwable $ex) {
+            FlashMessages::addMessage($ex->getMessage(), 'danger');
+        } finally {
+            if (file_exists($temporary_file)) {
+                unlink($temporary_file);
+            }
+        }
     }
 
     public function bodyContent(): string

@@ -13,13 +13,11 @@ use function array_key_exists;
 use function basename;
 use function class_exists;
 use function date;
-use function file_exists;
 use function is_file;
 use function mb_strtolower;
 use function pathinfo;
 use function preg_match;
 use function preg_replace;
-use function rtrim;
 use function sha1_file;
 use function str_replace;
 use function strlen;
@@ -32,27 +30,46 @@ final class OhdabSpecialDatabaseService
 {
     public const SOURCE_KEY = 'ohdab_special_de';
     public const SOURCE_LANGUAGE = 'de';
-    public const DEFAULT_FILE = 'data/Berufe_hartenthaler.xlsx';
 
     /**
-     * Import the tailored OhdAB file if it exists and changed since the last import.
+     * @return array{imported:bool,row_count:int,message:string}
      */
-    public function importIfChanged(string $module_root): void
+    public function importFile(string $file, string $file_name = ''): array
     {
-        $file = rtrim($module_root, '/\\') . DIRECTORY_SEPARATOR . self::DEFAULT_FILE;
+        $file_name = $file_name !== '' ? $file_name : basename($file);
 
-        if (!is_file($file) || !class_exists(ZipArchive::class)) {
-            return;
+        if (!is_file($file)) {
+            return [
+                'imported'  => false,
+                'row_count' => 0,
+                'message'   => 'The uploaded file could not be read.',
+            ];
         }
 
-        if (mb_strtolower((string) pathinfo($file, PATHINFO_EXTENSION)) !== 'xlsx') {
-            return;
+        if (!class_exists(ZipArchive::class)) {
+            return [
+                'imported'  => false,
+                'row_count' => 0,
+                'message'   => 'The PHP ZIP extension is required to import XLSX files.',
+            ];
+        }
+
+        if (mb_strtolower((string) pathinfo($file_name, PATHINFO_EXTENSION)) !== 'xlsx') {
+            return [
+                'imported'  => false,
+                'row_count' => 0,
+                'message'   => 'Only XLSX files can be imported.',
+            ];
         }
 
         $file_hash = sha1_file($file);
 
         if ($file_hash === false) {
-            return;
+            return [
+                'imported'  => false,
+                'row_count' => 0,
+                'message'   => 'The uploaded file could not be checked.',
+            ];
         }
 
         $source = DB::table(OccupationSchema::TABLE_NORM_SOURCES)
@@ -60,17 +77,29 @@ final class OhdabSpecialDatabaseService
             ->first();
 
         if ($source !== null && (string) ($source->file_hash ?? '') === $file_hash) {
-            return;
+            return [
+                'imported'  => false,
+                'row_count' => (int) ($source->row_count ?? 0),
+                'message'   => 'This OhdAB special database has already been imported.',
+            ];
         }
 
         $rows = $this->xlsxRows($file);
+
+        if ($rows === []) {
+            return [
+                'imported'  => false,
+                'row_count' => 0,
+                'message'   => 'No usable occupation rows were found in the uploaded file.',
+            ];
+        }
 
         DB::table(OccupationSchema::TABLE_NORM_SOURCES)->updateOrInsert(
             ['source_key' => self::SOURCE_KEY],
             [
                 'label'      => 'OhdAB special database',
                 'language'   => self::SOURCE_LANGUAGE,
-                'file_name'  => basename($file),
+                'file_name'  => basename($file_name),
                 'file_hash'  => '',
                 'updated_at' => date('Y-m-d H:i:s'),
             ]
@@ -118,6 +147,47 @@ final class OhdabSpecialDatabaseService
         DB::table(OccupationSchema::TABLE_METADATA)
             ->where('setting_name', 'like', 'tree_occu_%')
             ->delete();
+
+        return [
+            'imported'  => true,
+            'row_count' => $imported_rows,
+            'message'   => 'The OhdAB special database has been imported.',
+        ];
+    }
+
+    /**
+     * @return array{exists:bool,file_name:string,row_count:int,imported_at:string}
+     */
+    public function sourceInfo(): array
+    {
+        if (!DB::schema()->hasTable(OccupationSchema::TABLE_NORM_SOURCES)) {
+            return [
+                'exists'      => false,
+                'file_name'   => '',
+                'row_count'   => 0,
+                'imported_at' => '',
+            ];
+        }
+
+        $source = DB::table(OccupationSchema::TABLE_NORM_SOURCES)
+            ->where('source_key', '=', self::SOURCE_KEY)
+            ->first();
+
+        if ($source === null) {
+            return [
+                'exists'      => false,
+                'file_name'   => '',
+                'row_count'   => 0,
+                'imported_at' => '',
+            ];
+        }
+
+        return [
+            'exists'      => true,
+            'file_name'   => (string) ($source->file_name ?? ''),
+            'row_count'   => (int) ($source->row_count ?? 0),
+            'imported_at' => (string) ($source->imported_at ?? ''),
+        ];
     }
 
     /**

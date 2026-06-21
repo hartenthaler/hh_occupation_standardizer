@@ -199,9 +199,10 @@ while `Minister` / `en` can describe a clergyman.
 
 ## Imported Norm Data Tables
 
-The M4 prototype imports a tailored German OhdAB Excel file from
-`data/Berufe_hartenthaler.xlsx` when the file exists and has changed. The Excel
-file is local input data and is intentionally not versioned with the module.
+The M4 prototype imports a tailored German OhdAB Excel file uploaded in the
+module settings. The uploaded file is used only as temporary input and is
+deleted after the import. The imported norm data is stored in the module-owned
+database tables below.
 
 The import separates source metadata, original spelling variants, normalized
 concepts, and hierarchy nodes. This keeps the redundant OhdAB category labels

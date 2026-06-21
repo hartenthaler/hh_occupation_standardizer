@@ -18,6 +18,7 @@ $externalIdentifierService = new ExternalIdentifierService();
  * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
  * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,enabled:bool}> $normalizationRules
+ * @var array{exists:bool,file_name:string,row_count:int,imported_at:string} $ohdabSpecialDatabase
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}> $treeLanguages
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
  */
@@ -91,6 +92,48 @@ $externalIdentifierService = new ExternalIdentifierService();
                 <button class="btn btn-secondary" type="submit" name="resetBuiltinRuleOrder" value="1">
                     <?= I18N::translate('Restore default rule sorting') ?>
                 </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h2 class="h4"><?= I18N::translate('OhdAB special database') ?></h2>
+        <p>
+            <?= I18N::translate('Upload a tailored German OhdAB XLSX file to import its normalized occupation terms, identifiers, and hierarchy into the module tables.') ?>
+            <?= I18N::translate('The uploaded file is used only for this import and is deleted afterwards.') ?>
+        </p>
+
+        <?php if ($ohdabSpecialDatabase['exists']) : ?>
+            <p class="small text-muted">
+                <?= I18N::translate('Last import') ?>:
+                <?= e($ohdabSpecialDatabase['imported_at']) ?>,
+                <?= I18N::plural('%s row', '%s rows', $ohdabSpecialDatabase['row_count'], I18N::number($ohdabSpecialDatabase['row_count'])) ?>,
+                <?= e($ohdabSpecialDatabase['file_name']) ?>
+            </p>
+        <?php else : ?>
+            <p class="small text-muted">
+                <?= I18N::translate('No OhdAB special database has been imported yet.') ?>
+            </p>
+        <?php endif ?>
+
+        <form method="post" enctype="multipart/form-data">
+            <?= csrf_field() ?>
+            <input type="hidden" name="task" value="importOhdabSpecialDatabase">
+
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label" for="ohdab-special-database">
+                        <?= I18N::translate('XLSX file') ?>
+                    </label>
+                    <input class="form-control" id="ohdab-special-database" type="file" name="ohdabSpecialDatabase" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary" type="submit">
+                        <?= I18N::translate('Import') ?>
+                    </button>
+                </div>
             </div>
         </form>
     </div>
