@@ -188,10 +188,37 @@ msgid "The normalization entry could not be updated."
 msgstr "Der Normalisierungseintrag konnte nicht aktualisiert werden."
 
 msgid "Normalization mapping rules"
-msgstr "Umsetzungstabelle für Normalisierungen"
+msgstr "Umsetzungsregeln für Originaltexte"
 
-msgid "These site-wide rules are applied after the built-in rules and before future external ontology lookups."
-msgstr "Diese websiteweiten Regeln werden nach den eingebauten Regeln und vor zukünftigen externen Ontologie-Abfragen angewandt."
+msgid "Normalized occupation terms"
+msgstr "Normierte Berufsbegriffe"
+
+msgid "Normalized terms contain the shared labels and external identifiers used by one or more mapping rules."
+msgstr "Normierte Begriffe enthalten die gemeinsamen Bezeichnungen und externen Kennungen, die von einer oder mehreren Umsetzungsregeln verwendet werden."
+
+msgid "Add a normalized term"
+msgstr "Normierten Begriff hinzufügen"
+
+msgid "These site-wide rules map language-specific original texts to normalized occupation terms."
+msgstr "Diese websiteweiten Regeln ordnen sprachspezifische Originaltexte normierten Berufsbegriffen zu."
+
+msgid "Normalized term"
+msgstr "Normierter Begriff"
+
+msgid "No normalized term"
+msgstr "Kein normierter Begriff"
+
+msgid "The normalized term was not saved because the normalized key is missing."
+msgstr "Der normierte Begriff wurde nicht gespeichert, weil der Normschlüssel fehlt."
+
+msgid "The normalized term has been saved."
+msgstr "Der normierte Begriff wurde gespeichert."
+
+msgid "The normalized term cannot be deleted because it is used by normalization rules."
+msgstr "Der normierte Begriff kann nicht gelöscht werden, weil er von Normalisierungsregeln verwendet wird."
+
+msgid "The normalized term has been deleted."
+msgstr "Der normierte Begriff wurde gelöscht."
 
 msgid "Original text"
 msgstr "Originaltext"
