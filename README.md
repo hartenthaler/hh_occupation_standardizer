@@ -46,6 +46,23 @@ Administrators can maintain a site-wide normalization mapping table in the modul
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
 The module-owned database tables are documented in [docs/database-schema.md](docs/database-schema.md).
 
+## Preliminary M4 workflow
+
+M4 prepares the use of external occupation norm data, especially OhdAB and FactGrid. The intended provisional workflow is:
+
+1. Run a webtrees family tree against the full OhdAB occupation database.
+2. Extract only the occupation names that are relevant for this family tree into a tailored Excel file.
+3. Import this tailored Excel file completely into the module.
+4. Use the imported data as a local German norm source for occupation normalization.
+
+This approach avoids importing the full OhdAB source into every webtrees installation. The full source is much larger and contains tens of thousands of occupation names, while a family-tree-specific extract can stay small, auditable, and practical for module-owned tables.
+
+The tailored Excel file is currently expected to be German-language norm data. It can therefore only be applied to occupation terms whose language is `de`. The planned rule is "Normalize with external OhdAB special database". It should run after the local mapping table and before the fallback rule for unknown terms.
+
+When the rule finds a match, the module should use the matched norm concept to add or update identifiers such as OhdAB and FactGrid, and to make the OhdAB hierarchy available without duplicating the hierarchy text in every occupation-list row.
+
+One open question remains for new occupation terms that are later added to the webtrees family tree and are not yet present in the tailored Excel extract. A later M4 step needs a practical workflow for these individual additions, for example by searching the full OhdAB source on demand or by maintaining a small supplemental local mapping.
+
 ## Roadmap
 
 * M1: OCCU inventory and read-only preview.
