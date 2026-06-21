@@ -96,6 +96,12 @@ msgstr "Websiteweite Umsetzungstabelle"
 msgid "Applies the locally maintained mapping table for original and normalized occupation terms."
 msgstr "Wendet die lokal gepflegte Umsetzungstabelle für originale und normierte Berufsangaben an."
 
+msgid "Normalize with external OhdAB special database"
+msgstr "Mit externer OhdAB-Spezialdatenbank normalisieren"
+
+msgid "Uses the imported German OhdAB special database for normalized occupation terms."
+msgstr "Verwendet die importierte deutsche OhdAB-Spezialdatenbank für normierte Berufsbegriffe."
+
 msgid "Fallback for unknown terms"
 msgstr "Standardregel für unbekannte Begriffe"
 
@@ -165,6 +171,9 @@ msgstr "Code"
 
 msgid "Rules"
 msgstr "Regeln"
+
+msgid "OhdAB hierarchy"
+msgstr "OhdAB-Hierarchie"
 
 msgid "recognized"
 msgstr "erkannt"

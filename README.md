@@ -41,7 +41,9 @@ The second milestone adds first automatic normalization suggestions. These sugge
 
 Managers and administrators can edit the stored normalization entries directly in the occupation list. Saving a correction does not automatically mark the entry as reviewed; the reviewed flag is an explicit decision. Manual changes are kept in the module table and do not modify GEDCOM data.
 
-Administrators can maintain a site-wide normalization mapping table in the module settings. These rules can normalize language-specific variants such as feminine occupational forms and can store identifiers for HISCO, GND, and OhdAB.
+Administrators can maintain a site-wide normalization mapping table in the module settings. These rules can normalize language-specific variants such as feminine occupational forms and can store identifiers for HISCO, GND, OhdAB, and FactGrid.
+
+The first M4 prototype can import a tailored German OhdAB Excel extract from `data/Berufe_hartenthaler.xlsx`. If the file exists and has changed, the module imports its original spellings, normalized concepts, FactGrid identifiers, and OhdAB hierarchy into module-owned norm tables. The new rule "Normalize with external OhdAB special database" then uses this imported source after the local mapping table and before the fallback rule.
 
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
 The module-owned database tables are documented in [docs/database-schema.md](docs/database-schema.md).
@@ -57,9 +59,9 @@ M4 prepares the use of external occupation norm data, especially OhdAB and FactG
 
 This approach avoids importing the full OhdAB source into every webtrees installation. The full source is much larger and contains tens of thousands of occupation names, while a family-tree-specific extract can stay small, auditable, and practical for module-owned tables.
 
-The tailored Excel file is currently expected to be German-language norm data. It can therefore only be applied to occupation terms whose language is `de`. The planned rule is "Normalize with external OhdAB special database". It should run after the local mapping table and before the fallback rule for unknown terms.
+The tailored Excel file is currently expected to be German-language norm data. It can therefore only be applied to occupation terms whose language is `de`. The rule "Normalize with external OhdAB special database" runs after the local mapping table and before the fallback rule for unknown terms.
 
-When the rule finds a match, the module should use the matched norm concept to add or update identifiers such as OhdAB and FactGrid, and to make the OhdAB hierarchy available without duplicating the hierarchy text in every occupation-list row.
+When the rule finds a match, the module uses the matched norm concept to add or update identifiers such as OhdAB and FactGrid, and to make the OhdAB hierarchy available without duplicating the hierarchy text in every occupation-list row.
 
 One open question remains for new occupation terms that are later added to the webtrees family tree and are not yet present in the tailored Excel extract. A later M4 step needs a practical workflow for these individual additions, for example by searching the full OhdAB source on demand or by maintaining a small supplemental local mapping.
 

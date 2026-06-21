@@ -11,6 +11,8 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 use Illuminate\Database\Capsule\Manager as DBManager;
 
 use function array_filter;
+use function array_search;
+use function array_splice;
 use function array_unique;
 use function array_values;
 use function explode;
@@ -28,6 +30,7 @@ final class OccupationLabelService
 
     /** @var list<string> */
     private array $builtin_rule_order;
+    private OhdabSpecialDatabaseService $ohdab_special_database_service;
 
     /**
      * @param list<string> $builtin_rule_order
@@ -35,6 +38,7 @@ final class OccupationLabelService
     public function __construct(array $builtin_rule_order = [])
     {
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : $this->configuredBuiltinRuleOrder();
+        $this->ohdab_special_database_service = new OhdabSpecialDatabaseService();
     }
 
     /**
@@ -43,7 +47,7 @@ final class OccupationLabelService
     public function labelsForOccupation(string $occupation, string $language = '', string $sex = 'U', string $user_language = ''): array
     {
         return $this->labels(
-            (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order))->normalize($occupation, $language),
+            (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order, $this->ohdab_special_database_service->mappings()))->normalize($occupation, $language),
             $sex,
             $user_language
         );
@@ -69,7 +73,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
@@ -79,7 +83,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
@@ -152,6 +156,12 @@ final class OccupationLabelService
                 $title_parts[] = $this->identifierTitle('FactGrid', $entry['code_factgrid']);
             }
 
+            $hierarchy = $this->ohdab_special_database_service->hierarchyPath((int) ($entry['norm_concept_id'] ?? 0));
+
+            if ($hierarchy !== '') {
+                $title_parts[] = I18N::translate('OhdAB hierarchy') . ': ' . $hierarchy;
+            }
+
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
             $title_parts[] = I18N::translate('Rules') . ': ' . $entry['rule_numbers'];
 
@@ -171,7 +181,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}>
+     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}>
      */
     private function entriesForFact(Fact $fact): array
     {
@@ -203,6 +213,7 @@ final class OccupationLabelService
                 'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
                 'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+                'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
                 'status'                => (string) $entry->status,
                 'rule_numbers'          => (string) $entry->rule_numbers,
             ])
@@ -218,7 +229,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string} $entry
      */
     private function label(array $entry, string $sex, string $user_language): string
     {
@@ -315,9 +326,9 @@ final class OccupationLabelService
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string} $entry
      *
-     * @return array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string}
+     * @return array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string}
      */
     private function enrichedEntry(array $entry): array
     {
@@ -452,6 +463,15 @@ final class OccupationLabelService
             if (!in_array($rule_id, $completed_order, true)) {
                 $completed_order[] = $rule_id;
             }
+        }
+
+        $ohdab_index = array_search('M4-R100', $completed_order, true);
+        $fallback_index = array_search('M2-R090', $completed_order, true);
+
+        if ($ohdab_index !== false && $fallback_index !== false && $ohdab_index > $fallback_index) {
+            array_splice($completed_order, $ohdab_index, 1);
+            $fallback_index = array_search('M2-R090', $completed_order, true);
+            array_splice($completed_order, (int) $fallback_index, 0, ['M4-R100']);
         }
 
         return $completed_order;

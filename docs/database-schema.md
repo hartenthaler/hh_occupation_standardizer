@@ -84,6 +84,7 @@ written back to GEDCOM by the module.
 | `code_gnd` | `string(64)` nullable | GND identifier. |
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier. |
 | `code_factgrid` | `string(64)` nullable | FactGrid item id, e.g. `Q699480`. |
+| `norm_concept_id` | integer nullable | Linked imported norm concept, currently used for the tailored German OhdAB special database. |
 | `status` | `string(32)` | Normalization status, currently `recognized`, `unclear`, or `ignored`. |
 | `reviewed` | boolean | Explicit reviewer decision. Saving a manual edit does not automatically set this flag. |
 | `manually_changed` | boolean | Internal flag that protects unfinished manual edits from being overwritten by later automatic synchronization. |
@@ -196,6 +197,98 @@ while `Minister` / `en` can describe a clergyman.
 | --- | --- | --- |
 | `idx_occ_std_rule_text` unique | `language`, `original_text` | Ensure one active mapping definition per language and original text. |
 
+## Imported Norm Data Tables
+
+The M4 prototype imports a tailored German OhdAB Excel file from
+`data/Berufe_hartenthaler.xlsx` when the file exists and has changed. The Excel
+file is local input data and is intentionally not versioned with the module.
+
+The import separates source metadata, original spelling variants, normalized
+concepts, and hierarchy nodes. This keeps the redundant OhdAB category labels
+out of the occupation entries table.
+
+### `occupation_standardizer_norm_sources`
+
+Stores one imported norm source.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id` | auto-increment integer | Internal source id. |
+| `source_key` | `string(64)` unique | Stable source key, currently `ohdab_special_de`. |
+| `label` | `string(255)` | Human-readable source label. |
+| `language` | `string(35)` | Source language, currently `de`. |
+| `file_name` | `string(255)` nullable | Imported file name. |
+| `file_hash` | `char(40)` nullable | SHA-1 hash used to skip unchanged imports. |
+| `row_count` | integer | Number of imported usable rows. |
+| `imported_at` | timestamp nullable | Last successful import time. |
+| `created_at` | timestamp | Creation time. |
+| `updated_at` | timestamp nullable | Last update time. |
+
+### `occupation_standardizer_norm_concepts`
+
+Stores normalized occupation concepts from the imported source.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id` | auto-increment integer | Internal concept id. |
+| `source_id` | integer | Imported norm source. |
+| `language` | `string(35)` | Concept language. |
+| `preferred_label` | `string(255)` | Preferred source label. |
+| `occupation_de_male` | `string(255)` nullable | German masculine form derived from the preferred label where possible. |
+| `occupation_de_female` | `string(255)` nullable | German feminine form derived from the preferred label where possible. |
+| `occupation_de_neutral` | `string(255)` nullable | German neutral form from the preferred label. |
+| `ohdab_full_id` | `string(64)` | Full OhdAB id from the import. |
+| `ohdab_class` | `string(8)` nullable | OhdAB top-level class, e.g. `A` or `B`. |
+| `ohdab_group` | `string(32)` nullable | OhdAB group code. |
+| `ohdab_individual` | `string(32)` nullable | OhdAB individual code from the import. |
+| `factgrid_id` | `string(64)` nullable | FactGrid item id, e.g. `Q699480`. |
+| `requirement_level` | `string(32)` nullable | Requirement level from the import. |
+| `requirement_label` | `string(255)` nullable | Requirement label from the import. |
+| `created_at` | timestamp | Creation time. |
+| `updated_at` | timestamp nullable | Last update time. |
+
+### `occupation_standardizer_norm_variants`
+
+Maps imported original spellings to normalized concepts.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id` | auto-increment integer | Internal variant id. |
+| `source_id` | integer | Imported norm source. |
+| `concept_id` | integer | Linked normalized concept. |
+| `language` | `string(35)` | Variant language. |
+| `original_text` | `string(255)` | Original spelling from the import. |
+| `original_key` | `string(255)` | Case-insensitive normalized match key. |
+| `created_at` | timestamp | Creation time. |
+| `updated_at` | timestamp nullable | Last update time. |
+
+### `occupation_standardizer_norm_hierarchy_nodes`
+
+Stores each imported OhdAB hierarchy node once.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id` | auto-increment integer | Internal hierarchy node id. |
+| `source_id` | integer | Imported norm source. |
+| `language` | `string(35)` | Hierarchy language. |
+| `level` | integer | Hierarchy depth. |
+| `code` | `string(64)` | OhdAB hierarchy code for this level. |
+| `label` | `text` | Hierarchy label. |
+| `parent_id` | integer nullable | Parent hierarchy node. |
+| `created_at` | timestamp | Creation time. |
+| `updated_at` | timestamp nullable | Last update time. |
+
+### `occupation_standardizer_norm_concept_hierarchy`
+
+Links imported concepts to their OhdAB hierarchy path.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `id` | auto-increment integer | Internal link id. |
+| `concept_id` | integer | Linked normalized concept. |
+| `node_id` | integer | Linked hierarchy node. |
+| `position` | integer | Position in the concept's hierarchy path. |
+
 ## Synchronization Notes
 
 When a manager opens the occupation list, the module compares the current tree
@@ -212,3 +305,7 @@ losing them during the next synchronization.
 
 If an `OCCU` fact or split part disappears, the corresponding row is marked
 inactive. It is not immediately deleted.
+
+When the imported OhdAB special database changes, the module clears the stored
+tree fingerprints. The next manager visit can then refresh automatic
+normalization results while preserving reviewed or manually changed entries.

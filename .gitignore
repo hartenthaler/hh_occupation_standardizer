@@ -1,3 +1,5 @@
 /.idea/
 /.vscode/
 *.tmp
+/data/*.xls
+/data/*.xlsx

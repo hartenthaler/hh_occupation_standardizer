@@ -53,7 +53,7 @@ This rule is applied after M2-R032 so independent master compounds can be protec
 ## M2-R050: Site-managed normalization mapping table
 
 Administrators can maintain a site-wide mapping table in the module settings.
-These rules are applied after the built-in local rules and before the fallback rule.
+These rules are applied after the built-in local rules and before the external OhdAB special database rule.
 Historical spelling variants are ordinary entries in this table.
 
 The table can store:
@@ -75,6 +75,22 @@ The first seeded German examples are:
 - `Kieffer` -> `Küfer`
 - `Orgelbauerin` -> `Orgelbauer`
 - `Schuster` -> `Schuhmacher`
+
+## M4-R100: Normalize with external OhdAB special database
+
+If a tailored German OhdAB Excel file exists at `data/Berufe_hartenthaler.xlsx`,
+the module imports it into its own norm tables. The Excel file itself is local
+input data and is not stored in the repository.
+
+This rule applies only to occupation parts whose language is German (`de` or a
+German language tag such as `de-DE`). It runs after the site-managed
+normalization mapping table and before the fallback rule.
+
+On a match, the rule copies the normalized occupation label, the OhdAB id and
+the FactGrid id into the occupation entry, and links the entry to the imported
+norm concept. The OhdAB hierarchy is stored once in separate norm tables and is
+shown as context in occupation labels without duplicating the hierarchy text in
+every entry.
 
 ## M2-R090: Fallback for unknown terms
 

@@ -12,7 +12,9 @@ use function explode;
 use function in_array;
 use function mb_strtolower;
 use function preg_match;
+use function preg_replace;
 use function preg_split;
+use function str_replace;
 use function trim;
 
 final class OccupationNormalizationService
@@ -40,17 +42,22 @@ final class OccupationNormalizationService
     /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> */
     private array $normalization_rules;
 
+    /** @var list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> */
+    private array $ohdab_special_mappings;
+
     /** @var list<string> */
     private array $builtin_rule_order;
 
     /**
      * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid?:string}> $normalization_rules
      * @param list<string> $builtin_rule_order
+     * @param list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $ohdab_special_mappings
      */
-    public function __construct(array $normalization_rules = [], array $builtin_rule_order = [])
+    public function __construct(array $normalization_rules = [], array $builtin_rule_order = [], array $ohdab_special_mappings = [])
     {
         $this->normalization_rules = $normalization_rules;
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : self::defaultBuiltinRuleOrder();
+        $this->ohdab_special_mappings = $ohdab_special_mappings;
     }
 
     /**
@@ -66,12 +73,13 @@ final class OccupationNormalizationService
             'M2-R032',
             'M2-R031',
             'M2-R050',
+            'M4-R100',
             'M2-R090',
         ];
     }
 
     /**
-     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}>
+     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}>
      */
     public function normalize(string $occupation, string $language = ''): array
     {
@@ -118,7 +126,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
     private function normalizePart(string $part, string $language): array
     {
@@ -142,6 +150,7 @@ final class OccupationNormalizationService
             'code_gnd'              => '',
             'code_ohdab'            => '',
             'code_factgrid'         => '',
+            'norm_concept_id'       => 0,
             'status'                => self::STATUS_UNCLEAR,
             'rule_numbers'          => '',
         ];
@@ -214,6 +223,30 @@ final class OccupationNormalizationService
                 }
             }
 
+            if ($rule_id === 'M4-R100') {
+                foreach ($this->ohdab_special_mappings as $mapping) {
+                    if ($this->ohdabSpecialMappingMatches($mapping, $original, $language)) {
+                        // M4-R100: Normalize with external OhdAB special database.
+                        return $this->withRules($entry, [
+                            'language'              => $mapping['language'] !== '' ? $mapping['language'] : $language,
+                            'occupation_normalized' => $mapping['occupation_normalized'],
+                            'occupation_de_male'    => $mapping['occupation_de_male'],
+                            'occupation_de_female'  => $mapping['occupation_de_female'],
+                            'occupation_de_neutral' => $mapping['occupation_de_neutral'],
+                            'occupation_en_male'    => $mapping['occupation_en_male'],
+                            'occupation_en_female'  => $mapping['occupation_en_female'],
+                            'occupation_en_neutral' => $mapping['occupation_en_neutral'],
+                            'code_hisco'            => $mapping['code_hisco'],
+                            'code_gnd'              => $mapping['code_gnd'],
+                            'code_ohdab'            => $mapping['code_ohdab'],
+                            'code_factgrid'         => $mapping['code_factgrid'],
+                            'norm_concept_id'       => $mapping['norm_concept_id'],
+                            'status'                => self::STATUS_RECOGNIZED,
+                        ], [$rule_id]);
+                    }
+                }
+            }
+
             if ($rule_id === 'M2-R090') {
                 // M2-R090: Fallback for unknown terms.
                 return $this->withRules($entry, [
@@ -252,11 +285,27 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string} $entry
-     * @param array<string,string> $values
+     * @param array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string} $mapping
+     */
+    private function ohdabSpecialMappingMatches(array $mapping, string $original, string $language): bool
+    {
+        if ($language === '' || explode('-', $language)[0] !== 'de') {
+            return false;
+        }
+
+        if ($mapping['language'] !== '' && explode('-', $mapping['language'])[0] !== 'de') {
+            return false;
+        }
+
+        return $this->matchKey($mapping['original_text']) === $this->matchKey($original);
+    }
+
+    /**
+     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
+     * @param array<string,int|string> $values
      * @param list<string> $rules
      *
-     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
     private function withRules(array $entry, array $values, array $rules): array
     {
@@ -267,5 +316,13 @@ final class OccupationNormalizationService
         $entry['rule_numbers'] = implode(', ', $rules);
 
         return $entry;
+    }
+
+    private function matchKey(string $value): string
+    {
+        $key = mb_strtolower(trim($value));
+        $key = preg_replace('/\s+/u', ' ', $key) ?? $key;
+
+        return str_replace('–', '-', $key);
     }
 }
