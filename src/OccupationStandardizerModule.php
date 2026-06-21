@@ -35,16 +35,20 @@ use Fisharebest\Webtrees\View;
 use Fisharebest\Webtrees\Webtrees;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use function array_map;
 use function array_key_exists;
+use function array_search;
+use function array_splice;
 use function array_values;
 use function array_filter;
 use function array_unique;
@@ -62,7 +66,13 @@ use function preg_match;
 use function route;
 use function sha1;
 use function strip_tags;
+use function sys_get_temp_dir;
+use function tempnam;
 use function trim;
+use function unlink;
+
+use const UPLOAD_ERR_NO_FILE;
+use const UPLOAD_ERR_OK;
 
 final class OccupationStandardizerModule extends AbstractModule implements ModuleCustomInterface, ModuleConfigInterface, ModuleGlobalInterface, ModuleListInterface, RequestHandlerInterface
 {
@@ -79,6 +89,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const FINGERPRINT_PREFIX = 'tree_occu_';
     private const TASK_SAVE_NORMALIZATION_ENTRY = 'saveNormalizationEntry';
     private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
+    private const TASK_IMPORT_OHDAB_SPECIAL_DATABASE = 'importOhdabSpecialDatabase';
     private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
     private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
     private const TREE_LANGUAGE_PREFIX = 'treeLanguage-';
@@ -167,6 +178,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'normalizationTerms' => $this->normalizationTermRows(),
             'normalizationTermOptions' => $this->normalizationTermOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
+            'ohdabSpecialDatabase' => (new OhdabSpecialDatabaseService())->sourceInfo(),
             'title'              => $this->title(),
             'treeLanguages'      => $this->treeLanguageRows(),
             'treeStatistics'     => $this->normalizationTableStatistics(),
@@ -185,6 +197,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ((string) ($params['task'] ?? '') === self::TASK_SAVE_BUILTIN_RULES) {
             $this->saveBuiltinRuleSettings($params);
+        }
+
+        if ((string) ($params['task'] ?? '') === self::TASK_IMPORT_OHDAB_SPECIAL_DATABASE) {
+            $this->importOhdabSpecialDatabase($request);
         }
 
         if ((string) ($params['task'] ?? '') === 'saveTreeLanguages') {
@@ -212,6 +228,49 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $this->getAdminAction($request);
+    }
+
+    private function importOhdabSpecialDatabase(ServerRequestInterface $request): void
+    {
+        $file = $request->getUploadedFiles()['ohdabSpecialDatabase'] ?? null;
+
+        if (!$file instanceof UploadedFileInterface || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            FlashMessages::addMessage(I18N::translate('No OhdAB special database file was received.'), 'danger');
+
+            return;
+        }
+
+        if ($file->getError() !== UPLOAD_ERR_OK) {
+            FlashMessages::addMessage(I18N::translate('The OhdAB special database file could not be uploaded.'), 'danger');
+
+            return;
+        }
+
+        $temporary_file = tempnam(sys_get_temp_dir(), 'hh_ohdab_');
+
+        if ($temporary_file === false) {
+            FlashMessages::addMessage(I18N::translate('The uploaded file could not be prepared for import.'), 'danger');
+
+            return;
+        }
+
+        try {
+            $file->moveTo($temporary_file);
+            $result = (new OhdabSpecialDatabaseService())->importFile($temporary_file, $file->getClientFilename());
+            $message = I18N::translate($result['message']);
+
+            if ($result['row_count'] > 0) {
+                $message .= ' ' . I18N::plural('%s row was processed.', '%s rows were processed.', $result['row_count'], I18N::number($result['row_count']));
+            }
+
+            FlashMessages::addMessage($message, $result['imported'] ? 'success' : 'warning');
+        } catch (\Throwable $ex) {
+            FlashMessages::addMessage($ex->getMessage(), 'danger');
+        } finally {
+            if (file_exists($temporary_file)) {
+                unlink($temporary_file);
+            }
+        }
     }
 
     public function bodyContent(): string
@@ -301,7 +360,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,reviewed:bool,rule_numbers:string}>}>
      */
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
@@ -429,7 +488,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>>
+     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,reviewed:bool,rule_numbers:string}>>
      */
     private function normalizationRowsByFact(Tree $tree): array
     {
@@ -472,6 +531,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                     'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
                     'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+                    'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
                     'status'                => (string) $entry->status,
                     'reviewed'              => (bool) $entry->reviewed,
                     'rule_numbers'          => (string) $entry->rule_numbers,
@@ -525,6 +585,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
                 'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
                 'code_factgrid'         => trim((string) ($params['codeFactgrid'] ?? '')),
+                'norm_concept_id'       => 0,
                 'status'                => $status,
                 'reviewed'              => (string) ($params['reviewed'] ?? '') === '1',
                 'manually_changed'      => true,
@@ -574,7 +635,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
-        $normalizer = new OccupationNormalizationService($this->normalizationRules(), $this->activeBuiltinRuleOrder());
+        $normalizer = new OccupationNormalizationService($this->normalizationRules(), $this->activeBuiltinRuleOrder(), $this->ohdabSpecialMappings());
         $tree_language = $this->occupationLanguage($tree);
         $now = date('Y-m-d H:i:s');
         $seen_keys = [];
@@ -620,7 +681,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
      * @param array{xrefs:list<string>,names:list<string>} $source_data
      * @param array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string} $place_data
      */
@@ -682,9 +743,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
      *
-     * @return array{language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}
+     * @return array{language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
     private function automaticNormalizationValues(array $entry): array
     {
@@ -704,6 +765,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_gnd'              => $entry['code_gnd'],
             'code_ohdab'            => $entry['code_ohdab'],
             'code_factgrid'         => $entry['code_factgrid'],
+            'norm_concept_id'       => (int) ($entry['norm_concept_id'] ?? 0),
             'status'                => $entry['status'],
             'rule_numbers'          => $entry['rule_numbers'],
         ];
@@ -797,6 +859,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'label'       => I18N::translate('Site-managed normalization mapping table'),
                 'description' => I18N::translate('Applies the locally maintained mapping table for original and normalized occupation terms.'),
             ],
+            'M4-R100' => [
+                'label'       => I18N::translate('Normalize with external OhdAB special database'),
+                'description' => I18N::translate('Uses the imported German OhdAB special database for normalized occupation terms.'),
+            ],
             'M2-R090' => [
                 'label'       => I18N::translate('Fallback for unknown terms'),
                 'description' => I18N::translate('Keeps unknown terms as unclear normalized occupation proposals.'),
@@ -885,6 +951,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             if (!in_array($rule_id, $completed_order, true)) {
                 $completed_order[] = $rule_id;
             }
+        }
+
+        $ohdab_index = array_search('M4-R100', $completed_order, true);
+        $fallback_index = array_search('M2-R090', $completed_order, true);
+
+        if ($ohdab_index !== false && $fallback_index !== false && $ohdab_index > $fallback_index) {
+            array_splice($completed_order, $ohdab_index, 1);
+            $fallback_index = array_search('M2-R090', $completed_order, true);
+            array_splice($completed_order, (int) $fallback_index, 0, ['M4-R100']);
         }
 
         return $completed_order;
@@ -1040,6 +1115,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 static fn (array $rule): bool => $rule['enabled']
             ))
         );
+    }
+
+    /**
+     * @return list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
+     */
+    private function ohdabSpecialMappings(): array
+    {
+        return (new OhdabSpecialDatabaseService())->mappings();
     }
 
     /**

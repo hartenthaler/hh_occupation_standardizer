@@ -14,6 +14,11 @@ final class OccupationSchema
     public const TABLE_NORMALIZED_ENTRIES = 'occupation_standardizer_entries';
     public const TABLE_NORMALIZATION_RULES = 'occupation_standardizer_rules';
     public const TABLE_NORMALIZATION_TERMS = 'occupation_standardizer_terms';
+    public const TABLE_NORM_SOURCES = 'occupation_standardizer_norm_sources';
+    public const TABLE_NORM_CONCEPTS = 'occupation_standardizer_norm_concepts';
+    public const TABLE_NORM_HIERARCHY_NODES = 'occupation_standardizer_norm_hierarchy_nodes';
+    public const TABLE_NORM_CONCEPT_HIERARCHY = 'occupation_standardizer_norm_concept_hierarchy';
+    public const TABLE_NORM_VARIANTS = 'occupation_standardizer_norm_variants';
 
     public function ensureSchema(): void
     {
@@ -58,6 +63,7 @@ final class OccupationSchema
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();
                 $table->string('code_factgrid', 64)->nullable();
+                $table->integer('norm_concept_id')->nullable();
                 $table->string('status', 32);
                 $table->boolean('reviewed')->default(false);
                 $table->boolean('manually_changed')->default(false);
@@ -111,6 +117,90 @@ final class OccupationSchema
             });
         }
 
+        if (!DB::schema()->hasTable(self::TABLE_NORM_SOURCES)) {
+            DB::schema()->create(self::TABLE_NORM_SOURCES, static function ($table): void {
+                $table->increments('id');
+                $table->string('source_key', 64)->unique();
+                $table->string('label', 255);
+                $table->string('language', 35);
+                $table->string('file_name', 255)->nullable();
+                $table->char('file_hash', 40)->nullable();
+                $table->integer('row_count')->default(0);
+                $table->timestamp('imported_at')->nullable();
+                $table->timestamp('created_at')->useCurrent();
+                $table->timestamp('updated_at')->nullable();
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_NORM_CONCEPTS)) {
+            DB::schema()->create(self::TABLE_NORM_CONCEPTS, static function ($table): void {
+                $table->increments('id');
+                $table->integer('source_id');
+                $table->string('language', 35);
+                $table->string('preferred_label', 255);
+                $table->string('occupation_de_male', 255)->nullable();
+                $table->string('occupation_de_female', 255)->nullable();
+                $table->string('occupation_de_neutral', 255)->nullable();
+                $table->string('ohdab_full_id', 64);
+                $table->string('ohdab_class', 8)->nullable();
+                $table->string('ohdab_group', 32)->nullable();
+                $table->string('ohdab_individual', 32)->nullable();
+                $table->string('factgrid_id', 64)->nullable();
+                $table->string('requirement_level', 32)->nullable();
+                $table->string('requirement_label', 255)->nullable();
+                $table->timestamp('created_at')->useCurrent();
+                $table->timestamp('updated_at')->nullable();
+
+                $table->unique(['source_id', 'ohdab_full_id'], 'idx_occ_std_norm_concept');
+                $table->index(['source_id', 'language'], 'idx_occ_std_norm_concept_lang');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_NORM_HIERARCHY_NODES)) {
+            DB::schema()->create(self::TABLE_NORM_HIERARCHY_NODES, static function ($table): void {
+                $table->increments('id');
+                $table->integer('source_id');
+                $table->string('language', 35);
+                $table->integer('level');
+                $table->string('code', 64);
+                $table->text('label');
+                $table->integer('parent_id')->nullable();
+                $table->timestamp('created_at')->useCurrent();
+                $table->timestamp('updated_at')->nullable();
+
+                $table->unique(['source_id', 'language', 'code'], 'idx_occ_std_norm_node');
+                $table->index(['source_id', 'parent_id'], 'idx_occ_std_norm_node_parent');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_NORM_CONCEPT_HIERARCHY)) {
+            DB::schema()->create(self::TABLE_NORM_CONCEPT_HIERARCHY, static function ($table): void {
+                $table->increments('id');
+                $table->integer('concept_id');
+                $table->integer('node_id');
+                $table->integer('position');
+
+                $table->unique(['concept_id', 'node_id'], 'idx_occ_std_norm_concept_node');
+                $table->index(['concept_id', 'position'], 'idx_occ_std_norm_concept_pos');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_NORM_VARIANTS)) {
+            DB::schema()->create(self::TABLE_NORM_VARIANTS, static function ($table): void {
+                $table->increments('id');
+                $table->integer('source_id');
+                $table->integer('concept_id');
+                $table->string('language', 35);
+                $table->string('original_text', 255);
+                $table->string('original_key', 255);
+                $table->timestamp('created_at')->useCurrent();
+                $table->timestamp('updated_at')->nullable();
+
+                $table->unique(['source_id', 'language', 'original_key'], 'idx_occ_std_norm_variant');
+                $table->index(['concept_id'], 'idx_occ_std_norm_variant_concept');
+            });
+        }
+
         if (!DB::schema()->hasColumn(self::TABLE_NORMALIZATION_RULES, 'normalized_term_id')) {
             DB::schema()->table(self::TABLE_NORMALIZATION_RULES, static function ($table): void {
                 $table->integer('normalized_term_id')->nullable();
@@ -137,6 +227,7 @@ final class OccupationSchema
             'code_gnd'      => 64,
             'code_ohdab'    => 64,
             'code_factgrid' => 64,
+            'norm_concept_id' => 11,
             'occupation_de_male'   => 255,
             'occupation_de_female' => 255,
             'occupation_de_neutral' => 255,
@@ -146,7 +237,11 @@ final class OccupationSchema
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table) use ($column, $length): void {
-                    $table->string($column, $length)->nullable();
+                    if ($column === 'norm_concept_id') {
+                        $table->integer($column)->nullable();
+                    } else {
+                        $table->string($column, $length)->nullable();
+                    }
                 });
             }
         }
