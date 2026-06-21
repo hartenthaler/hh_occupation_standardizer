@@ -33,6 +33,8 @@ final class OccupationSchema
                 $table->text('original_part_text');
                 $table->string('date', 255)->nullable();
                 $table->text('place')->nullable();
+                $table->string('location_xref', 32)->nullable();
+                $table->text('location_hierarchy')->nullable();
                 $table->text('employer')->nullable();
                 $table->text('type')->nullable();
                 $table->text('note')->nullable();
@@ -98,16 +100,23 @@ final class OccupationSchema
         }
 
         foreach ([
-            'language'   => 35,
-            'code_hisco' => 64,
-            'code_gnd'   => 64,
-            'code_ohdab' => 64,
+            'language'      => 35,
+            'location_xref' => 32,
+            'code_hisco'    => 64,
+            'code_gnd'      => 64,
+            'code_ohdab'    => 64,
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table) use ($column, $length): void {
                     $table->string($column, $length)->nullable();
                 });
             }
+        }
+
+        if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'location_hierarchy')) {
+            DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table): void {
+                $table->text('location_hierarchy')->nullable();
+            });
         }
 
         if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'last_seen_at')) {

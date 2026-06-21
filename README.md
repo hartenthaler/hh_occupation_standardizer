@@ -29,7 +29,7 @@ The list reads only individual `OCCU` facts and shows:
 * original occupation text
 * individual
 * date
-* place
+* place from `PLAC`, with the linked shared-place hierarchy from `_LOC` when available
 * employer or responsible agency from `AGNC`
 * `TYPE`
 * `NOTE`

@@ -56,6 +56,8 @@ written back to GEDCOM by the module.
 | --- | --- | --- |
 | `date` | `string(255)` nullable | GEDCOM `DATE` below the `OCCU` fact. |
 | `place` | `text` nullable | GEDCOM `PLAC` below the `OCCU` fact. |
+| `location_xref` | `string(32)` nullable | GEDCOM `_LOC` xref below `PLAC`, if the place links to a shared place record. |
+| `location_hierarchy` | `text` nullable | Resolved shared-place hierarchy at the event date, if available. |
 | `employer` | `text` nullable | GEDCOM `AGNC` below the `OCCU` fact. |
 | `type` | `text` nullable | GEDCOM `TYPE` below the `OCCU` fact. |
 | `note` | `text` nullable | Inline GEDCOM `NOTE` below the `OCCU` fact. |

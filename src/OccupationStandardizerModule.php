@@ -10,9 +10,11 @@ use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\DB;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\FlashMessages;
+use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\Http\Exceptions\HttpAccessDeniedException;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Location;
 use Fisharebest\Webtrees\Menu;
 use Fisharebest\Webtrees\Module\AbstractModule;
 use Fisharebest\Webtrees\Module\ModuleConfigInterface;
@@ -50,7 +52,9 @@ use function date;
 use function file_exists;
 use function implode;
 use function in_array;
+use function method_exists;
 use function preg_match_all;
+use function preg_match;
 use function route;
 use function sha1;
 use function strip_tags;
@@ -298,7 +302,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     continue;
                 }
 
-                $place = $fact->place();
+                $place_data = $this->placeData($fact);
                 $source_data = $this->sourceData($fact);
                 $normalization_entries = $normalization_rows_by_fact[$fact->id()] ?? [];
 
@@ -306,8 +310,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'occupation'           => $occupation,
                     'individual'           => $individual,
                     'date'                 => $fact->date()->display(),
-                    'place'                => $place->gedcomName() !== '' ? $place->shortName() : '',
-                    'place_sort'           => $place->gedcomName(),
+                    'place'                => $place_data['display'],
+                    'place_sort'           => $place_data['sort'],
                     'employer'             => trim($fact->attribute('AGNC')),
                     'type'                 => trim($fact->attribute('TYPE')),
                     'note'                 => trim($fact->attribute('NOTE')),
@@ -322,6 +326,73 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return I18N::comparator()($a['occupation'], $b['occupation'])
                 ?: I18N::comparator()($a['individual']->sortName(), $b['individual']->sortName());
         })->values();
+    }
+
+    /**
+     * @return array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string}
+     */
+    private function placeData(Fact $fact): array
+    {
+        $place = $fact->place();
+        $place_name = $place->gedcomName();
+        $location_xref = $this->locationXref($fact);
+        $location_hierarchy = $this->locationHierarchy($fact, $location_xref);
+
+        if ($location_hierarchy !== '') {
+            return [
+                'display'            => '<span title="' . e($place_name) . '">' . e($location_hierarchy) . '</span>',
+                'sort'               => $location_hierarchy,
+                'place'              => $place_name,
+                'location_xref'      => $location_xref,
+                'location_hierarchy' => $location_hierarchy,
+            ];
+        }
+
+        return [
+            'display'            => $place_name !== '' ? $place->shortName() : '',
+            'sort'               => $place_name,
+            'place'              => $place_name,
+            'location_xref'      => $location_xref,
+            'location_hierarchy' => '',
+        ];
+    }
+
+    private function locationXref(Fact $fact): string
+    {
+        if (preg_match('/\n2 PLAC\b[^\n]*(?:\n[3-9].*)*/', $fact->gedcom(), $place_match) !== 1) {
+            return '';
+        }
+
+        if (preg_match('/\n3 _LOC @(' . Gedcom::REGEX_XREF . ')@/', $place_match[0], $loc_match) !== 1) {
+            return '';
+        }
+
+        return $loc_match[1];
+    }
+
+    private function locationHierarchy(Fact $fact, string $location_xref): string
+    {
+        if ($location_xref === '') {
+            return '';
+        }
+
+        $location = Registry::locationFactory()->make($location_xref, $fact->record()->tree());
+
+        if (!$location instanceof Location || !$location->canShow()) {
+            return '';
+        }
+
+        if (method_exists($location, 'namesAsPlaceStringsAt') && class_exists(\Vesta\Model\GedcomDateInterval::class)) {
+            $date_interval = \Vesta\Model\GedcomDateInterval::create($fact->attribute('DATE'), true);
+            $names = $location->namesAsPlaceStringsAt($date_interval);
+            $name = (string) ($names->first() ?? '');
+
+            if ($name !== '') {
+                return $name;
+            }
+        }
+
+        return trim(strip_tags($location->fullName()));
     }
 
     private function canManageNormalization(Tree $tree): bool
@@ -464,12 +535,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 }
 
                 $source_data = $this->sourceData($fact);
+                $place_data = $this->placeData($fact);
 
                 foreach ($normalizer->normalize($occupation, $tree_language) as $entry) {
                     $entry_key = sha1($tree->id() . '|' . $individual->xref() . '|' . $fact->id() . '|' . $entry['part_index']);
                     $seen_keys[] = $entry_key;
 
-                    $this->syncNormalizationEntry($tree, $individual, $fact, $entry_key, $entry, $source_data, $now);
+                    $this->syncNormalizationEntry($tree, $individual, $fact, $entry_key, $entry, $source_data, $place_data, $now);
                 }
             }
         }
@@ -492,8 +564,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      * @param array{xrefs:list<string>,names:list<string>} $source_data
+     * @param array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string} $place_data
      */
-    private function syncNormalizationEntry(Tree $tree, Individual $individual, Fact $fact, string $entry_key, array $entry, array $source_data, string $now): void
+    private function syncNormalizationEntry(Tree $tree, Individual $individual, Fact $fact, string $entry_key, array $entry, array $source_data, array $place_data, string $now): void
     {
         $context = [
             'tree_id'            => $tree->id(),
@@ -503,7 +576,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'original_fact_text' => trim($fact->value()),
             'original_part_text' => $entry['original_part_text'],
             'date'               => trim($fact->attribute('DATE')),
-            'place'              => $fact->place()->gedcomName(),
+            'place'              => $place_data['place'],
+            'location_xref'      => $place_data['location_xref'],
+            'location_hierarchy' => $place_data['location_hierarchy'],
             'employer'           => trim($fact->attribute('AGNC')),
             'type'               => trim($fact->attribute('TYPE')),
             'note'               => trim($fact->attribute('NOTE')),
