@@ -9,16 +9,36 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persisten
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
 
+use function array_filter;
+use function array_unique;
+use function array_values;
+use function explode;
+use function in_array;
 use function implode;
 
 final class OccupationLabelService
 {
+    private const MODULE_NAME = '_hh_occupation_standardizer_';
+    private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
+    private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
+
+    /** @var list<string> */
+    private array $builtin_rule_order;
+
+    /**
+     * @param list<string> $builtin_rule_order
+     */
+    public function __construct(array $builtin_rule_order = [])
+    {
+        $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : $this->configuredBuiltinRuleOrder();
+    }
+
     /**
      * @return list<array{label:string,title:string,status:string}>
      */
     public function labelsForOccupation(string $occupation, string $language = ''): array
     {
-        return $this->labels((new OccupationNormalizationService($this->normalizationRules()))->normalize($occupation, $language));
+        return $this->labels((new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order))->normalize($occupation, $language));
     }
 
     /**
@@ -125,5 +145,57 @@ final class OccupationLabelService
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
             ])
             ->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function configuredBuiltinRuleOrder(): array
+    {
+        $default_order = OccupationNormalizationService::defaultBuiltinRuleOrder();
+        $stored_order = (string) (DBManager::table('module_setting')
+            ->where('module_name', '=', self::MODULE_NAME)
+            ->where('setting_name', '=', self::BUILTIN_RULE_ORDER_PREFERENCE)
+            ->value('setting_value') ?? implode(',', $default_order));
+        $order = $this->completeBuiltinRuleOrder(explode(',', $stored_order));
+        $enabled_rules = array_values(array_filter(
+            $default_order,
+            static fn (string $rule_id): bool => (string) (DBManager::table('module_setting')
+                ->where('module_name', '=', self::MODULE_NAME)
+                ->where('setting_name', '=', self::BUILTIN_RULE_STATUS_PREFIX . $rule_id)
+                ->value('setting_value') ?? '1') === '1'
+        ));
+
+        return array_values(array_filter(
+            $order,
+            static fn (string $rule_id): bool => in_array($rule_id, $enabled_rules, true)
+        ));
+    }
+
+    /**
+     * @param array<string> $order
+     *
+     * @return list<string>
+     */
+    private function completeBuiltinRuleOrder(array $order): array
+    {
+        $default_order = OccupationNormalizationService::defaultBuiltinRuleOrder();
+        $completed_order = [];
+
+        foreach ($order as $rule_id) {
+            if (in_array($rule_id, $default_order, true)) {
+                $completed_order[] = $rule_id;
+            }
+        }
+
+        $completed_order = array_values(array_unique($completed_order));
+
+        foreach ($default_order as $rule_id) {
+            if (!in_array($rule_id, $completed_order, true)) {
+                $completed_order[] = $rule_id;
+            }
+        }
+
+        return $completed_order;
     }
 }

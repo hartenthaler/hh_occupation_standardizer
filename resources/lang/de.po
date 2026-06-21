@@ -36,6 +36,75 @@ msgstr "Geplante Funktionalität"
 msgid "This module is being prepared to analyze, normalize, and classify historical occupation entries."
 msgstr "Dieses Modul wird vorbereitet, um historische Berufsangaben zu analysieren, zu normalisieren und zu klassifizieren."
 
+msgid "Normalization rules"
+msgstr "Normalisierungsregeln"
+
+msgid "These built-in rules are applied in the configured order. Disabled rules are skipped."
+msgstr "Diese eingebauten Regeln werden in der konfigurierten Reihenfolge angewandt. Deaktivierte Regeln werden übersprungen."
+
+msgid "Rule"
+msgstr "Regel"
+
+msgid "Description"
+msgstr "Beschreibung"
+
+msgid "Move"
+msgstr "Verschieben"
+
+msgid "Restore default rule sorting"
+msgstr "Standardsortierung der Regeln wiederherstellen"
+
+msgid "The rule settings have been saved."
+msgstr "Die Regeleinstellungen wurden gespeichert."
+
+msgid "Split multiple statements"
+msgstr "Mehrfache Angaben aufteilen"
+
+msgid "Splits occupation facts by separators and conjunctions."
+msgstr "Teilt Berufsangaben anhand von Trennzeichen und Bindewörtern auf."
+
+msgid "Social status is not an occupation"
+msgstr "Stand ist kein Beruf"
+
+msgid "Recognizes social status terms such as citizen without counting them as occupations."
+msgstr "Erkennt Standesangaben wie Bürger, ohne sie als Beruf zu zählen."
+
+msgid "Widow compounds"
+msgstr "Witwen-Zusammensetzungen"
+
+msgid "Recognizes widow compounds as social status hints."
+msgstr "Erkennt Witwen-Zusammensetzungen als Hinweise auf den Stand."
+
+msgid "Craft qualification after colon"
+msgstr "Handwerksgrad nach Doppelpunkt"
+
+msgid "Separates craft qualifications such as master, journeyman, or apprentice after a colon."
+msgstr "Trennt Handwerksgrade wie Meister, Geselle oder Lehrling nach einem Doppelpunkt ab."
+
+msgid "Compound craft qualification"
+msgstr "Zusammengesetzter Handwerksgrad"
+
+msgid "Separates known compound craft qualifications from the normalized occupation."
+msgstr "Trennt bekannte zusammengesetzte Handwerksgrade von der normierten Berufsbezeichnung ab."
+
+msgid "Independent master compounds are not split"
+msgstr "Eigenständige Meister-Berufe nicht aufteilen"
+
+msgid "Keeps independent terms such as schoolmaster or mayor as one occupation."
+msgstr "Behält eigenständige Begriffe wie Schulmeister oder Bürgermeister als einen Beruf bei."
+
+msgid "Site-managed normalization mapping table"
+msgstr "Websiteweite Umsetzungstabelle"
+
+msgid "Applies the locally maintained mapping table for original and normalized occupation terms."
+msgstr "Wendet die lokal gepflegte Umsetzungstabelle für originale und normierte Berufsangaben an."
+
+msgid "Fallback for unknown terms"
+msgstr "Standardregel für unbekannte Begriffe"
+
+msgid "Keeps unknown terms as unclear normalized occupation proposals."
+msgstr "Übernimmt unbekannte Begriffe als unklare Vorschläge für die normierte Berufsangabe."
+
 msgid "Occupation standardization tables"
 msgstr "Tabellen zur Vereinheitlichung von Berufsangaben"
 

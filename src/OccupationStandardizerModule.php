@@ -46,12 +46,15 @@ use Psr\Http\Server\RequestHandlerInterface;
 use function array_map;
 use function array_values;
 use function array_filter;
+use function array_unique;
 use function assert;
 use function class_exists;
 use function date;
+use function explode;
 use function file_exists;
 use function implode;
 use function in_array;
+use function is_array;
 use function method_exists;
 use function preg_match_all;
 use function preg_match;
@@ -74,6 +77,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const ROUTE_URL = '/tree/{tree}/occupation-standardizer';
     private const FINGERPRINT_PREFIX = 'tree_occu_';
     private const TASK_SAVE_NORMALIZATION_ENTRY = 'saveNormalizationEntry';
+    private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
+    private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
+    private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
     private const NORMALIZATION_STATUSES = [
         OccupationNormalizationService::STATUS_RECOGNIZED,
         OccupationNormalizationService::STATUS_UNCLEAR,
@@ -152,6 +158,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $this->layout = Webtrees::LAYOUT_ADMINISTRATION;
 
         return $this->viewResponse($this->name() . '::settings', [
+            'builtinRules'       => $this->builtinRuleRows(),
             'description'        => $this->description(),
             'languageOptions'    => $this->languageOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
@@ -170,6 +177,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $this->layout = Webtrees::LAYOUT_ADMINISTRATION;
 
         $params = (array) $request->getParsedBody();
+
+        if ((string) ($params['task'] ?? '') === self::TASK_SAVE_BUILTIN_RULES) {
+            $this->saveBuiltinRuleSettings($params);
+        }
 
         if ((string) ($params['task'] ?? '') === 'deleteTreeTable') {
             $this->deleteNormalizationRowsForTree($params);
@@ -278,7 +289,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
         $rows = new Collection();
-        $label_service = new OccupationLabelService();
+        $label_service = new OccupationLabelService($this->activeBuiltinRuleOrder());
         $normalization_rows_by_fact = $can_manage_normalization ? $this->normalizationRowsByFact($tree) : [];
 
         foreach ($this->occupationQuery($tree)->select(['i_id AS xref', 'i_gedcom AS gedcom'])->get() as $row) {
@@ -514,7 +525,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
-        $normalizer = new OccupationNormalizationService($this->normalizationRules());
+        $normalizer = new OccupationNormalizationService($this->normalizationRules(), $this->activeBuiltinRuleOrder());
         $tree_language = $tree->getPreference('LANGUAGE');
         $now = date('Y-m-d H:i:s');
         $seen_keys = [];
@@ -667,6 +678,152 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ['setting_name' => $setting_name],
             ['setting_value' => $setting_value]
         );
+    }
+
+    /**
+     * @return list<array{id:string,label:string,description:string,enabled:bool}>
+     */
+    private function builtinRuleRows(): array
+    {
+        $enabled_rules = $this->enabledBuiltinRuleIds();
+        $definitions = $this->builtinRuleDefinitions();
+
+        return array_map(
+            static fn (string $rule_id): array => [
+                'id'          => $rule_id,
+                'label'       => $definitions[$rule_id]['label'],
+                'description' => $definitions[$rule_id]['description'],
+                'enabled'     => in_array($rule_id, $enabled_rules, true),
+            ],
+            $this->storedBuiltinRuleOrder()
+        );
+    }
+
+    /**
+     * @return array<string,array{label:string,description:string}>
+     */
+    private function builtinRuleDefinitions(): array
+    {
+        return [
+            'M2-R001' => [
+                'label'       => I18N::translate('Split multiple statements'),
+                'description' => I18N::translate('Splits occupation facts by separators and conjunctions.'),
+            ],
+            'M2-R010' => [
+                'label'       => I18N::translate('Social status is not an occupation'),
+                'description' => I18N::translate('Recognizes social status terms such as citizen without counting them as occupations.'),
+            ],
+            'M2-R020' => [
+                'label'       => I18N::translate('Widow compounds'),
+                'description' => I18N::translate('Recognizes widow compounds as social status hints.'),
+            ],
+            'M2-R030' => [
+                'label'       => I18N::translate('Craft qualification after colon'),
+                'description' => I18N::translate('Separates craft qualifications such as master, journeyman, or apprentice after a colon.'),
+            ],
+            'M2-R031' => [
+                'label'       => I18N::translate('Compound craft qualification'),
+                'description' => I18N::translate('Separates known compound craft qualifications from the normalized occupation.'),
+            ],
+            'M2-R032' => [
+                'label'       => I18N::translate('Independent master compounds are not split'),
+                'description' => I18N::translate('Keeps independent terms such as schoolmaster or mayor as one occupation.'),
+            ],
+            'M2-R050' => [
+                'label'       => I18N::translate('Site-managed normalization mapping table'),
+                'description' => I18N::translate('Applies the locally maintained mapping table for original and normalized occupation terms.'),
+            ],
+            'M2-R090' => [
+                'label'       => I18N::translate('Fallback for unknown terms'),
+                'description' => I18N::translate('Keeps unknown terms as unclear normalized occupation proposals.'),
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function storedBuiltinRuleOrder(): array
+    {
+        return $this->completeBuiltinRuleOrder(explode(',', $this->getPreference(
+            self::BUILTIN_RULE_ORDER_PREFERENCE,
+            implode(',', OccupationNormalizationService::defaultBuiltinRuleOrder())
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function activeBuiltinRuleOrder(): array
+    {
+        $enabled_rules = $this->enabledBuiltinRuleIds();
+
+        return array_values(array_filter(
+            $this->storedBuiltinRuleOrder(),
+            static fn (string $rule_id): bool => in_array($rule_id, $enabled_rules, true)
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function enabledBuiltinRuleIds(): array
+    {
+        return array_values(array_filter(
+            OccupationNormalizationService::defaultBuiltinRuleOrder(),
+            fn (string $rule_id): bool => $this->getPreference(self::BUILTIN_RULE_STATUS_PREFIX . $rule_id, '1') === '1'
+        ));
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function saveBuiltinRuleSettings(array $params): void
+    {
+        $order = (string) ($params['resetBuiltinRuleOrder'] ?? '') === '1'
+            ? OccupationNormalizationService::defaultBuiltinRuleOrder()
+            : $this->completeBuiltinRuleOrder(is_array($params['builtinRuleOrder'] ?? null) ? $params['builtinRuleOrder'] : []);
+
+        $this->setPreference(self::BUILTIN_RULE_ORDER_PREFERENCE, implode(',', $order));
+
+        foreach (OccupationNormalizationService::defaultBuiltinRuleOrder() as $rule_id) {
+            $this->setPreference(
+                self::BUILTIN_RULE_STATUS_PREFIX . $rule_id,
+                (string) ($params[self::BUILTIN_RULE_STATUS_PREFIX . $rule_id] ?? '') === '1' ? '1' : '0'
+            );
+        }
+
+        $this->clearOccupationFingerprints();
+        FlashMessages::addMessage(I18N::translate('The rule settings have been saved.'), 'success');
+    }
+
+    /**
+     * @param array<mixed> $order
+     *
+     * @return list<string>
+     */
+    private function completeBuiltinRuleOrder(array $order): array
+    {
+        $default_order = OccupationNormalizationService::defaultBuiltinRuleOrder();
+        $completed_order = [];
+
+        foreach ($order as $rule_id) {
+            $rule_id = (string) $rule_id;
+
+            if (in_array($rule_id, $default_order, true)) {
+                $completed_order[] = $rule_id;
+            }
+        }
+
+        $completed_order = array_values(array_unique($completed_order));
+
+        foreach ($default_order as $rule_id) {
+            if (!in_array($rule_id, $completed_order, true)) {
+                $completed_order[] = $rule_id;
+            }
+        }
+
+        return $completed_order;
     }
 
     /**
