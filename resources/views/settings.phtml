@@ -9,6 +9,8 @@ use Fisharebest\Webtrees\I18N;
 /**
  * @var string $title
  * @var string $description
+ * @var array<string,string> $languageOptions
+ * @var list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}> $normalizationRules
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
  */
 ?>
@@ -28,6 +30,157 @@ use Fisharebest\Webtrees\I18N;
         <p>
             <?= I18N::translate('This module is being prepared to analyze, normalize, and classify historical occupation entries.') ?>
         </p>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h2 class="h4"><?= I18N::translate('Normalization mapping rules') ?></h2>
+        <p>
+            <?= I18N::translate('These site-wide rules are applied after the built-in rules and before future external ontology lookups.') ?>
+        </p>
+
+        <?php foreach ($normalizationRules as $rule) : ?>
+            <form method="post" class="border rounded p-2 mb-2">
+                <?= csrf_field() ?>
+                <input type="hidden" name="task" value="saveNormalizationRule">
+                <input type="hidden" name="ruleId" value="<?= e((string) $rule['id']) ?>">
+
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Language') ?></label>
+                        <?= view('components/select', [
+                            'id' => 'language-' . $rule['id'],
+                            'name' => 'language',
+                            'options' => $languageOptions,
+                            'selected' => $rule['language'],
+                            'class' => 'form-select-sm',
+                        ]) ?>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Original text') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="originalText" value="<?= e($rule['original_text']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Normalized occupation') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="occupationNormalized" value="<?= e($rule['occupation_normalized']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Social status') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="socialStatus" value="<?= e($rule['social_status']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Office') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="office" value="<?= e($rule['office']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Qualification') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="qualification" value="<?= e($rule['qualification']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('Code') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="code" value="<?= e($rule['code']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0">HISCO</label>
+                        <input class="form-control form-control-sm" type="text" name="codeHisco" value="<?= e($rule['code_hisco']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0">GND</label>
+                        <input class="form-control form-control-sm" type="text" name="codeGnd" value="<?= e($rule['code_gnd']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0">OhdAB</label>
+                        <input class="form-control form-control-sm" type="text" name="codeOhdab" value="<?= e($rule['code_ohdab']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="enabled" value="1" id="enabled-<?= e((string) $rule['id']) ?>" <?= $rule['enabled'] ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="enabled-<?= e((string) $rule['id']) ?>">
+                                <?= I18N::translate('Active') ?>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <?= I18N::translate('Save') ?>
+                        </button>
+                        <button class="btn btn-danger btn-sm" type="submit" name="task" value="deleteNormalizationRule">
+                            <?= I18N::translate('Delete') ?>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        <?php endforeach ?>
+
+        <form method="post" class="border rounded p-2">
+            <?= csrf_field() ?>
+            <input type="hidden" name="task" value="saveNormalizationRule">
+            <input type="hidden" name="ruleId" value="0">
+
+            <h3 class="h5"><?= I18N::translate('Add a normalization rule') ?></h3>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Language') ?></label>
+                    <?= view('components/select', [
+                        'id' => 'language-new',
+                        'name' => 'language',
+                        'options' => $languageOptions,
+                        'selected' => 'de',
+                        'class' => 'form-select-sm',
+                    ]) ?>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Original text') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="originalText">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Normalized occupation') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="occupationNormalized">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Social status') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="socialStatus">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Office') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="office">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Qualification') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="qualification">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('Code') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="code">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">HISCO</label>
+                    <input class="form-control form-control-sm" type="text" name="codeHisco">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">GND</label>
+                    <input class="form-control form-control-sm" type="text" name="codeGnd">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">OhdAB</label>
+                    <input class="form-control form-control-sm" type="text" name="codeOhdab">
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="1" id="enabled-new" checked>
+                        <label class="form-check-label" for="enabled-new">
+                            <?= I18N::translate('Active') ?>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-sm" type="submit">
+                        <?= I18N::translate('Add') ?>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 

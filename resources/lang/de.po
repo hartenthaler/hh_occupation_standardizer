@@ -123,3 +123,24 @@ msgstr "Der Normalisierungseintrag wurde aktualisiert."
 
 msgid "The normalization entry could not be updated."
 msgstr "Der Normalisierungseintrag konnte nicht aktualisiert werden."
+
+msgid "Normalization mapping rules"
+msgstr "Umsetzungstabelle für Normalisierungen"
+
+msgid "These site-wide rules are applied after the built-in rules and before future external ontology lookups."
+msgstr "Diese websiteweiten Regeln werden nach den eingebauten Regeln und vor zukünftigen externen Ontologie-Abfragen angewandt."
+
+msgid "Original text"
+msgstr "Originaltext"
+
+msgid "Add a normalization rule"
+msgstr "Normalisierungsregel hinzufügen"
+
+msgid "The normalization rule was not saved because language or original text is missing."
+msgstr "Die Normalisierungsregel wurde nicht gespeichert, weil Sprache oder Originaltext fehlen."
+
+msgid "The normalization rule has been saved."
+msgstr "Die Normalisierungsregel wurde gespeichert."
+
+msgid "The normalization rule has been deleted."
+msgstr "Die Normalisierungsregel wurde gelöscht."

@@ -56,6 +56,29 @@ Historical spelling variants are normalized as follows:
 - `Schuster` -> `Schuhmacher`
 - `Beck` -> `Bäcker`
 
+## M2-R050: Site-managed normalization mapping table
+
+Administrators can maintain a site-wide mapping table in the module settings.
+These rules are applied after the built-in local rules and before the fallback rule.
+
+The table can store:
+
+- language of the original occupation text
+- original occupation text
+- normalized occupation
+- social status
+- office
+- qualification
+- local code
+- HISCO code
+- GND identifier
+- OhdAB identifier
+
+The first seeded German examples are:
+
+- `Ärztin` -> `Arzt`
+- `Orgelbauerin` -> `Orgelbauer`
+
 ## M2-R090: Fallback for unknown terms
 
 If no specific rule applies, the original term is copied as the normalized occupation and the entry is marked as `unclear`.
