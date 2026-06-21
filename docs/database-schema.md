@@ -136,11 +136,16 @@ knowledge such as language-specific variants and spelling conventions.
 
 The first seeded German examples are:
 
-- `Ärztin` -> `Arzt`
-- `Beck` -> `Bäcker`
-- `Kieffer` -> `Küfer`
-- `Orgelbauerin` -> `Orgelbauer`
-- `Schuster` -> `Schuhmacher`
+- `Ärztin` / `de` -> `Arzt`
+- `Beck` / `de` -> `Bäcker`
+- `Kieffer` / `de` -> `Küfer`
+- `Orgelbauerin` / `de` -> `Orgelbauer`
+- `Schuster` / `de` -> `Schuhmacher`
+
+The language is part of the mapping key. This matters when the same original
+text can mean different things in different languages. For example, `Minister`
+/ `de` can describe a government office, while `Minister` / `en` can describe
+a clergyman.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
