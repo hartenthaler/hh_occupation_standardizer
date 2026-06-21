@@ -158,7 +158,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                         <input class="form-control form-control-sm" type="text" name="codeGnd" value="<?= e($term['code_gnd']) ?>">
                         <?php $url = $externalIdentifierService->url('gnd', $term['code_gnd']) ?>
                         <?php if ($url !== '') : ?>
-                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($term['code_gnd']) ?></a>
                         <?php endif ?>
                     </div>
                     <div class="col-md-2">
@@ -174,7 +174,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                         <input class="form-control form-control-sm" type="text" name="codeFactgrid" value="<?= e($term['code_factgrid']) ?>">
                         <?php $url = $externalIdentifierService->url('factgrid', $term['code_factgrid']) ?>
                         <?php if ($url !== '') : ?>
-                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($term['code_factgrid']) ?></a>
                         <?php endif ?>
                     </div>
                     <div class="col-md-2 d-flex gap-2">
