@@ -118,7 +118,8 @@ if ($tag === 'MARR') {
                 <div class="wt-fact-value">
                     <?= $element->value($value, $tree) ?>
                     <?php if ($tag === 'OCCU' && $value !== '') : ?>
-                        <?php foreach ((new OccupationLabelService())->labelsForOccupation($value, $tree->getPreference('LANGUAGE')) as $normalization) : ?>
+                        <?php $occupation_sex = $parent instanceof Individual ? $parent->sex() : ($record instanceof Individual ? $record->sex() : 'U') ?>
+                        <?php foreach ((new OccupationLabelService())->labelsForOccupation($value, $tree->getPreference('LANGUAGE'), $occupation_sex, I18N::languageTag()) as $normalization) : ?>
                             <span class="badge bg-secondary ms-1" title="<?= e($normalization['title']) ?>">
                                 <?= e($normalization['label']) ?>
                             </span>

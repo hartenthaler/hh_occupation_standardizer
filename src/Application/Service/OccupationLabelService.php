@@ -36,29 +36,34 @@ final class OccupationLabelService
     /**
      * @return list<array{label:string,title:string,status:string}>
      */
-    public function labelsForOccupation(string $occupation, string $language = ''): array
+    public function labelsForOccupation(string $occupation, string $language = '', string $sex = 'U', string $user_language = ''): array
     {
-        return $this->labels((new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order))->normalize($occupation, $language));
+        return $this->labels(
+            (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order))->normalize($occupation, $language),
+            $sex,
+            $user_language
+        );
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_en_male?:string,occupation_en_female?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
-    public function labelsForEntries(array $entries): array
+    public function labelsForEntries(array $entries, string $sex = 'U', string $user_language = ''): array
     {
-        return $this->labels($entries);
+        return $this->labels($entries, $sex, $user_language);
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_en_male?:string,occupation_en_female?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
-    private function labels(array $entries): array
+    private function labels(array $entries, string $sex, string $user_language): array
     {
         $labels = [];
+        $user_language = $user_language !== '' ? $user_language : I18N::languageTag();
 
         foreach ($entries as $entry) {
             $title_parts = [];
@@ -73,6 +78,22 @@ final class OccupationLabelService
 
             if ($entry['occupation_normalized'] !== '') {
                 $title_parts[] = MoreI18N::xlate('Occupation') . ': ' . $entry['occupation_normalized'];
+            }
+
+            if (($entry['occupation_de_male'] ?? '') !== '') {
+                $title_parts[] = I18N::translate('German masculine form') . ': ' . $entry['occupation_de_male'];
+            }
+
+            if (($entry['occupation_de_female'] ?? '') !== '') {
+                $title_parts[] = I18N::translate('German feminine form') . ': ' . $entry['occupation_de_female'];
+            }
+
+            if (($entry['occupation_en_male'] ?? '') !== '') {
+                $title_parts[] = I18N::translate('English masculine form') . ': ' . $entry['occupation_en_male'];
+            }
+
+            if (($entry['occupation_en_female'] ?? '') !== '') {
+                $title_parts[] = I18N::translate('English feminine form') . ': ' . $entry['occupation_en_female'];
             }
 
             if ($entry['office'] !== '') {
@@ -99,7 +120,7 @@ final class OccupationLabelService
             $title_parts[] = I18N::translate('Rules') . ': ' . $entry['rule_numbers'];
 
             $labels[] = [
-                'label'  => $this->label($entry),
+                'label'  => $this->label($entry, $sex, $user_language),
                 'title'  => implode("\n", $title_parts),
                 'status' => $entry['status'],
             ];
@@ -109,10 +130,42 @@ final class OccupationLabelService
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_en_male?:string,occupation_en_female?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string} $entry
      */
-    private function label(array $entry): string
+    private function label(array $entry, string $sex, string $user_language): string
     {
+        $localized_forms = $this->localizedGenderForms($entry, $user_language);
+        $male_form = $localized_forms['male'];
+        $female_form = $localized_forms['female'];
+
+        if ($sex === 'F' && $female_form !== '') {
+            return $female_form;
+        }
+
+        if ($sex === 'M' && $male_form !== '') {
+            return $male_form;
+        }
+
+        if (!in_array($sex, ['F', 'M'], true)) {
+            if ($male_form !== '' && $female_form !== '' && $male_form !== $female_form) {
+                return $male_form . ' / ' . $female_form;
+            }
+
+            if ($male_form !== '') {
+                return $male_form;
+            }
+
+            if ($female_form !== '') {
+                return $female_form;
+            }
+        }
+
+        foreach ($sex === 'F' ? [$male_form] : [$female_form] as $fallback_form) {
+            if ($fallback_form !== '') {
+                return $fallback_form;
+            }
+        }
+
         foreach (['occupation_normalized', 'social_status', 'office', 'qualification'] as $key) {
             if ($entry[$key] !== '') {
                 return $entry[$key];
@@ -123,7 +176,26 @@ final class OccupationLabelService
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @param array{occupation_de_male?:string,occupation_de_female?:string,occupation_en_male?:string,occupation_en_female?:string} $entry
+     *
+     * @return array{male:string,female:string}
+     */
+    private function localizedGenderForms(array $entry, string $user_language): array
+    {
+        $prefer_german = explode('-', $user_language)[0] === 'de';
+        $male_key = $prefer_german ? 'occupation_de_male' : 'occupation_en_male';
+        $female_key = $prefer_german ? 'occupation_de_female' : 'occupation_en_female';
+        $fallback_male_key = $prefer_german ? 'occupation_en_male' : 'occupation_de_male';
+        $fallback_female_key = $prefer_german ? 'occupation_en_female' : 'occupation_de_female';
+
+        return [
+            'male'   => (string) (($entry[$male_key] ?? '') !== '' ? $entry[$male_key] : ($entry[$fallback_male_key] ?? '')),
+            'female' => (string) (($entry[$female_key] ?? '') !== '' ? $entry[$female_key] : ($entry[$fallback_female_key] ?? '')),
+        ];
+    }
+
+    /**
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
      */
     private function normalizationRules(): array
     {
@@ -139,6 +211,9 @@ final class OccupationLabelService
                 'rules.social_status',
                 'rules.qualification',
                 'terms.occupation_de_male',
+                'terms.occupation_de_female',
+                'terms.occupation_en_male',
+                'terms.occupation_en_female',
                 'terms.code_hisco',
                 'terms.code_gnd',
                 'terms.code_ohdab',
@@ -150,6 +225,10 @@ final class OccupationLabelService
                 'original_text'         => (string) $row->original_text,
                 'social_status'         => (string) ($row->social_status ?? ''),
                 'occupation_normalized' => (string) ($row->occupation_de_male ?? ''),
+                'occupation_de_male'    => (string) ($row->occupation_de_male ?? ''),
+                'occupation_de_female'  => (string) ($row->occupation_de_female ?? ''),
+                'occupation_en_male'    => (string) ($row->occupation_en_male ?? ''),
+                'occupation_en_female'  => (string) ($row->occupation_en_female ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),

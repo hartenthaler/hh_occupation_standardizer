@@ -46,6 +46,10 @@ final class OccupationSchema
                 $table->string('language', 35)->nullable();
                 $table->string('social_status', 255)->nullable();
                 $table->string('occupation_normalized', 255)->nullable();
+                $table->string('occupation_de_male', 255)->nullable();
+                $table->string('occupation_de_female', 255)->nullable();
+                $table->string('occupation_en_male', 255)->nullable();
+                $table->string('occupation_en_female', 255)->nullable();
                 $table->string('office', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
                 $table->string('code_hisco', 64)->nullable();
@@ -125,6 +129,10 @@ final class OccupationSchema
             'code_hisco'    => 64,
             'code_gnd'      => 64,
             'code_ohdab'    => 64,
+            'occupation_de_male'   => 255,
+            'occupation_de_female' => 255,
+            'occupation_en_male'   => 255,
+            'occupation_en_female' => 255,
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table) use ($column, $length): void {

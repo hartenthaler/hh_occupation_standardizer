@@ -37,14 +37,14 @@ final class OccupationNormalizationService
         'werkmeister',
     ];
 
-    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}> */
+    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}> */
     private array $normalization_rules;
 
     /** @var list<string> */
     private array $builtin_rule_order;
 
     /**
-     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalization_rules
+     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_en_male?:string,occupation_en_female?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalization_rules
      * @param list<string> $builtin_rule_order
      */
     public function __construct(array $normalization_rules = [], array $builtin_rule_order = [])
@@ -71,7 +71,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}>
+     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}>
      */
     public function normalize(string $occupation, string $language = ''): array
     {
@@ -118,7 +118,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
      */
     private function normalizePart(string $part, string $language): array
     {
@@ -130,6 +130,10 @@ final class OccupationNormalizationService
             'language'              => $language,
             'social_status'         => '',
             'occupation_normalized' => '',
+            'occupation_de_male'    => '',
+            'occupation_de_female'  => '',
+            'occupation_en_male'    => '',
+            'occupation_en_female'  => '',
             'office'                => '',
             'qualification'         => '',
             'code_hisco'            => '',
@@ -190,6 +194,10 @@ final class OccupationNormalizationService
                             'language'              => $rule['language'] !== '' ? $rule['language'] : $language,
                             'social_status'         => $rule['social_status'],
                             'occupation_normalized' => $rule['occupation_normalized'],
+                            'occupation_de_male'    => $rule['occupation_de_male'] ?? '',
+                            'occupation_de_female'  => $rule['occupation_de_female'] ?? '',
+                            'occupation_en_male'    => $rule['occupation_en_male'] ?? '',
+                            'occupation_en_female'  => $rule['occupation_en_female'] ?? '',
                             'qualification'         => $rule['qualification'],
                             'code_hisco'            => $rule['code_hisco'],
                             'code_gnd'              => $rule['code_gnd'],
@@ -218,7 +226,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string} $rule
+     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_en_male?:string,occupation_en_female?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string} $rule
      */
     private function ruleMatches(array $rule, string $original, string $language): bool
     {
@@ -238,11 +246,11 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      * @param array<string,string> $values
      * @param list<string> $rules
      *
-     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
      */
     private function withRules(array $entry, array $values, array $rules): array
     {

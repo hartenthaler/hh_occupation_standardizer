@@ -70,7 +70,11 @@ written back to GEDCOM by the module.
 | --- | --- | --- |
 | `language` | `string(35)` nullable | Language tag of the original occupation text, e.g. `de` or `de-DE`. Initial value comes from the tree preference `LANGUAGE`; managers can override it per row. |
 | `social_status` | `string(255)` nullable | Social status such as `Bürger` or `Witwe`. |
-| `occupation_normalized` | `string(255)` nullable | Normalized occupation label shown as the main badge when present. |
+| `occupation_normalized` | `string(255)` nullable | Normalized fallback label. The displayed badge prefers the language- and gender-specific forms when present. |
+| `occupation_de_male` | `string(255)` nullable | German masculine form copied from the normalized term. |
+| `occupation_de_female` | `string(255)` nullable | German feminine form copied from the normalized term. |
+| `occupation_en_male` | `string(255)` nullable | English masculine form copied from the normalized term. |
+| `occupation_en_female` | `string(255)` nullable | English feminine form copied from the normalized term. |
 | `office` | `string(255)` nullable | Office or honorary office, separated from occupation. |
 | `qualification` | `string(255)` nullable | Qualification or craft grade such as `Meister`, `Geselle`, or `Lehrling`. |
 | `code_hisco` | `string(64)` nullable | HISCO code. |
