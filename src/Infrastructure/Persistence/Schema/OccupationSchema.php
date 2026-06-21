@@ -48,8 +48,10 @@ final class OccupationSchema
                 $table->string('occupation_normalized', 255)->nullable();
                 $table->string('occupation_de_male', 255)->nullable();
                 $table->string('occupation_de_female', 255)->nullable();
+                $table->string('occupation_de_neutral', 255)->nullable();
                 $table->string('occupation_en_male', 255)->nullable();
                 $table->string('occupation_en_female', 255)->nullable();
+                $table->string('occupation_en_neutral', 255)->nullable();
                 $table->string('office', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
                 $table->string('code_hisco', 64)->nullable();
@@ -94,8 +96,10 @@ final class OccupationSchema
                 $table->string('normalized_key', 255)->unique();
                 $table->string('occupation_de_male', 255)->nullable();
                 $table->string('occupation_de_female', 255)->nullable();
+                $table->string('occupation_de_neutral', 255)->nullable();
                 $table->string('occupation_en_male', 255)->nullable();
                 $table->string('occupation_en_female', 255)->nullable();
+                $table->string('occupation_en_neutral', 255)->nullable();
                 $table->string('code_hisco', 64)->nullable();
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();
@@ -131,11 +135,24 @@ final class OccupationSchema
             'code_ohdab'    => 64,
             'occupation_de_male'   => 255,
             'occupation_de_female' => 255,
+            'occupation_de_neutral' => 255,
             'occupation_en_male'   => 255,
             'occupation_en_female' => 255,
+            'occupation_en_neutral' => 255,
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table) use ($column, $length): void {
+                    $table->string($column, $length)->nullable();
+                });
+            }
+        }
+
+        foreach ([
+            'occupation_de_neutral' => 255,
+            'occupation_en_neutral' => 255,
+        ] as $column => $length) {
+            if (!DB::schema()->hasColumn(self::TABLE_NORMALIZATION_TERMS, $column)) {
+                DB::schema()->table(self::TABLE_NORMALIZATION_TERMS, static function ($table) use ($column, $length): void {
                     $table->string($column, $length)->nullable();
                 });
             }
@@ -159,18 +176,19 @@ final class OccupationSchema
     private function seedDefaultNormalizationRules(): void
     {
         foreach ([
-            ['language' => 'de', 'original_text' => 'Ärztin', 'occupation_normalized' => 'Arzt', 'occupation_de_female' => 'Ärztin'],
-            ['language' => 'de', 'original_text' => 'Beck', 'occupation_normalized' => 'Bäcker', 'occupation_de_female' => 'Bäckerin'],
-            ['language' => 'de', 'original_text' => 'Kieffer', 'occupation_normalized' => 'Küfer', 'occupation_de_female' => 'Küferin'],
-            ['language' => 'de', 'original_text' => 'Orgelbauerin', 'occupation_normalized' => 'Orgelbauer', 'occupation_de_female' => 'Orgelbauerin'],
-            ['language' => 'de', 'original_text' => 'Schuster', 'occupation_normalized' => 'Schuhmacher', 'occupation_de_female' => 'Schuhmacherin'],
+            ['language' => 'de', 'original_text' => 'Ärztin', 'occupation_normalized' => 'Arzt', 'occupation_de_female' => 'Ärztin', 'occupation_de_neutral' => 'Arzt/Ärztin'],
+            ['language' => 'de', 'original_text' => 'Beck', 'occupation_normalized' => 'Bäcker', 'occupation_de_female' => 'Bäckerin', 'occupation_de_neutral' => 'Bäcker/in'],
+            ['language' => 'de', 'original_text' => 'Kieffer', 'occupation_normalized' => 'Küfer', 'occupation_de_female' => 'Küferin', 'occupation_de_neutral' => 'Küfer/in'],
+            ['language' => 'de', 'original_text' => 'Orgelbauerin', 'occupation_normalized' => 'Orgelbauer', 'occupation_de_female' => 'Orgelbauerin', 'occupation_de_neutral' => 'Orgelbauer/in'],
+            ['language' => 'de', 'original_text' => 'Schuster', 'occupation_normalized' => 'Schuhmacher', 'occupation_de_female' => 'Schuhmacherin', 'occupation_de_neutral' => 'Schuhmacher/in'],
         ] as $rule) {
             DB::table(self::TABLE_NORMALIZATION_TERMS)->updateOrInsert(
                 ['normalized_key' => $rule['occupation_normalized']],
                 [
-                    'occupation_de_male'   => $rule['occupation_normalized'],
-                    'occupation_de_female' => $rule['occupation_de_female'],
-                    'updated_at'           => date('Y-m-d H:i:s'),
+                    'occupation_de_male'    => $rule['occupation_normalized'],
+                    'occupation_de_female'  => $rule['occupation_de_female'],
+                    'occupation_de_neutral' => $rule['occupation_de_neutral'],
+                    'updated_at'            => date('Y-m-d H:i:s'),
                 ]
             );
 

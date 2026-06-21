@@ -73,8 +73,10 @@ written back to GEDCOM by the module.
 | `occupation_normalized` | `string(255)` nullable | Normalized fallback label. The displayed badge prefers the language- and gender-specific forms when present. |
 | `occupation_de_male` | `string(255)` nullable | German masculine form copied from the normalized term. |
 | `occupation_de_female` | `string(255)` nullable | German feminine form copied from the normalized term. |
+| `occupation_de_neutral` | `string(255)` nullable | German neutral form copied from the normalized term. This is preferred for sex `X` or `U`. |
 | `occupation_en_male` | `string(255)` nullable | English masculine form copied from the normalized term. |
 | `occupation_en_female` | `string(255)` nullable | English feminine form copied from the normalized term. |
+| `occupation_en_neutral` | `string(255)` nullable | English neutral form copied from the normalized term. This is preferred for sex `X` or `U`. |
 | `office` | `string(255)` nullable | Office or honorary office, separated from occupation. |
 | `qualification` | `string(255)` nullable | Qualification or craft grade such as `Meister`, `Geselle`, or `Lehrling`. |
 | `code_hisco` | `string(64)` nullable | HISCO code. |
@@ -116,8 +118,10 @@ as well as external identifiers belong here, not on the individual mapping rule.
 | `normalized_key` | `string(255)` unique | Stable local normalized key used to link spelling variants. |
 | `occupation_de_male` | `string(255)` nullable | German masculine form. |
 | `occupation_de_female` | `string(255)` nullable | German feminine form. |
+| `occupation_de_neutral` | `string(255)` nullable | German neutral form. |
 | `occupation_en_male` | `string(255)` nullable | English masculine form. |
 | `occupation_en_female` | `string(255)` nullable | English feminine form. |
+| `occupation_en_neutral` | `string(255)` nullable | English neutral form. |
 | `code_hisco` | `string(64)` nullable | HISCO code for the normalized term. |
 | `code_gnd` | `string(64)` nullable | GND identifier for the normalized term. |
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier for the normalized term. |

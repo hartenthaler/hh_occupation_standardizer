@@ -232,11 +232,17 @@ msgstr "Deutsche männliche Form"
 msgid "German feminine form"
 msgstr "Deutsche weibliche Form"
 
+msgid "German neutral form"
+msgstr "Deutsche neutrale Form"
+
 msgid "English masculine form"
 msgstr "Englische männliche Form"
 
 msgid "English feminine form"
 msgstr "Englische weibliche Form"
+
+msgid "English neutral form"
+msgstr "Englische neutrale Form"
 
 msgid "Add a normalization rule"
 msgstr "Normalisierungsregel hinzufügen"

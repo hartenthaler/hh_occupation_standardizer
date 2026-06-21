@@ -12,9 +12,9 @@ use Fisharebest\Webtrees\View;
  * @var string $description
  * @var list<array{id:string,label:string,description:string,enabled:bool}> $builtinRules
  * @var array<string,string> $languageOptions
- * @var list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalizationTerms
+ * @var list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
- * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}> $normalizationRules
+ * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}> $normalizationRules
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}> $treeLanguages
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
  */
@@ -120,12 +120,20 @@ use Fisharebest\Webtrees\View;
                         <input class="form-control form-control-sm" type="text" name="occupationDeFemale" value="<?= e($term['occupation_de_female']) ?>">
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('German neutral form') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="occupationDeNeutral" value="<?= e($term['occupation_de_neutral']) ?>">
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label small mb-0"><?= I18N::translate('English masculine form') ?></label>
                         <input class="form-control form-control-sm" type="text" name="occupationEnMale" value="<?= e($term['occupation_en_male']) ?>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small mb-0"><?= I18N::translate('English feminine form') ?></label>
                         <input class="form-control form-control-sm" type="text" name="occupationEnFemale" value="<?= e($term['occupation_en_female']) ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0"><?= I18N::translate('English neutral form') ?></label>
+                        <input class="form-control form-control-sm" type="text" name="occupationEnNeutral" value="<?= e($term['occupation_en_neutral']) ?>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small mb-0">HISCO</label>
@@ -171,12 +179,20 @@ use Fisharebest\Webtrees\View;
                     <input class="form-control form-control-sm" type="text" name="occupationDeFemale">
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('German neutral form') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="occupationDeNeutral">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small mb-0"><?= I18N::translate('English masculine form') ?></label>
                     <input class="form-control form-control-sm" type="text" name="occupationEnMale">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0"><?= I18N::translate('English feminine form') ?></label>
                     <input class="form-control form-control-sm" type="text" name="occupationEnFemale">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0"><?= I18N::translate('English neutral form') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="occupationEnNeutral">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-0">HISCO</label>
