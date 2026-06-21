@@ -169,34 +169,43 @@ use Fisharebest\Webtrees\I18N;
     </div>
 </div>
 
-<div class="card mt-3">
-    <div class="card-body">
-        <h2 class="h4"><?= I18N::translate('Family tree languages') ?></h2>
-        <p>
-            <?= I18N::translate('These are the default languages used when occupation normalization rows are created.') ?>
-        </p>
+<div class="accordion mt-3" id="occupation-standardizer-settings">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-tree-languages">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-tree-languages" aria-expanded="false" aria-controls="collapse-tree-languages">
+                <?= I18N::translate('Family tree languages') ?>
+            </button>
+        </h2>
 
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th><?= I18N::translate('Family tree') ?></th>
-                    <th><?= I18N::translate('Language') ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($treeLanguages as $treeLanguage) : ?>
-                    <tr>
-                        <td>
-                            <?= e($treeLanguage['tree_title']) ?>
-                            <span class="text-muted">(<?= e($treeLanguage['tree_name']) ?>)</span>
-                        </td>
-                        <td>
-                            <?= e($languageOptions[$treeLanguage['tree_language']] ?? $treeLanguage['tree_language']) ?>
-                        </td>
-                    </tr>
-                <?php endforeach ?>
-            </tbody>
-        </table>
+        <div id="collapse-tree-languages" class="accordion-collapse collapse" aria-labelledby="heading-tree-languages">
+            <div class="accordion-body">
+                <p>
+                    <?= I18N::translate('These are the default languages used when occupation normalization rows are created.') ?>
+                </p>
+
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th><?= I18N::translate('Family tree') ?></th>
+                            <th><?= I18N::translate('Language') ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($treeLanguages as $treeLanguage) : ?>
+                            <tr>
+                                <td>
+                                    <?= e($treeLanguage['tree_title']) ?>
+                                    <span class="text-muted">(<?= e($treeLanguage['tree_name']) ?>)</span>
+                                </td>
+                                <td>
+                                    <?= e($languageOptions[$treeLanguage['tree_language']] ?? $treeLanguage['tree_language']) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
