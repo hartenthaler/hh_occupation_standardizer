@@ -24,6 +24,7 @@ final class OccupationLabelService
 
     /** @var list<string> */
     private array $builtin_rule_order;
+    private ExternalIdentifierService $external_identifier_service;
 
     /**
      * @param list<string> $builtin_rule_order
@@ -31,6 +32,7 @@ final class OccupationLabelService
     public function __construct(array $builtin_rule_order = [])
     {
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : $this->configuredBuiltinRuleOrder();
+        $this->external_identifier_service = new ExternalIdentifierService();
     }
 
     /**
@@ -46,7 +48,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
@@ -56,7 +58,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string}> $entries
+     * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string}> $entries
      *
      * @return list<array{label:string,title:string,status:string}>
      */
@@ -113,15 +115,19 @@ final class OccupationLabelService
             }
 
             if (($entry['code_hisco'] ?? '') !== '') {
-                $title_parts[] = 'HISCO: ' . $entry['code_hisco'];
+                $title_parts[] = $this->identifierTitle('HISCO', 'hisco', $entry['code_hisco']);
             }
 
             if (($entry['code_gnd'] ?? '') !== '') {
-                $title_parts[] = 'GND: ' . $entry['code_gnd'];
+                $title_parts[] = $this->identifierTitle('GND', 'gnd', $entry['code_gnd']);
             }
 
             if (($entry['code_ohdab'] ?? '') !== '') {
-                $title_parts[] = 'OhdAB: ' . $entry['code_ohdab'];
+                $title_parts[] = $this->identifierTitle('OhdAB', 'ohdab', $entry['code_ohdab']);
+            }
+
+            if (($entry['code_factgrid'] ?? '') !== '') {
+                $title_parts[] = $this->identifierTitle('FactGrid', 'factgrid', $entry['code_factgrid']);
             }
 
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
@@ -137,8 +143,15 @@ final class OccupationLabelService
         return $labels;
     }
 
+    private function identifierTitle(string $label, string $identifier_type, string $code): string
+    {
+        $url = $this->external_identifier_service->url($identifier_type, $code);
+
+        return $url !== '' ? $label . ': ' . $code . ' (' . $url . ')' : $label . ': ' . $code;
+    }
+
     /**
-     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string} $entry
      */
     private function label(array $entry, string $sex, string $user_language): string
     {
@@ -201,7 +214,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
      */
     private function normalizationRules(): array
     {
@@ -225,6 +238,7 @@ final class OccupationLabelService
                 'terms.code_hisco',
                 'terms.code_gnd',
                 'terms.code_ohdab',
+                'terms.code_factgrid',
             ])
             ->where('rules.enabled', '=', true)
             ->get()
@@ -243,6 +257,7 @@ final class OccupationLabelService
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
+                'code_factgrid'         => (string) ($row->code_factgrid ?? ''),
             ])
             ->all();
     }

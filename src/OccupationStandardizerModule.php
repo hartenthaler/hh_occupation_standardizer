@@ -301,7 +301,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}>
      */
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
@@ -429,7 +429,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>>
+     * @return array<string,list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>>
      */
     private function normalizationRowsByFact(Tree $tree): array
     {
@@ -462,6 +462,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'code_hisco'            => (string) ($entry->code_hisco ?? ''),
                     'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                     'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
+                    'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
                     'status'                => (string) $entry->status,
                     'reviewed'              => (bool) $entry->reviewed,
                     'rule_numbers'          => (string) $entry->rule_numbers,
@@ -505,6 +506,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
                 'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
                 'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
+                'code_factgrid'         => trim((string) ($params['codeFactgrid'] ?? '')),
                 'status'                => $status,
                 'reviewed'              => (string) ($params['reviewed'] ?? '') === '1',
                 'manually_changed'      => true,
@@ -600,7 +602,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string} $entry
      * @param array{xrefs:list<string>,names:list<string>} $source_data
      * @param array{display:string,sort:string,place:string,location_xref:string,location_hierarchy:string} $place_data
      */
@@ -654,9 +656,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string} $entry
      *
-     * @return array{language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
+     * @return array{language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}
      */
     private function automaticNormalizationValues(array $entry): array
     {
@@ -675,6 +677,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_hisco'            => $entry['code_hisco'],
             'code_gnd'              => $entry['code_gnd'],
             'code_ohdab'            => $entry['code_ohdab'],
+            'code_factgrid'         => $entry['code_factgrid'],
             'status'                => $entry['status'],
             'rule_numbers'          => $entry['rule_numbers'],
         ];
@@ -879,7 +882,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
      */
     private function normalizationTermRows(): array
     {
@@ -902,6 +905,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_hisco'           => (string) ($row->code_hisco ?? ''),
                 'code_gnd'             => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'           => (string) ($row->code_ohdab ?? ''),
+                'code_factgrid'        => (string) ($row->code_factgrid ?? ''),
             ])
             ->all();
     }
@@ -921,7 +925,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
+     * @return list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,enabled:bool}>
      */
     private function normalizationRuleRows(): array
     {
@@ -949,6 +953,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'terms.code_hisco',
                 'terms.code_gnd',
                 'terms.code_ohdab',
+                'terms.code_factgrid',
             ])
             ->orderBy('rules.language')
             ->orderBy('rules.original_text')
@@ -971,13 +976,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
+                'code_factgrid'         => (string) ($row->code_factgrid ?? ''),
                 'enabled'               => (bool) $row->enabled,
             ])
             ->all();
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
      */
     private function normalizationRules(): array
     {
@@ -997,6 +1003,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_hisco'            => $rule['code_hisco'],
                 'code_gnd'              => $rule['code_gnd'],
                 'code_ohdab'            => $rule['code_ohdab'],
+                'code_factgrid'         => $rule['code_factgrid'],
             ],
             array_values(array_filter(
                 $this->normalizationRuleRows(),
@@ -1074,6 +1081,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_hisco'             => trim((string) ($params['codeHisco'] ?? '')),
             'code_gnd'               => trim((string) ($params['codeGnd'] ?? '')),
             'code_ohdab'             => trim((string) ($params['codeOhdab'] ?? '')),
+            'code_factgrid'          => trim((string) ($params['codeFactgrid'] ?? '')),
             'updated_at'             => date('Y-m-d H:i:s'),
         ];
 

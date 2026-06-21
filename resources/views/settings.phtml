@@ -6,15 +6,18 @@ use Fisharebest\Webtrees\Http\RequestHandlers\ControlPanel;
 use Fisharebest\Webtrees\Http\RequestHandlers\ModulesAllPage;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\View;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
+
+$externalIdentifierService = new ExternalIdentifierService();
 
 /**
  * @var string $title
  * @var string $description
  * @var list<array{id:string,label:string,description:string,enabled:bool}> $builtinRules
  * @var array<string,string> $languageOptions
- * @var list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalizationTerms
+ * @var list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
- * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}> $normalizationRules
+ * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,enabled:bool}> $normalizationRules
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}> $treeLanguages
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
  */
@@ -138,14 +141,34 @@ use Fisharebest\Webtrees\View;
                     <div class="col-md-2">
                         <label class="form-label small mb-0">HISCO</label>
                         <input class="form-control form-control-sm" type="text" name="codeHisco" value="<?= e($term['code_hisco']) ?>">
+                        <?php $url = $externalIdentifierService->url('hisco', $term['code_hisco']) ?>
+                        <?php if ($url !== '') : ?>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                        <?php endif ?>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small mb-0">GND</label>
                         <input class="form-control form-control-sm" type="text" name="codeGnd" value="<?= e($term['code_gnd']) ?>">
+                        <?php $url = $externalIdentifierService->url('gnd', $term['code_gnd']) ?>
+                        <?php if ($url !== '') : ?>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                        <?php endif ?>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small mb-0">OhdAB</label>
                         <input class="form-control form-control-sm" type="text" name="codeOhdab" value="<?= e($term['code_ohdab']) ?>">
+                        <?php $url = $externalIdentifierService->url('ohdab', $term['code_ohdab']) ?>
+                        <?php if ($url !== '') : ?>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                        <?php endif ?>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0">FactGrid</label>
+                        <input class="form-control form-control-sm" type="text" name="codeFactgrid" value="<?= e($term['code_factgrid']) ?>">
+                        <?php $url = $externalIdentifierService->url('factgrid', $term['code_factgrid']) ?>
+                        <?php if ($url !== '') : ?>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                        <?php endif ?>
                     </div>
                     <div class="col-md-2 d-flex gap-2">
                         <button class="btn btn-primary btn-sm" type="submit">
@@ -205,6 +228,10 @@ use Fisharebest\Webtrees\View;
                 <div class="col-md-2">
                     <label class="form-label small mb-0">OhdAB</label>
                     <input class="form-control form-control-sm" type="text" name="codeOhdab">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">FactGrid</label>
+                    <input class="form-control form-control-sm" type="text" name="codeFactgrid">
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary btn-sm" type="submit">

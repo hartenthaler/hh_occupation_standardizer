@@ -83,6 +83,7 @@ written back to GEDCOM by the module.
 | `code_hisco` | `string(64)` nullable | HISCO code. |
 | `code_gnd` | `string(64)` nullable | GND identifier. |
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier. |
+| `code_factgrid` | `string(64)` nullable | FactGrid item id, e.g. `Q699480`. |
 | `status` | `string(32)` | Normalization status, currently `recognized`, `unclear`, or `ignored`. |
 | `reviewed` | boolean | Explicit reviewer decision. Saving a manual edit does not automatically set this flag. |
 | `manually_changed` | boolean | Internal flag that protects unfinished manual edits from being overwritten by later automatic synchronization. |
@@ -126,6 +127,7 @@ as well as external identifiers belong here, not on the individual mapping rule.
 | `code_hisco` | `string(64)` nullable | HISCO code for the normalized term. |
 | `code_gnd` | `string(64)` nullable | GND identifier for the normalized term. |
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier for the normalized term. |
+| `code_factgrid` | `string(64)` nullable | FactGrid item id for the normalized term. |
 | `created_at` | timestamp | Creation time of the term. |
 | `updated_at` | timestamp nullable | Last update time. |
 
@@ -134,6 +136,19 @@ as well as external identifiers belong here, not on the individual mapping rule.
 | Index | Columns | Purpose |
 | --- | --- | --- |
 | unique | `normalized_key` | Ensure one shared target term for one normalized key. |
+
+### External Identifier URLs
+
+The module keeps URL patterns for external identifiers in
+`ExternalIdentifierService`. The code value is stored in the database; the URL
+is generated for display.
+
+| Identifier | URL pattern |
+| --- | --- |
+| FactGrid | `https://database.factgrid.de/wiki/Item:<code>` |
+| GND | `https://d-nb.info/gnd/<code>` |
+| HISCO | Not linked yet; no stable code-based item URL has been verified. |
+| OhdAB | Not linked yet; no stable code-based item URL has been verified. |
 
 ## `occupation_standardizer_rules`
 

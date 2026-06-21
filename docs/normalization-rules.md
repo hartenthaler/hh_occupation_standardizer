@@ -37,6 +37,10 @@ Occupation statements such as `Orgelbauer: Meister` are split into:
 
 The same pattern applies to `Geselle` and `Lehrling`.
 
+## M2-R032: Independent master compounds are not split
+
+Independent compounds such as `Schulmeister`, `Bürgermeister`, and `Werkmeister` are not split into occupation plus qualification.
+
 ## M2-R031: Compound craft qualification
 
 `Orgelbaumeister` is normalized as:
@@ -44,9 +48,7 @@ The same pattern applies to `Geselle` and `Lehrling`.
 - normalized occupation: `Orgelbauer`
 - qualification: `Meister`
 
-## M2-R032: Independent master compounds are not split
-
-Independent compounds such as `Schulmeister`, `Bürgermeister`, and `Werkmeister` are not split into occupation plus qualification.
+This rule is applied after M2-R032 so independent master compounds can be protected before any broader craft-qualification logic is added.
 
 ## M2-R050: Site-managed normalization mapping table
 
@@ -64,6 +66,7 @@ The table can store:
 - HISCO code
 - GND identifier
 - OhdAB identifier
+- FactGrid item id
 
 The first seeded German examples are:
 

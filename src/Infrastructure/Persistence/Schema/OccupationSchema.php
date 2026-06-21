@@ -57,6 +57,7 @@ final class OccupationSchema
                 $table->string('code_hisco', 64)->nullable();
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();
+                $table->string('code_factgrid', 64)->nullable();
                 $table->string('status', 32);
                 $table->boolean('reviewed')->default(false);
                 $table->boolean('manually_changed')->default(false);
@@ -103,6 +104,7 @@ final class OccupationSchema
                 $table->string('code_hisco', 64)->nullable();
                 $table->string('code_gnd', 64)->nullable();
                 $table->string('code_ohdab', 64)->nullable();
+                $table->string('code_factgrid', 64)->nullable();
                 $table->timestamp('created_at')->useCurrent();
                 $table->timestamp('updated_at')->nullable();
             });
@@ -133,6 +135,7 @@ final class OccupationSchema
             'code_hisco'    => 64,
             'code_gnd'      => 64,
             'code_ohdab'    => 64,
+            'code_factgrid' => 64,
             'occupation_de_male'   => 255,
             'occupation_de_female' => 255,
             'occupation_de_neutral' => 255,
@@ -150,6 +153,7 @@ final class OccupationSchema
         foreach ([
             'occupation_de_neutral' => 255,
             'occupation_en_neutral' => 255,
+            'code_factgrid'         => 64,
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZATION_TERMS, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZATION_TERMS, static function ($table) use ($column, $length): void {
