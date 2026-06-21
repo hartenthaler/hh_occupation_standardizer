@@ -44,6 +44,7 @@ Managers and administrators can edit the stored normalization entries directly i
 Administrators can maintain a site-wide normalization mapping table in the module settings. These rules can normalize language-specific variants such as feminine occupational forms and can store identifiers for HISCO, GND, and OhdAB.
 
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
+The module-owned database tables are documented in [docs/database-schema.md](docs/database-schema.md).
 
 ## Roadmap
 
