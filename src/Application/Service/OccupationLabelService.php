@@ -131,14 +131,25 @@ final class OccupationLabelService
             return [];
         }
 
-        return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_RULES)
-            ->where('enabled', '=', true)
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_RULES . ' AS rules')
+            ->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', 'terms.id', '=', 'rules.normalized_term_id')
+            ->select([
+                'rules.language',
+                'rules.original_text',
+                'rules.social_status',
+                'rules.qualification',
+                'terms.occupation_de_male',
+                'terms.code_hisco',
+                'terms.code_gnd',
+                'terms.code_ohdab',
+            ])
+            ->where('rules.enabled', '=', true)
             ->get()
             ->map(static fn (object $row): array => [
                 'language'              => (string) $row->language,
                 'original_text'         => (string) $row->original_text,
                 'social_status'         => (string) ($row->social_status ?? ''),
-                'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
+                'occupation_normalized' => (string) ($row->occupation_de_male ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),

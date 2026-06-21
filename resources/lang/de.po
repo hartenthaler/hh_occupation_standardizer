@@ -202,6 +202,21 @@ msgstr "Diese websiteweiten Regeln werden nach den eingebauten Regeln und vor zu
 msgid "Original text"
 msgstr "Originaltext"
 
+msgid "Normalized key"
+msgstr "Normschlüssel"
+
+msgid "German masculine form"
+msgstr "Deutsche männliche Form"
+
+msgid "German feminine form"
+msgstr "Deutsche weibliche Form"
+
+msgid "English masculine form"
+msgstr "Englische männliche Form"
+
+msgid "English feminine form"
+msgstr "Englische weibliche Form"
+
 msgid "Add a normalization rule"
 msgstr "Normalisierungsregel hinzufügen"
 

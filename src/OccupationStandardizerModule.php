@@ -844,7 +844,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
+     * @return list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_en_male:string,occupation_en_female:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
      */
     private function normalizationRuleRows(): array
     {
@@ -852,16 +852,41 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return [];
         }
 
-        return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_RULES)
-            ->orderBy('language')
-            ->orderBy('original_text')
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_RULES . ' AS rules')
+            ->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', 'terms.id', '=', 'rules.normalized_term_id')
+            ->select([
+                'rules.id',
+                'rules.language',
+                'rules.original_text',
+                'rules.normalized_term_id',
+                'rules.social_status',
+                'rules.occupation_normalized',
+                'rules.qualification',
+                'rules.enabled',
+                'terms.normalized_key',
+                'terms.occupation_de_male',
+                'terms.occupation_de_female',
+                'terms.occupation_en_male',
+                'terms.occupation_en_female',
+                'terms.code_hisco',
+                'terms.code_gnd',
+                'terms.code_ohdab',
+            ])
+            ->orderBy('rules.language')
+            ->orderBy('rules.original_text')
             ->get()
             ->map(static fn (object $row): array => [
                 'id'                    => (int) $row->id,
                 'language'              => (string) $row->language,
                 'original_text'         => (string) $row->original_text,
+                'normalized_term_id'    => (int) ($row->normalized_term_id ?? 0),
+                'normalized_key'        => (string) ($row->normalized_key ?? $row->occupation_normalized ?? ''),
+                'occupation_de_male'    => (string) ($row->occupation_de_male ?? $row->occupation_normalized ?? ''),
+                'occupation_de_female'  => (string) ($row->occupation_de_female ?? ''),
+                'occupation_en_male'    => (string) ($row->occupation_en_male ?? ''),
+                'occupation_en_female'  => (string) ($row->occupation_en_female ?? ''),
                 'social_status'         => (string) ($row->social_status ?? ''),
-                'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
+                'occupation_normalized' => (string) ($row->occupation_de_male ?? $row->occupation_normalized ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
@@ -902,6 +927,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $id = (int) ($params['ruleId'] ?? 0);
         $original_text = trim((string) ($params['originalText'] ?? ''));
         $language = trim((string) ($params['language'] ?? ''));
+        $normalized_key = trim((string) ($params['normalizedKey'] ?? ''));
+
+        if ($normalized_key === '') {
+            $normalized_key = trim((string) ($params['occupationDeMale'] ?? ''));
+        }
 
         if ($original_text === '' || $language === '') {
             FlashMessages::addMessage(I18N::translate('The normalization rule was not saved because language or original text is missing.'), 'warning');
@@ -909,11 +939,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
+        $normalized_term_id = $this->saveNormalizationTerm($normalized_key, $params);
+
         $values = [
             'language'              => $language,
             'original_text'         => $original_text,
+            'normalized_term_id'    => $normalized_term_id > 0 ? $normalized_term_id : null,
             'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
-            'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
+            'occupation_normalized' => trim((string) ($params['occupationDeMale'] ?? $normalized_key)),
             'qualification'         => trim((string) ($params['qualification'] ?? '')),
             'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
             'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
@@ -938,6 +971,36 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $this->clearOccupationFingerprints();
         FlashMessages::addMessage(I18N::translate('The normalization rule has been saved.'), 'success');
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function saveNormalizationTerm(string $normalized_key, array $params): int
+    {
+        if ($normalized_key === '') {
+            return 0;
+        }
+
+        DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)->updateOrInsert(
+            ['normalized_key' => $normalized_key],
+            [
+                'occupation_de_male'   => trim((string) ($params['occupationDeMale'] ?? '')) !== '' ? trim((string) ($params['occupationDeMale'] ?? '')) : $normalized_key,
+                'occupation_de_female' => trim((string) ($params['occupationDeFemale'] ?? '')),
+                'occupation_en_male'   => trim((string) ($params['occupationEnMale'] ?? '')),
+                'occupation_en_female' => trim((string) ($params['occupationEnFemale'] ?? '')),
+                'code_hisco'           => trim((string) ($params['codeHisco'] ?? '')),
+                'code_gnd'             => trim((string) ($params['codeGnd'] ?? '')),
+                'code_ohdab'           => trim((string) ($params['codeOhdab'] ?? '')),
+                'updated_at'           => date('Y-m-d H:i:s'),
+            ]
+        );
+
+        $term = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->where('normalized_key', '=', $normalized_key)
+            ->first();
+
+        return $term === null ? 0 : (int) $term->id;
     }
 
     /**
