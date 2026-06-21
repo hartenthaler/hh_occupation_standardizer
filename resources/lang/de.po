@@ -30,12 +30,6 @@ msgstr "Diese Liste zeigt die ursprünglichen Berufsangaben."
 msgid "No occupation facts were found in this family tree."
 msgstr "In diesem Stammbaum wurden keine Berufsangaben gefunden."
 
-msgid "Planned functionality"
-msgstr "Geplante Funktionalität"
-
-msgid "This module is being prepared to analyze, normalize, and classify historical occupation entries."
-msgstr "Dieses Modul wird vorbereitet, um historische Berufsangaben zu analysieren, zu normalisieren und zu klassifizieren."
-
 msgid "Normalization rules"
 msgstr "Normalisierungsregeln"
 
