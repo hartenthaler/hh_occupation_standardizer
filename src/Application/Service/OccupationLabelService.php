@@ -107,7 +107,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
      */
     private function normalizationRules(): array
     {
@@ -123,7 +123,6 @@ final class OccupationLabelService
                 'original_text'         => (string) $row->original_text,
                 'social_status'         => (string) ($row->social_status ?? ''),
                 'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
-                'office'                => (string) ($row->office ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
                 'code'                  => (string) ($row->code ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),

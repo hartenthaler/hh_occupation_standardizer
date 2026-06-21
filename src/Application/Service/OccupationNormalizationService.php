@@ -23,12 +23,6 @@ final class OccupationNormalizationService
         'bürger' => 'Bürger',
     ];
 
-    private const SPELLING_VARIANTS = [
-        'beck'     => 'Bäcker',
-        'kieffer'  => 'Küfer',
-        'schuster' => 'Schuhmacher',
-    ];
-
     private const QUALIFICATIONS = [
         'meister'  => 'Meister',
         'geselle'  => 'Geselle',
@@ -41,11 +35,11 @@ final class OccupationNormalizationService
         'werkmeister',
     ];
 
-    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}> */
+    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}> */
     private array $normalization_rules;
 
     /**
-     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalization_rules
+     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalization_rules
      */
     public function __construct(array $normalization_rules = [])
     {
@@ -163,14 +157,6 @@ final class OccupationNormalizationService
             ], ['M2-R032']);
         }
 
-        if (isset(self::SPELLING_VARIANTS[$lower])) {
-            // M2-R040: Historical spelling variants.
-            return $this->withRules($entry, [
-                'occupation_normalized' => self::SPELLING_VARIANTS[$lower],
-                'status'                => self::STATUS_RECOGNIZED,
-            ], ['M2-R040']);
-        }
-
         foreach ($this->normalization_rules as $rule) {
             if ($this->ruleMatches($rule, $original, $language)) {
                 // M2-R050: Site-managed normalization mapping table.
@@ -178,7 +164,6 @@ final class OccupationNormalizationService
                     'language'              => $rule['language'] !== '' ? $rule['language'] : $language,
                     'social_status'         => $rule['social_status'],
                     'occupation_normalized' => $rule['occupation_normalized'],
-                    'office'                => $rule['office'],
                     'qualification'         => $rule['qualification'],
                     'code'                  => $rule['code'],
                     'code_hisco'            => $rule['code_hisco'],
@@ -198,14 +183,11 @@ final class OccupationNormalizationService
 
     private function normalizeOccupationName(string $occupation): string
     {
-        $occupation = trim($occupation);
-        $lower = mb_strtolower($occupation);
-
-        return self::SPELLING_VARIANTS[$lower] ?? $occupation;
+        return trim($occupation);
     }
 
     /**
-     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string} $rule
+     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string} $rule
      */
     private function ruleMatches(array $rule, string $original, string $language): bool
     {

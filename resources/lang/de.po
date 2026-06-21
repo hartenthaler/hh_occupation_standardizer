@@ -144,3 +144,9 @@ msgstr "Die Normalisierungsregel wurde gespeichert."
 
 msgid "The normalization rule has been deleted."
 msgstr "Die Normalisierungsregel wurde gelöscht."
+
+msgid "Family tree languages"
+msgstr "Sprachen der Stammbäume"
+
+msgid "These are the default languages used when occupation normalization rows are created."
+msgstr "Diese Standardsprachen werden verwendet, wenn Normalisierungseinträge für Berufsangaben erstellt werden."

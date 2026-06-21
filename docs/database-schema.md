@@ -109,7 +109,10 @@ language-specific variants, spelling conventions, and identifiers.
 The first seeded German examples are:
 
 - `Ärztin` -> `Arzt`
+- `Beck` -> `Bäcker`
+- `Kieffer` -> `Küfer`
 - `Orgelbauerin` -> `Orgelbauer`
+- `Schuster` -> `Schuhmacher`
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -118,7 +121,6 @@ The first seeded German examples are:
 | `original_text` | `string(255)` | Original occupation text to match. Matching is case-insensitive. |
 | `social_status` | `string(255)` nullable | Social status to set. |
 | `occupation_normalized` | `string(255)` nullable | Normalized occupation to set. |
-| `office` | `string(255)` nullable | Office to set. |
 | `qualification` | `string(255)` nullable | Qualification to set. |
 | `code` | `string(64)` nullable | Local or generic code to set. |
 | `code_hisco` | `string(64)` nullable | HISCO code to set. |

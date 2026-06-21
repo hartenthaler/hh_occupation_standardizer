@@ -71,7 +71,6 @@ final class OccupationSchema
                 $table->string('original_text', 255);
                 $table->string('social_status', 255)->nullable();
                 $table->string('occupation_normalized', 255)->nullable();
-                $table->string('office', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
                 $table->string('code', 64)->nullable();
                 $table->string('code_hisco', 64)->nullable();
@@ -124,7 +123,10 @@ final class OccupationSchema
     {
         foreach ([
             ['language' => 'de', 'original_text' => 'Ärztin', 'occupation_normalized' => 'Arzt'],
+            ['language' => 'de', 'original_text' => 'Beck', 'occupation_normalized' => 'Bäcker'],
+            ['language' => 'de', 'original_text' => 'Kieffer', 'occupation_normalized' => 'Küfer'],
             ['language' => 'de', 'original_text' => 'Orgelbauerin', 'occupation_normalized' => 'Orgelbauer'],
+            ['language' => 'de', 'original_text' => 'Schuster', 'occupation_normalized' => 'Schuhmacher'],
         ] as $rule) {
             $exists = DB::table(self::TABLE_NORMALIZATION_RULES)
                 ->where('language', '=', $rule['language'])

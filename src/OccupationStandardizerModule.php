@@ -152,6 +152,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'languageOptions'    => $this->languageOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
             'title'              => $this->title(),
+            'treeLanguages'      => $this->treeLanguageRows(),
             'treeStatistics'     => $this->normalizationTableStatistics(),
         ]);
     }
@@ -614,7 +615,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
+     * @return list<array{id:int,language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,enabled:bool}>
      */
     private function normalizationRuleRows(): array
     {
@@ -632,7 +633,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'original_text'         => (string) $row->original_text,
                 'social_status'         => (string) ($row->social_status ?? ''),
                 'occupation_normalized' => (string) ($row->occupation_normalized ?? ''),
-                'office'                => (string) ($row->office ?? ''),
                 'qualification'         => (string) ($row->qualification ?? ''),
                 'code'                  => (string) ($row->code ?? ''),
                 'code_hisco'            => (string) ($row->code_hisco ?? ''),
@@ -644,7 +644,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
+     * @return list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}>
      */
     private function normalizationRules(): array
     {
@@ -654,7 +654,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'original_text'         => $rule['original_text'],
                 'social_status'         => $rule['social_status'],
                 'occupation_normalized' => $rule['occupation_normalized'],
-                'office'                => $rule['office'],
                 'qualification'         => $rule['qualification'],
                 'code'                  => $rule['code'],
                 'code_hisco'            => $rule['code_hisco'],
@@ -688,7 +687,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'original_text'         => $original_text,
             'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
             'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
-            'office'                => trim((string) ($params['office'] ?? '')),
             'qualification'         => trim((string) ($params['qualification'] ?? '')),
             'code'                  => trim((string) ($params['code'] ?? '')),
             'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
@@ -738,6 +736,40 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         DBManager::table(OccupationSchema::TABLE_METADATA)
             ->where('setting_name', 'like', self::FINGERPRINT_PREFIX . '%')
             ->delete();
+    }
+
+    /**
+     * @return list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}>
+     */
+    private function treeLanguageRows(): array
+    {
+        return DBManager::table('gedcom AS tree')
+            ->leftJoin('gedcom_setting AS title', static function ($join): void {
+                $join
+                    ->on('title.gedcom_id', '=', 'tree.gedcom_id')
+                    ->where('title.setting_name', '=', 'title');
+            })
+            ->leftJoin('gedcom_setting AS language', static function ($join): void {
+                $join
+                    ->on('language.gedcom_id', '=', 'tree.gedcom_id')
+                    ->where('language.setting_name', '=', 'LANGUAGE');
+            })
+            ->orderBy('title.setting_value')
+            ->orderBy('tree.gedcom_name')
+            ->select([
+                'tree.gedcom_id AS tree_id',
+                'tree.gedcom_name AS tree_name',
+                'title.setting_value AS tree_title',
+                'language.setting_value AS tree_language',
+            ])
+            ->get()
+            ->map(static fn (object $row): array => [
+                'tree_id'       => (int) $row->tree_id,
+                'tree_name'     => (string) $row->tree_name,
+                'tree_title'    => (string) ($row->tree_title ?? $row->tree_name),
+                'tree_language' => (string) ($row->tree_language ?? ''),
+            ])
+            ->all();
     }
 
     /**
