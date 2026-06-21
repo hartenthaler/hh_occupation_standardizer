@@ -94,6 +94,7 @@ final class OccupationSchema
         if (!DB::schema()->hasTable(self::TABLE_NORMALIZATION_TERMS)) {
             DB::schema()->create(self::TABLE_NORMALIZATION_TERMS, static function ($table): void {
                 $table->increments('id');
+                $table->string('language', 35)->nullable();
                 $table->string('normalized_key', 255)->unique();
                 $table->string('occupation_de_male', 255)->nullable();
                 $table->string('occupation_de_female', 255)->nullable();
@@ -151,6 +152,7 @@ final class OccupationSchema
         }
 
         foreach ([
+            'language'              => 35,
             'occupation_de_neutral' => 255,
             'occupation_en_neutral' => 255,
             'code_factgrid'         => 64,
@@ -161,6 +163,8 @@ final class OccupationSchema
                 });
             }
         }
+
+        $this->deriveNormalizedTermKeys();
 
         if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'location_hierarchy')) {
             DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table): void {
@@ -186,9 +190,12 @@ final class OccupationSchema
             ['language' => 'de', 'original_text' => 'Orgelbauerin', 'occupation_normalized' => 'Orgelbauer', 'occupation_de_female' => 'Orgelbauerin', 'occupation_de_neutral' => 'Orgelbauer/in'],
             ['language' => 'de', 'original_text' => 'Schuster', 'occupation_normalized' => 'Schuhmacher', 'occupation_de_female' => 'Schuhmacherin', 'occupation_de_neutral' => 'Schuhmacher/in'],
         ] as $rule) {
+            $normalized_key = $this->normalizedTermKey($rule['language'], $rule['occupation_normalized']);
+
             DB::table(self::TABLE_NORMALIZATION_TERMS)->updateOrInsert(
-                ['normalized_key' => $rule['occupation_normalized']],
+                ['normalized_key' => $normalized_key],
                 [
+                    'language'              => $rule['language'],
                     'occupation_de_male'    => $rule['occupation_normalized'],
                     'occupation_de_female'  => $rule['occupation_de_female'],
                     'occupation_de_neutral' => $rule['occupation_de_neutral'],
@@ -197,7 +204,7 @@ final class OccupationSchema
             );
 
             $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
-                ->where('normalized_key', '=', $rule['occupation_normalized'])
+                ->where('normalized_key', '=', $normalized_key)
                 ->first();
 
             $exists = DB::table(self::TABLE_NORMALIZATION_RULES)
@@ -220,5 +227,55 @@ final class OccupationSchema
                     ->update(['normalized_term_id' => (int) $term->id]);
             }
         }
+    }
+
+    private function deriveNormalizedTermKeys(): void
+    {
+        foreach (DB::table(self::TABLE_NORMALIZATION_TERMS)->get() as $term) {
+            $language = trim((string) ($term->language ?? '')) !== '' ? trim((string) $term->language) : 'de';
+            $occupation = $this->keyMasculineForm(
+                $language,
+                (string) ($term->occupation_de_male ?? ''),
+                (string) ($term->occupation_en_male ?? '')
+            );
+
+            if ($occupation === '') {
+                $occupation = trim((string) $term->normalized_key);
+            }
+
+            if ($occupation === '') {
+                continue;
+            }
+
+            $normalized_key = $this->normalizedTermKey($language, $occupation);
+
+            if ((string) ($term->language ?? '') === $language && (string) $term->normalized_key === $normalized_key) {
+                continue;
+            }
+
+            DB::table(self::TABLE_NORMALIZATION_TERMS)
+                ->where('id', '=', (int) $term->id)
+                ->update([
+                    'language'        => $language,
+                    'normalized_key'  => $normalized_key,
+                    'updated_at'      => date('Y-m-d H:i:s'),
+                ]);
+        }
+    }
+
+    private function normalizedTermKey(string $language, string $occupation): string
+    {
+        return trim($language) . ':' . trim($occupation);
+    }
+
+    private function keyMasculineForm(string $language, string $occupation_de_male, string $occupation_en_male): string
+    {
+        $primary_language = explode('-', trim($language))[0] ?? '';
+
+        if ($primary_language === 'en') {
+            return trim($occupation_en_male) !== '' ? trim($occupation_en_male) : trim($occupation_de_male);
+        }
+
+        return trim($occupation_de_male) !== '' ? trim($occupation_de_male) : trim($occupation_en_male);
     }
 }

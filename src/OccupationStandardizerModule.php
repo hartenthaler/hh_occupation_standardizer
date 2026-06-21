@@ -908,7 +908,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
+     * @return list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
      */
     private function normalizationTermRows(): array
     {
@@ -917,10 +917,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
-            ->orderBy('normalized_key')
+            ->orderBy('language')
+            ->orderBy('occupation_de_male')
             ->get()
             ->map(static fn (object $row): array => [
                 'id'                   => (int) $row->id,
+                'language'             => (string) ($row->language ?? self::DEFAULT_OCCUPATION_LANGUAGE),
                 'normalized_key'       => (string) $row->normalized_key,
                 'occupation_de_male'    => (string) ($row->occupation_de_male ?? ''),
                 'occupation_de_female'  => (string) ($row->occupation_de_female ?? ''),
@@ -944,7 +946,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $options = [0 => I18N::translate('No normalized term')];
 
         foreach ($this->normalizationTermRows() as $term) {
-            $options[$term['id']] = $term['normalized_key'];
+            $label = $this->keyMasculineForm($term['language'], $term['occupation_de_male'], $term['occupation_en_male']);
+            $label = $label !== '' ? $label : $term['normalized_key'];
+            $options[$term['id']] = $term['language'] . ': ' . $label;
         }
 
         return $options;
@@ -1088,20 +1092,38 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private function saveNormalizationTermAction(array $params): void
     {
         $id = (int) ($params['termId'] ?? 0);
-        $normalized_key = trim((string) ($params['normalizedKey'] ?? ''));
+        $language = trim((string) ($params['language'] ?? self::DEFAULT_OCCUPATION_LANGUAGE));
+        $occupation_de_male = trim((string) ($params['occupationDeMale'] ?? ''));
+        $occupation_en_male = trim((string) ($params['occupationEnMale'] ?? ''));
+        $key_masculine_form = $this->keyMasculineForm($language, $occupation_de_male, $occupation_en_male);
 
-        if ($normalized_key === '') {
-            FlashMessages::addMessage(I18N::translate('The normalized term was not saved because the normalized key is missing.'), 'warning');
+        if ($language === '' || $key_masculine_form === '') {
+            FlashMessages::addMessage(I18N::translate('The normalized term was not saved because language or language-specific masculine form is missing.'), 'warning');
+
+            return;
+        }
+
+        $normalized_key = $this->normalizedTermKey($language, $key_masculine_form);
+        $conflict_query = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->where('normalized_key', '=', $normalized_key);
+
+        if ($id > 0) {
+            $conflict_query->where('id', '<>', $id);
+        }
+
+        if ($conflict_query->exists()) {
+            FlashMessages::addMessage(I18N::translate('The normalized term was not saved because the combination of language and masculine form already exists.'), 'warning');
 
             return;
         }
 
         $values = [
+            'language'               => $language,
             'normalized_key'         => $normalized_key,
-            'occupation_de_male'     => trim((string) ($params['occupationDeMale'] ?? '')) !== '' ? trim((string) ($params['occupationDeMale'] ?? '')) : $normalized_key,
+            'occupation_de_male'     => $occupation_de_male,
             'occupation_de_female'   => trim((string) ($params['occupationDeFemale'] ?? '')),
             'occupation_de_neutral'  => trim((string) ($params['occupationDeNeutral'] ?? '')),
-            'occupation_en_male'     => trim((string) ($params['occupationEnMale'] ?? '')),
+            'occupation_en_male'     => $occupation_en_male,
             'occupation_en_female'   => trim((string) ($params['occupationEnFemale'] ?? '')),
             'occupation_en_neutral'  => trim((string) ($params['occupationEnNeutral'] ?? '')),
             'code_hisco'             => trim((string) ($params['codeHisco'] ?? '')),
@@ -1124,6 +1146,22 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $this->clearOccupationFingerprints();
         FlashMessages::addMessage(I18N::translate('The normalized term has been saved.'), 'success');
+    }
+
+    private function normalizedTermKey(string $language, string $occupation): string
+    {
+        return trim($language) . ':' . trim($occupation);
+    }
+
+    private function keyMasculineForm(string $language, string $occupation_de_male, string $occupation_en_male): string
+    {
+        $primary_language = explode('-', trim($language))[0] ?? '';
+
+        if ($primary_language === 'en') {
+            return trim($occupation_en_male) !== '' ? trim($occupation_en_male) : trim($occupation_de_male);
+        }
+
+        return trim($occupation_de_male) !== '' ? trim($occupation_de_male) : trim($occupation_en_male);
     }
 
     /**

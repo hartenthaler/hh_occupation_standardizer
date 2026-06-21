@@ -117,7 +117,8 @@ as well as external identifiers belong here, not on the individual mapping rule.
 | Column | Type | Meaning |
 | --- | --- | --- |
 | `id` | auto-increment integer | Internal normalized term id. |
-| `normalized_key` | `string(255)` unique | Stable local normalized key used to link spelling variants. |
+| `language` | `string(35)` nullable | Language tag of the normalized occupational terminology, e.g. `de` or `en`. This will later select the matching normalization ontology. |
+| `normalized_key` | `string(255)` unique | Derived internal key built from `language` and the language-specific masculine form, e.g. `de:Arzt` or `en:Minister`. |
 | `occupation_de_male` | `string(255)` nullable | German masculine form. |
 | `occupation_de_female` | `string(255)` nullable | German feminine form. |
 | `occupation_de_neutral` | `string(255)` nullable | German neutral form. |
@@ -135,7 +136,13 @@ as well as external identifiers belong here, not on the individual mapping rule.
 
 | Index | Columns | Purpose |
 | --- | --- | --- |
-| unique | `normalized_key` | Ensure one shared target term for one normalized key. |
+| unique | `normalized_key` | Ensure one shared target term for each combination of language and language-specific masculine form. |
+
+The logical key of a normalized term is the combination of `language` and the
+masculine form in that language. This is important because the same label can
+refer to different occupational concepts in different languages. For example,
+`Minister` in German and `Minister` in English may later be linked to different
+normalization ontologies.
 
 ### External Identifier URLs
 
@@ -166,10 +173,10 @@ The first seeded German examples are:
 - `Orgelbauerin` / `de` -> `Orgelbauer`
 - `Schuster` / `de` -> `Schuhmacher`
 
-The language is part of the mapping key. This matters when the same original
-text can mean different things in different languages. For example, `Minister`
-/ `de` can describe a government office, while `Minister` / `en` can describe
-a clergyman.
+The language is part of both the mapping rule key and the normalized term key.
+This matters when the same text can mean different things in different
+languages. For example, `Minister` / `de` can describe a government office,
+while `Minister` / `en` can describe a clergyman.
 
 | Column | Type | Meaning |
 | --- | --- | --- |

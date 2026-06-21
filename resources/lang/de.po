@@ -211,6 +211,9 @@ msgstr "Normierte Berufsbegriffe"
 msgid "Normalized terms contain the shared labels and external identifiers used by one or more mapping rules."
 msgstr "Normierte Begriffe enthalten die gemeinsamen Bezeichnungen und externen Kennungen, die von einer oder mehreren Umsetzungsregeln verwendet werden."
 
+msgid "The language and the language-specific masculine form identify the normalized term."
+msgstr "Die Sprache und die sprachspezifische männliche Form identifizieren den normierten Begriff."
+
 msgid "Add a normalized term"
 msgstr "Normierten Begriff hinzufügen"
 
@@ -225,6 +228,12 @@ msgstr "Kein normierter Begriff"
 
 msgid "The normalized term was not saved because the normalized key is missing."
 msgstr "Der normierte Begriff wurde nicht gespeichert, weil der Normschlüssel fehlt."
+
+msgid "The normalized term was not saved because language or language-specific masculine form is missing."
+msgstr "Der normierte Begriff wurde nicht gespeichert, weil die Sprache oder die sprachspezifische männliche Form fehlt."
+
+msgid "The normalized term was not saved because the combination of language and masculine form already exists."
+msgstr "Der normierte Begriff wurde nicht gespeichert, weil die Kombination aus Sprache und männlicher Form bereits existiert."
 
 msgid "The normalized term has been saved."
 msgstr "Der normierte Begriff wurde gespeichert."
