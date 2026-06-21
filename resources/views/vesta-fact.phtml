@@ -211,7 +211,7 @@ if ($tag === 'MARR') {
                     <?= $element->value($value, $tree) ?>
                     <?php if ($tag === 'OCCU' && $value !== '') : ?>
                         <?php $occupation_sex = $parent instanceof Individual ? $parent->sex() : ($record instanceof Individual ? $record->sex() : 'U') ?>
-                        <?php foreach ((new OccupationLabelService())->labelsForOccupation($value, $tree->getPreference('LANGUAGE'), $occupation_sex, I18N::languageTag()) as $normalization) : ?>
+                        <?php foreach ((new OccupationLabelService())->labelsForFact($fact, $occupation_sex, I18N::languageTag()) as $normalization) : ?>
                             <span class="badge bg-secondary ms-1" title="<?= e($normalization['title']) ?>">
                                 <?= e($normalization['label']) ?>
                             </span>

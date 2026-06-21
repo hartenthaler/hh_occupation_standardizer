@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service;
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Fact;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
@@ -21,6 +22,8 @@ final class OccupationLabelService
     private const MODULE_NAME = '_hh_occupation_standardizer_';
     private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
     private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
+    private const TREE_LANGUAGE_PREFIX = 'treeLanguage-';
+    private const DEFAULT_OCCUPATION_LANGUAGE = 'de';
 
     /** @var list<string> */
     private array $builtin_rule_order;
@@ -42,6 +45,25 @@ final class OccupationLabelService
     {
         return $this->labels(
             (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order))->normalize($occupation, $language),
+            $sex,
+            $user_language
+        );
+    }
+
+    /**
+     * @return list<array{label:string,title:string,status:string}>
+     */
+    public function labelsForFact(Fact $fact, string $sex = 'U', string $user_language = ''): array
+    {
+        $entries = $this->entriesForFact($fact);
+
+        if ($entries !== []) {
+            return $this->labelsForEntries($entries, $sex, $user_language);
+        }
+
+        return $this->labelsForOccupation(
+            $fact->value(),
+            $this->occupationLanguage((int) $fact->record()->tree()->id()),
             $sex,
             $user_language
         );
@@ -148,6 +170,53 @@ final class OccupationLabelService
         $url = $this->external_identifier_service->url($identifier_type, $code);
 
         return $url !== '' ? $label . ': ' . $code . ' (' . $url . ')' : $label . ': ' . $code;
+    }
+
+    /**
+     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,rule_numbers:string}>
+     */
+    private function entriesForFact(Fact $fact): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return [];
+        }
+
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $fact->record()->tree()->id())
+            ->where('fact_id', '=', $fact->id())
+            ->where('is_active', '=', true)
+            ->orderBy('part_index')
+            ->get()
+            ->map(static fn (object $entry): array => [
+                'part_index'            => (int) $entry->part_index,
+                'original_part_text'    => (string) $entry->original_part_text,
+                'language'              => (string) ($entry->language ?? ''),
+                'social_status'         => (string) ($entry->social_status ?? ''),
+                'occupation_normalized' => (string) ($entry->occupation_normalized ?? ''),
+                'occupation_de_male'    => (string) ($entry->occupation_de_male ?? ''),
+                'occupation_de_female'  => (string) ($entry->occupation_de_female ?? ''),
+                'occupation_de_neutral' => (string) ($entry->occupation_de_neutral ?? ''),
+                'occupation_en_male'    => (string) ($entry->occupation_en_male ?? ''),
+                'occupation_en_female'  => (string) ($entry->occupation_en_female ?? ''),
+                'occupation_en_neutral' => (string) ($entry->occupation_en_neutral ?? ''),
+                'office'                => (string) ($entry->office ?? ''),
+                'qualification'         => (string) ($entry->qualification ?? ''),
+                'code_hisco'            => (string) ($entry->code_hisco ?? ''),
+                'code_gnd'              => (string) ($entry->code_gnd ?? ''),
+                'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
+                'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+                'status'                => (string) $entry->status,
+                'rule_numbers'          => (string) $entry->rule_numbers,
+            ])
+            ->all();
+    }
+
+    private function occupationLanguage(int $tree_id): string
+    {
+        return (string) (DBManager::table('module_setting')
+            ->where('module_name', '=', self::MODULE_NAME)
+            ->where('setting_name', '=', self::TREE_LANGUAGE_PREFIX . $tree_id)
+            ->value('setting_value') ?? self::DEFAULT_OCCUPATION_LANGUAGE);
     }
 
     /**
