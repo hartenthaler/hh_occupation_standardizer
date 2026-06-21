@@ -16,6 +16,7 @@ use function array_values;
 use function explode;
 use function in_array;
 use function implode;
+use function trim;
 
 final class OccupationLabelService
 {
@@ -27,7 +28,6 @@ final class OccupationLabelService
 
     /** @var list<string> */
     private array $builtin_rule_order;
-    private ExternalIdentifierService $external_identifier_service;
 
     /**
      * @param list<string> $builtin_rule_order
@@ -35,7 +35,6 @@ final class OccupationLabelService
     public function __construct(array $builtin_rule_order = [])
     {
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : $this->configuredBuiltinRuleOrder();
-        $this->external_identifier_service = new ExternalIdentifierService();
     }
 
     /**
@@ -90,6 +89,7 @@ final class OccupationLabelService
         $user_language = $user_language !== '' ? $user_language : I18N::languageTag();
 
         foreach ($entries as $entry) {
+            $entry = $this->enrichedEntry($entry);
             $title_parts = [];
 
             if ($entry['social_status'] !== '') {
@@ -137,19 +137,19 @@ final class OccupationLabelService
             }
 
             if (($entry['code_hisco'] ?? '') !== '') {
-                $title_parts[] = $this->identifierTitle('HISCO', 'hisco', $entry['code_hisco']);
+                $title_parts[] = $this->identifierTitle('HISCO', $entry['code_hisco']);
             }
 
             if (($entry['code_gnd'] ?? '') !== '') {
-                $title_parts[] = $this->identifierTitle('GND', 'gnd', $entry['code_gnd']);
+                $title_parts[] = $this->identifierTitle('GND', $entry['code_gnd']);
             }
 
             if (($entry['code_ohdab'] ?? '') !== '') {
-                $title_parts[] = $this->identifierTitle('OhdAB', 'ohdab', $entry['code_ohdab']);
+                $title_parts[] = $this->identifierTitle('OhdAB', $entry['code_ohdab']);
             }
 
             if (($entry['code_factgrid'] ?? '') !== '') {
-                $title_parts[] = $this->identifierTitle('FactGrid', 'factgrid', $entry['code_factgrid']);
+                $title_parts[] = $this->identifierTitle('FactGrid', $entry['code_factgrid']);
             }
 
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
@@ -165,11 +165,9 @@ final class OccupationLabelService
         return $labels;
     }
 
-    private function identifierTitle(string $label, string $identifier_type, string $code): string
+    private function identifierTitle(string $label, string $code): string
     {
-        $url = $this->external_identifier_service->url($identifier_type, $code);
-
-        return $url !== '' ? $label . ': ' . $code . ' (' . $url . ')' : $label . ': ' . $code;
+        return $label . ': ' . $code;
     }
 
     /**
@@ -225,30 +223,18 @@ final class OccupationLabelService
     private function label(array $entry, string $sex, string $user_language): string
     {
         $localized_forms = $this->localizedGenderForms($entry, $user_language);
-        $male_form = $localized_forms['male'];
-        $female_form = $localized_forms['female'];
-        $neutral_form = $localized_forms['neutral'];
+        $fallback_forms = $this->fallbackGenderForms($entry, $user_language);
 
-        if ($sex === 'F' && $female_form !== '') {
-            return $female_form;
+        $label = $this->genderedLabel($localized_forms, $sex);
+
+        if ($label !== '') {
+            return $label;
         }
 
-        if ($sex === 'M' && $male_form !== '') {
-            return $male_form;
-        }
+        $label = $this->genderedLabel($fallback_forms, $sex);
 
-        if (!in_array($sex, ['F', 'M'], true) && $neutral_form !== '') {
-            return $neutral_form;
-        }
-
-        $fallback_forms = $sex === 'F'
-            ? [$neutral_form, $male_form]
-            : ($sex === 'M' ? [$neutral_form, $female_form] : [$male_form, $female_form]);
-
-        foreach ($fallback_forms as $fallback_form) {
-            if ($fallback_form !== '') {
-                return $fallback_form;
-            }
+        if ($label !== '') {
+            return $label;
         }
 
         foreach (['occupation_normalized', 'social_status', 'office', 'qualification'] as $key) {
@@ -258,6 +244,36 @@ final class OccupationLabelService
         }
 
         return $entry['original_part_text'];
+    }
+
+    /**
+     * @param array{male:string,female:string,neutral:string} $forms
+     */
+    private function genderedLabel(array $forms, string $sex): string
+    {
+        if ($sex === 'F' && $forms['female'] !== '') {
+            return $forms['female'];
+        }
+
+        if ($sex === 'M' && $forms['male'] !== '') {
+            return $forms['male'];
+        }
+
+        if (!in_array($sex, ['F', 'M'], true) && $forms['neutral'] !== '') {
+            return $forms['neutral'];
+        }
+
+        $fallback_forms = $sex === 'F'
+            ? [$forms['neutral'], $forms['male']]
+            : ($sex === 'M' ? [$forms['neutral'], $forms['female']] : [$forms['male'], $forms['female']]);
+
+        foreach ($fallback_forms as $fallback_form) {
+            if ($fallback_form !== '') {
+                return $fallback_form;
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -271,15 +287,73 @@ final class OccupationLabelService
         $male_key = $prefer_german ? 'occupation_de_male' : 'occupation_en_male';
         $female_key = $prefer_german ? 'occupation_de_female' : 'occupation_en_female';
         $neutral_key = $prefer_german ? 'occupation_de_neutral' : 'occupation_en_neutral';
-        $fallback_male_key = $prefer_german ? 'occupation_en_male' : 'occupation_de_male';
-        $fallback_female_key = $prefer_german ? 'occupation_en_female' : 'occupation_de_female';
-        $fallback_neutral_key = $prefer_german ? 'occupation_en_neutral' : 'occupation_de_neutral';
 
         return [
-            'male'    => (string) (($entry[$male_key] ?? '') !== '' ? $entry[$male_key] : ($entry[$fallback_male_key] ?? '')),
-            'female'  => (string) (($entry[$female_key] ?? '') !== '' ? $entry[$female_key] : ($entry[$fallback_female_key] ?? '')),
-            'neutral' => (string) (($entry[$neutral_key] ?? '') !== '' ? $entry[$neutral_key] : ($entry[$fallback_neutral_key] ?? '')),
+            'male'    => (string) ($entry[$male_key] ?? ''),
+            'female'  => (string) ($entry[$female_key] ?? ''),
+            'neutral' => (string) ($entry[$neutral_key] ?? ''),
         ];
+    }
+
+    /**
+     * @param array{occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string} $entry
+     *
+     * @return array{male:string,female:string,neutral:string}
+     */
+    private function fallbackGenderForms(array $entry, string $user_language): array
+    {
+        $prefer_german = explode('-', $user_language)[0] === 'de';
+        $male_key = $prefer_german ? 'occupation_en_male' : 'occupation_de_male';
+        $female_key = $prefer_german ? 'occupation_en_female' : 'occupation_de_female';
+        $neutral_key = $prefer_german ? 'occupation_en_neutral' : 'occupation_de_neutral';
+
+        return [
+            'male'    => (string) ($entry[$male_key] ?? ''),
+            'female'  => (string) ($entry[$female_key] ?? ''),
+            'neutral' => (string) ($entry[$neutral_key] ?? ''),
+        ];
+    }
+
+    /**
+     * @param array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string} $entry
+     *
+     * @return array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,status:string,rule_numbers:string}
+     */
+    private function enrichedEntry(array $entry): array
+    {
+        $language = trim((string) ($entry['language'] ?? ''));
+        $occupation = trim((string) ($entry['occupation_normalized'] ?? ''));
+
+        if ($language === '' || $occupation === '' || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            return $entry;
+        }
+
+        $term = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->where('normalized_key', '=', $language . ':' . $occupation)
+            ->first();
+
+        if ($term === null) {
+            return $entry;
+        }
+
+        foreach ([
+            'occupation_de_male',
+            'occupation_de_female',
+            'occupation_de_neutral',
+            'occupation_en_male',
+            'occupation_en_female',
+            'occupation_en_neutral',
+            'code_hisco',
+            'code_gnd',
+            'code_ohdab',
+            'code_factgrid',
+        ] as $key) {
+            if (($entry[$key] ?? '') === '' && (string) ($term->{$key} ?? '') !== '') {
+                $entry[$key] = (string) $term->{$key};
+            }
+        }
+
+        return $entry;
     }
 
     /**
