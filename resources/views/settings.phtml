@@ -350,30 +350,44 @@ use Fisharebest\Webtrees\View;
         <div id="collapse-tree-languages" class="accordion-collapse collapse" aria-labelledby="heading-tree-languages">
             <div class="accordion-body">
                 <p>
-                    <?= I18N::translate('These are the default languages used when occupation normalization rows are created.') ?>
+                    <?= I18N::translate('Define the default language in which occupations are described for each family tree.') ?>
                 </p>
 
-                <table class="table table-bordered table-sm">
-                    <thead>
-                        <tr>
-                            <th><?= I18N::translate('Family tree') ?></th>
-                            <th><?= I18N::translate('Language') ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($treeLanguages as $treeLanguage) : ?>
+                <form method="post">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="task" value="saveTreeLanguages">
+
+                    <table class="table table-bordered table-sm">
+                        <thead>
                             <tr>
-                                <td>
-                                    <?= e($treeLanguage['tree_title']) ?>
-                                    <span class="text-muted">(<?= e($treeLanguage['tree_name']) ?>)</span>
-                                </td>
-                                <td>
-                                    <?= e($languageOptions[$treeLanguage['tree_language']] ?? $treeLanguage['tree_language']) ?>
-                                </td>
+                                <th><?= I18N::translate('Family tree') ?></th>
+                                <th><?= I18N::translate('Language') ?></th>
                             </tr>
-                        <?php endforeach ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($treeLanguages as $treeLanguage) : ?>
+                                <tr>
+                                    <td>
+                                        <?= e($treeLanguage['tree_title']) ?>
+                                        <span class="text-muted">(<?= e($treeLanguage['tree_name']) ?>)</span>
+                                    </td>
+                                    <td>
+                                        <?= view('components/select', [
+                                            'id' => 'tree-language-' . $treeLanguage['tree_id'],
+                                            'name' => 'treeLanguage[' . $treeLanguage['tree_id'] . ']',
+                                            'options' => $languageOptions,
+                                            'selected' => $treeLanguage['tree_language'],
+                                        ]) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+
+                    <button class="btn btn-primary" type="submit">
+                        <?= I18N::translate('Save') ?>
+                    </button>
+                </form>
             </div>
         </div>
     </div>

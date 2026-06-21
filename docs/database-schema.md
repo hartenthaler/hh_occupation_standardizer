@@ -21,6 +21,7 @@ Current use:
 | Setting pattern | Meaning |
 | --- | --- |
 | `tree_occu_<tree_id>` | Fingerprint of all current `INDI:OCCU` facts in one tree. If this fingerprint has not changed, synchronization can skip rebuilding normalization rows. |
+| `treeLanguage-<tree_id>` | Default language in which occupation facts are described in one tree. This is maintained in the module settings and used when new normalization rows are created. |
 
 Changing the site-managed normalization mapping table clears these fingerprints
 so the next manager visit can resynchronize affected occupation rows.
@@ -68,7 +69,7 @@ written back to GEDCOM by the module.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
-| `language` | `string(35)` nullable | Language tag of the original occupation text, e.g. `de` or `de-DE`. Initial value comes from the tree preference `LANGUAGE`; managers can override it per row. |
+| `language` | `string(35)` nullable | Language tag of the original occupation text, e.g. `de` or `de-DE`. Initial value comes from the module's per-tree occupation language setting; managers can override it per row. |
 | `social_status` | `string(255)` nullable | Social status such as `Bürger` or `Witwe`. |
 | `occupation_normalized` | `string(255)` nullable | Normalized fallback label. The displayed badge prefers the language- and gender-specific forms when present. |
 | `occupation_de_male` | `string(255)` nullable | German masculine form copied from the normalized term. |

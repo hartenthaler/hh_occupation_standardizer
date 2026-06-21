@@ -44,6 +44,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use function array_map;
+use function array_key_exists;
 use function array_values;
 use function array_filter;
 use function array_unique;
@@ -80,6 +81,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
     private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
     private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
+    private const TREE_LANGUAGE_PREFIX = 'treeLanguage-';
+    private const DEFAULT_OCCUPATION_LANGUAGE = 'de';
     private const NORMALIZATION_STATUSES = [
         OccupationNormalizationService::STATUS_RECOGNIZED,
         OccupationNormalizationService::STATUS_UNCLEAR,
@@ -182,6 +185,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ((string) ($params['task'] ?? '') === self::TASK_SAVE_BUILTIN_RULES) {
             $this->saveBuiltinRuleSettings($params);
+        }
+
+        if ((string) ($params['task'] ?? '') === 'saveTreeLanguages') {
+            $this->saveTreeLanguages($params);
         }
 
         if ((string) ($params['task'] ?? '') === 'deleteTreeTable') {
@@ -337,7 +344,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'type'                 => trim($fact->attribute('TYPE')),
                     'note'                 => trim($fact->attribute('NOTE')),
                     'sources'              => $source_data['names'],
-                    'normalizations'       => $normalization_entries !== [] ? $label_service->labelsForEntries($normalization_entries, $individual->sex(), I18N::languageTag()) : $label_service->labelsForOccupation($occupation, $tree->getPreference('LANGUAGE'), $individual->sex(), I18N::languageTag()),
+                    'normalizations'       => $normalization_entries !== [] ? $label_service->labelsForEntries($normalization_entries, $individual->sex(), I18N::languageTag()) : $label_service->labelsForOccupation($occupation, $this->occupationLanguage($tree), $individual->sex(), I18N::languageTag()),
                     'normalizationEntries' => $normalization_entries,
                 ]);
             }
@@ -548,7 +555,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         $normalizer = new OccupationNormalizationService($this->normalizationRules(), $this->activeBuiltinRuleOrder());
-        $tree_language = $tree->getPreference('LANGUAGE');
+        $tree_language = $this->occupationLanguage($tree);
         $now = date('Y-m-d H:i:s');
         $seen_keys = [];
 
@@ -1138,6 +1145,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->delete();
     }
 
+    private function occupationLanguage(Tree $tree): string
+    {
+        return $this->getPreference(
+            self::TREE_LANGUAGE_PREFIX . $tree->id(),
+            self::DEFAULT_OCCUPATION_LANGUAGE
+        );
+    }
+
     /**
      * @return list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}>
      */
@@ -1149,27 +1164,47 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     ->on('title.gedcom_id', '=', 'tree.gedcom_id')
                     ->where('title.setting_name', '=', 'title');
             })
-            ->leftJoin('gedcom_setting AS language', static function ($join): void {
-                $join
-                    ->on('language.gedcom_id', '=', 'tree.gedcom_id')
-                    ->where('language.setting_name', '=', 'LANGUAGE');
-            })
             ->orderBy('title.setting_value')
             ->orderBy('tree.gedcom_name')
             ->select([
                 'tree.gedcom_id AS tree_id',
                 'tree.gedcom_name AS tree_name',
                 'title.setting_value AS tree_title',
-                'language.setting_value AS tree_language',
             ])
             ->get()
-            ->map(static fn (object $row): array => [
+            ->map(fn (object $row): array => [
                 'tree_id'       => (int) $row->tree_id,
                 'tree_name'     => (string) $row->tree_name,
                 'tree_title'    => (string) ($row->tree_title ?? $row->tree_name),
-                'tree_language' => (string) ($row->tree_language ?? ''),
+                'tree_language' => $this->getPreference(
+                    self::TREE_LANGUAGE_PREFIX . (int) $row->tree_id,
+                    self::DEFAULT_OCCUPATION_LANGUAGE
+                ),
             ])
             ->all();
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function saveTreeLanguages(array $params): void
+    {
+        $languages = is_array($params['treeLanguage'] ?? null) ? $params['treeLanguage'] : [];
+        $language_options = $this->languageOptions();
+
+        foreach ($this->treeLanguageRows() as $tree_language) {
+            $tree_id = $tree_language['tree_id'];
+            $language = trim((string) ($languages[$tree_id] ?? self::DEFAULT_OCCUPATION_LANGUAGE));
+
+            if (!array_key_exists($language, $language_options)) {
+                $language = self::DEFAULT_OCCUPATION_LANGUAGE;
+            }
+
+            $this->setPreference(self::TREE_LANGUAGE_PREFIX . $tree_id, $language);
+        }
+
+        $this->clearOccupationFingerprints();
+        FlashMessages::addMessage(I18N::translate('The family tree occupation languages have been saved.'), 'success');
     }
 
     /**
