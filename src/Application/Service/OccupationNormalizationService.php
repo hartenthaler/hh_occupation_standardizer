@@ -6,6 +6,7 @@ namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Servic
 
 use function array_filter;
 use function array_map;
+use function explode;
 use function in_array;
 use function mb_strtolower;
 use function preg_match;
@@ -22,12 +23,6 @@ final class OccupationNormalizationService
         'bürger' => 'Bürger',
     ];
 
-    private const SPELLING_VARIANTS = [
-        'beck'     => 'Bäcker',
-        'kieffer'  => 'Küfer',
-        'schuster' => 'Schuhmacher',
-    ];
-
     private const QUALIFICATIONS = [
         'meister'  => 'Meister',
         'geselle'  => 'Geselle',
@@ -40,15 +35,26 @@ final class OccupationNormalizationService
         'werkmeister',
     ];
 
+    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}> */
+    private array $normalization_rules;
+
     /**
-     * @return list<array{part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string}>
+     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string}> $normalization_rules
      */
-    public function normalize(string $occupation): array
+    public function __construct(array $normalization_rules = [])
+    {
+        $this->normalization_rules = $normalization_rules;
+    }
+
+    /**
+     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}>
+     */
+    public function normalize(string $occupation, string $language = ''): array
     {
         $entries = [];
 
         foreach ($this->splitOccupation($occupation) as $index => $part) {
-            $entries[] = ['part_index' => $index] + $this->normalizePart($part);
+            $entries[] = ['part_index' => $index] + $this->normalizePart($part, $language);
         }
 
         return $entries;
@@ -87,20 +93,24 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @return array{original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
      */
-    private function normalizePart(string $part): array
+    private function normalizePart(string $part, string $language): array
     {
         $original = trim($part);
         $lower = mb_strtolower($original);
 
         $entry = [
             'original_part_text'    => $original,
+            'language'              => $language,
             'social_status'         => '',
             'occupation_normalized' => '',
             'office'                => '',
             'qualification'         => '',
             'code'                  => '',
+            'code_hisco'            => '',
+            'code_gnd'              => '',
+            'code_ohdab'            => '',
             'status'                => self::STATUS_UNCLEAR,
             'rule_numbers'          => '',
         ];
@@ -147,12 +157,21 @@ final class OccupationNormalizationService
             ], ['M2-R032']);
         }
 
-        if (isset(self::SPELLING_VARIANTS[$lower])) {
-            // M2-R040: Historical spelling variants.
-            return $this->withRules($entry, [
-                'occupation_normalized' => self::SPELLING_VARIANTS[$lower],
-                'status'                => self::STATUS_RECOGNIZED,
-            ], ['M2-R040']);
+        foreach ($this->normalization_rules as $rule) {
+            if ($this->ruleMatches($rule, $original, $language)) {
+                // M2-R050: Site-managed normalization mapping table.
+                return $this->withRules($entry, [
+                    'language'              => $rule['language'] !== '' ? $rule['language'] : $language,
+                    'social_status'         => $rule['social_status'],
+                    'occupation_normalized' => $rule['occupation_normalized'],
+                    'qualification'         => $rule['qualification'],
+                    'code'                  => $rule['code'],
+                    'code_hisco'            => $rule['code_hisco'],
+                    'code_gnd'              => $rule['code_gnd'],
+                    'code_ohdab'            => $rule['code_ohdab'],
+                    'status'                => self::STATUS_RECOGNIZED,
+                ], ['M2-R050']);
+            }
         }
 
         // M2-R090: Fallback for unknown terms.
@@ -164,18 +183,35 @@ final class OccupationNormalizationService
 
     private function normalizeOccupationName(string $occupation): string
     {
-        $occupation = trim($occupation);
-        $lower = mb_strtolower($occupation);
-
-        return self::SPELLING_VARIANTS[$lower] ?? $occupation;
+        return trim($occupation);
     }
 
     /**
-     * @param array{original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string} $entry
+     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string} $rule
+     */
+    private function ruleMatches(array $rule, string $original, string $language): bool
+    {
+        if (mb_strtolower($rule['original_text']) !== mb_strtolower($original)) {
+            return false;
+        }
+
+        if ($rule['language'] === '' || $language === '') {
+            return true;
+        }
+
+        if ($rule['language'] === $language) {
+            return true;
+        }
+
+        return explode('-', $rule['language'])[0] === explode('-', $language)[0];
+    }
+
+    /**
+     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string} $entry
      * @param array<string,string> $values
      * @param list<string> $rules
      *
-     * @return array{original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,rule_numbers:string}
      */
     private function withRules(array $entry, array $values, array $rules): array
     {

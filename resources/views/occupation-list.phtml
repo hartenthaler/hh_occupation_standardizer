@@ -11,7 +11,8 @@ use Illuminate\Support\Collection;
 
 /**
  * @var bool $canManageNormalization
- * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
+ * @var array<string,string> $languageOptions
+ * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code:string,code_hisco:string,code_gnd:string,code_ohdab:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
  * @var list<string> $statusOptions
  * @var string       $title
  * @var Tree         $tree
@@ -75,7 +76,7 @@ use Illuminate\Support\Collection;
                             <?php endif ?>
                         </td>
                         <?php if ($canManageNormalization) : ?>
-                            <td data-sort="<?= e(implode(' ', array_map(static fn (array $entry): string => $entry['occupation_normalized'] . ' ' . $entry['social_status'] . ' ' . $entry['office'] . ' ' . $entry['qualification'] . ' ' . $entry['code'], $row['normalizationEntries']))) ?>">
+                            <td data-sort="<?= e(implode(' ', array_map(static fn (array $entry): string => $entry['occupation_normalized'] . ' ' . $entry['social_status'] . ' ' . $entry['office'] . ' ' . $entry['qualification'] . ' ' . $entry['code'] . ' ' . $entry['code_hisco'] . ' ' . $entry['code_gnd'] . ' ' . $entry['code_ohdab'], $row['normalizationEntries']))) ?>">
                                 <?php foreach ($row['normalizationEntries'] as $entry) : ?>
                                     <form method="post" class="mb-2">
                                         <?= csrf_field() ?>
@@ -88,6 +89,16 @@ use Illuminate\Support\Collection;
                                         </div>
 
                                         <div class="row g-1 align-items-end">
+                                            <div class="col-12 col-xl-6">
+                                                <label class="form-label small mb-0"><?= I18N::translate('Language') ?></label>
+                                                <?= view('components/select', [
+                                                    'id' => 'language-' . $entry['entry_key'],
+                                                    'name' => 'language',
+                                                    'options' => $languageOptions,
+                                                    'selected' => $entry['language'],
+                                                    'class' => 'form-select-sm',
+                                                ]) ?>
+                                            </div>
                                             <div class="col-12 col-xl-6">
                                                 <label class="form-label small mb-0"><?= I18N::translate('Social status') ?></label>
                                                 <input class="form-control form-control-sm" type="text" name="socialStatus" value="<?= e($entry['social_status']) ?>">
@@ -107,6 +118,18 @@ use Illuminate\Support\Collection;
                                             <div class="col-12 col-xl-4">
                                                 <label class="form-label small mb-0"><?= I18N::translate('Code') ?></label>
                                                 <input class="form-control form-control-sm" type="text" name="code" value="<?= e($entry['code']) ?>">
+                                            </div>
+                                            <div class="col-12 col-xl-4">
+                                                <label class="form-label small mb-0">HISCO</label>
+                                                <input class="form-control form-control-sm" type="text" name="codeHisco" value="<?= e($entry['code_hisco']) ?>">
+                                            </div>
+                                            <div class="col-12 col-xl-4">
+                                                <label class="form-label small mb-0">GND</label>
+                                                <input class="form-control form-control-sm" type="text" name="codeGnd" value="<?= e($entry['code_gnd']) ?>">
+                                            </div>
+                                            <div class="col-12 col-xl-4">
+                                                <label class="form-label small mb-0">OhdAB</label>
+                                                <input class="form-control form-control-sm" type="text" name="codeOhdab" value="<?= e($entry['code_ohdab']) ?>">
                                             </div>
                                             <div class="col-12 col-xl-4">
                                                 <label class="form-label small mb-0"><?= MoreI18N::xlate('Status') ?></label>

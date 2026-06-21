@@ -118,7 +118,7 @@ if ($tag === 'MARR') {
                 <div class="wt-fact-value">
                     <?= $element->value($value, $tree) ?>
                     <?php if ($tag === 'OCCU' && $value !== '') : ?>
-                        <?php foreach ((new OccupationLabelService())->labelsForOccupation($value) as $normalization) : ?>
+                        <?php foreach ((new OccupationLabelService())->labelsForOccupation($value, $tree->getPreference('LANGUAGE')) as $normalization) : ?>
                             <span class="badge bg-secondary ms-1" title="<?= e($normalization['title']) ?>">
                                 <?= e($normalization['label']) ?>
                             </span>

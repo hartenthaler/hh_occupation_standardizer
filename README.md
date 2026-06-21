@@ -41,7 +41,10 @@ The second milestone adds first automatic normalization suggestions. These sugge
 
 Managers and administrators can edit the stored normalization entries directly in the occupation list. Saving a correction does not automatically mark the entry as reviewed; the reviewed flag is an explicit decision. Manual changes are kept in the module table and do not modify GEDCOM data.
 
+Administrators can maintain a site-wide normalization mapping table in the module settings. These rules can normalize language-specific variants such as feminine occupational forms and can store identifiers for HISCO, GND, and OhdAB.
+
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
+The module-owned database tables are documented in [docs/database-schema.md](docs/database-schema.md).
 
 ## Roadmap
 

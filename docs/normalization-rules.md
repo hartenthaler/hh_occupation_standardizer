@@ -48,13 +48,31 @@ The same pattern applies to `Geselle` and `Lehrling`.
 
 Independent compounds such as `Schulmeister`, `Bürgermeister`, and `Werkmeister` are not split into occupation plus qualification.
 
-## M2-R040: Historical spelling variants
+## M2-R050: Site-managed normalization mapping table
 
-Historical spelling variants are normalized as follows:
+Administrators can maintain a site-wide mapping table in the module settings.
+These rules are applied after the built-in local rules and before the fallback rule.
+Historical spelling variants are ordinary entries in this table.
 
-- `Kieffer` -> `Küfer`
-- `Schuster` -> `Schuhmacher`
+The table can store:
+
+- language of the original occupation text
+- original occupation text
+- normalized occupation
+- social status
+- qualification
+- local code
+- HISCO code
+- GND identifier
+- OhdAB identifier
+
+The first seeded German examples are:
+
+- `Ärztin` -> `Arzt`
 - `Beck` -> `Bäcker`
+- `Kieffer` -> `Küfer`
+- `Orgelbauerin` -> `Orgelbauer`
+- `Schuster` -> `Schuhmacher`
 
 ## M2-R090: Fallback for unknown terms
 
