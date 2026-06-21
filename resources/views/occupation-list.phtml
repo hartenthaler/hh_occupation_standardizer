@@ -16,6 +16,8 @@ use Illuminate\Support\Collection;
  * @var string       $title
  * @var Tree         $tree
  */
+$can_manage_normalization = $canManageNormalization ?? $can_manage_normalization ?? false;
+$status_options = $statusOptions ?? $status_options ?? [];
 ?>
 
 <h2 class="wt-page-title"><?= e($title) ?></h2>
@@ -43,7 +45,7 @@ use Illuminate\Support\Collection;
                     <th><?= MoreI18N::xlate('Type') ?></th>
                     <th><?= MoreI18N::xlate('Note') ?></th>
                     <th><?= MoreI18N::xlate('Sources') ?></th>
-                    <?php if ($canManageNormalization) : ?>
+                    <?php if ($can_manage_normalization) : ?>
                         <th><?= I18N::translate('Normalization') ?></th>
                     <?php endif ?>
                 </tr>
@@ -74,7 +76,7 @@ use Illuminate\Support\Collection;
                                 <bdi><?= e(implode('; ', $row['sources'])) ?></bdi>
                             <?php endif ?>
                         </td>
-                        <?php if ($canManageNormalization) : ?>
+                        <?php if ($can_manage_normalization) : ?>
                             <td data-sort="<?= e(implode(' ', array_map(static fn (array $entry): string => $entry['occupation_normalized'] . ' ' . $entry['social_status'] . ' ' . $entry['office'] . ' ' . $entry['qualification'] . ' ' . $entry['code'], $row['normalizationEntries']))) ?>">
                                 <?php foreach ($row['normalizationEntries'] as $entry) : ?>
                                     <form method="post" class="mb-2">
@@ -111,7 +113,7 @@ use Illuminate\Support\Collection;
                                             <div class="col-12 col-xl-4">
                                                 <label class="form-label small mb-0"><?= MoreI18N::xlate('Status') ?></label>
                                                 <select class="form-select form-select-sm" name="status">
-                                                    <?php foreach ($statusOptions as $status) : ?>
+                                                    <?php foreach ($status_options as $status) : ?>
                                                         <option value="<?= e($status) ?>" <?= $entry['status'] === $status ? 'selected' : '' ?>>
                                                             <?= I18N::translate($status) ?>
                                                         </option>
