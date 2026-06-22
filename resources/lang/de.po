@@ -208,6 +208,14 @@ msgstr ""
 "Beruf bei."
 
 #: src/OccupationStandardizerModule.php:860
+msgid "Context-based occupation refinement"
+msgstr "Kontextbezogene Berufspräzisierung"
+
+#: src/OccupationStandardizerModule.php:861
+msgid "Refines broad occupation terms using context from the occupation text or employer field."
+msgstr "Präzisiert allgemeine Berufsbegriffe anhand des Kontextes im Berufstext oder Arbeitgeberfeld."
+
+#: src/OccupationStandardizerModule.php:864
 msgid "Site-managed normalization mapping table"
 msgstr "Websiteweite Umsetzungstabelle"
 

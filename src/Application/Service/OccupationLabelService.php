@@ -42,12 +42,14 @@ final class OccupationLabelService
     }
 
     /**
+     * @param array{employer?:string,type?:string,note?:string} $context
+     *
      * @return list<array{label:string,title:string,status:string}>
      */
-    public function labelsForOccupation(string $occupation, string $language = '', string $sex = 'U', string $user_language = ''): array
+    public function labelsForOccupation(string $occupation, string $language = '', string $sex = 'U', string $user_language = '', array $context = []): array
     {
         return $this->labels(
-            (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order, $this->ohdab_special_database_service->mappings()))->normalize($occupation, $language),
+            (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order, $this->ohdab_special_database_service->mappings()))->normalize($occupation, $language, $context),
             $sex,
             $user_language
         );
@@ -68,7 +70,12 @@ final class OccupationLabelService
             $fact->value(),
             $this->occupationLanguage((int) $fact->record()->tree()->id()),
             $sex,
-            $user_language
+            $user_language,
+            [
+                'employer' => trim($fact->attribute('AGNC')),
+                'type'     => trim($fact->attribute('TYPE')),
+                'note'     => trim($fact->attribute('NOTE')),
+            ]
         );
     }
 

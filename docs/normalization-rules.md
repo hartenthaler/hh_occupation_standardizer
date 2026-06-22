@@ -57,6 +57,17 @@ Independent compounds such as `Schulmeister`, `Bürgermeister`, and `Werkmeister
 
 This rule is applied after M2-R032 so independent master compounds can be protected before any broader craft-qualification logic is added.
 
+## M2-R040: Context-based occupation refinement
+
+Broad occupation terms can be refined when the occupation text or copied context fields provide a reliable context.
+
+The first implemented cases are intentionally narrow:
+
+- `Angestellter` or `Angestellte` with employer `Bank` or `Banken` is normalized as `Bankangestellter`.
+- `Arbeiter: Fabrik` is normalized as `Fabrikarbeiter`.
+
+This rule uses context without changing GEDCOM. The original occupation text and copied context fields remain available for review.
+
 ## M2-R050: Site-managed normalization mapping table
 
 Administrators can maintain a site-wide mapping table in the module settings.
