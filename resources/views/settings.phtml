@@ -10,6 +10,18 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Exte
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 
 $externalIdentifierService = new ExternalIdentifierService();
+$ohdabCategoryChartColors = [
+    '#4e79a7',
+    '#f28e2b',
+    '#e15759',
+    '#76b7b2',
+    '#59a14f',
+    '#edc949',
+    '#af7aa1',
+    '#ff9da7',
+    '#9c755f',
+    '#bab0ab',
+];
 
 /**
  * @var string $title
@@ -25,6 +37,24 @@ $externalIdentifierService = new ExternalIdentifierService();
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
  */
 ?>
+
+<style>
+    .hh-occupation-ohdab-chart {
+        width: min(18rem, 100%);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 1px solid var(--bs-border-color, #dee2e6);
+    }
+
+    .hh-occupation-ohdab-legend-color {
+        display: inline-block;
+        width: 0.85rem;
+        height: 0.85rem;
+        border-radius: 0.2rem;
+        margin-inline-end: 0.35rem;
+        vertical-align: -0.05rem;
+    }
+</style>
 
 <?= view('components/breadcrumbs', ['links' => [
     route(ControlPanel::class) => MoreI18N::xlate('Control panel'),
@@ -154,25 +184,46 @@ $externalIdentifierService = new ExternalIdentifierService();
                 <?= I18N::translate('No assigned OhdAB categories are available yet.') ?>
             </p>
         <?php else : ?>
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th><?= I18N::translate('OhdAB top category') ?></th>
-                        <th class="text-end"><?= I18N::translate('Occupation entries') ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($ohdabCategoryStatistics['categories'] as $categoryStatistics) : ?>
-                        <tr>
-                            <td><?= e($categoryStatistics['category']) ?></td>
-                            <td class="text-end">
-                                <?= I18N::number($categoryStatistics['count']) ?>
-                                <span class="text-muted">(<?= I18N::percentage($categoryStatistics['percentage'], 1) ?>)</span>
-                            </td>
-                        </tr>
-                    <?php endforeach ?>
-                </tbody>
-            </table>
+            <?php
+            $chartSegments = [];
+            $segmentStart = 0.0;
+            $lastCategoryIndex = count($ohdabCategoryStatistics['categories']) - 1;
+
+            foreach ($ohdabCategoryStatistics['categories'] as $categoryIndex => $categoryStatistics) {
+                $segmentEnd = $categoryIndex === $lastCategoryIndex ? 100.0 : $segmentStart + $categoryStatistics['percentage'] * 100;
+                $chartSegments[] = $ohdabCategoryChartColors[$categoryIndex % count($ohdabCategoryChartColors)] . ' ' . round($segmentStart, 3) . '% ' . round($segmentEnd, 3) . '%';
+                $segmentStart = $segmentEnd;
+            }
+            ?>
+            <div class="row g-3 align-items-start">
+                <div class="col-md-4 col-xl-3">
+                    <div class="hh-occupation-ohdab-chart mx-auto" role="img" aria-label="<?= e(I18N::translate('OhdAB category statistics')) ?>" style="background: conic-gradient(<?= e(implode(', ', $chartSegments)) ?>);"></div>
+                </div>
+                <div class="col-md-8 col-xl-9">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th><?= I18N::translate('OhdAB top category') ?></th>
+                                <th class="text-end"><?= I18N::translate('Occupation entries') ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($ohdabCategoryStatistics['categories'] as $categoryIndex => $categoryStatistics) : ?>
+                                <tr>
+                                    <td>
+                                        <span class="hh-occupation-ohdab-legend-color" style="background-color: <?= e($ohdabCategoryChartColors[$categoryIndex % count($ohdabCategoryChartColors)]) ?>;"></span>
+                                        <?= e($categoryStatistics['category']) ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <?= I18N::number($categoryStatistics['count']) ?>
+                                        <span class="text-muted">(<?= I18N::percentage($categoryStatistics['percentage'], 1) ?>)</span>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         <?php endif ?>
     </div>
 </div>
