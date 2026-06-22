@@ -18,6 +18,7 @@ $externalIdentifierService = new ExternalIdentifierService();
  * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
  * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,enabled:bool}> $normalizationRules
+ * @var array{original_total:int,split_total:int,assigned_total:int,categories:list<array{category:string,count:int,percentage:float}>} $ohdabCategoryStatistics
  * @var array{exists:bool,file_name:string,row_count:int,imported_at:string} $ohdabSpecialDatabase
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}> $treeLanguages
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,total_entries:int,active_entries:int,inactive_entries:int,reviewed_entries:int}> $treeStatistics
@@ -136,6 +137,42 @@ $externalIdentifierService = new ExternalIdentifierService();
                 </div>
             </div>
         </form>
+
+        <h3 class="h5 mt-4"><?= I18N::translate('OhdAB category statistics') ?></h3>
+        <p class="small text-muted">
+            <?= I18N::translate('Original occupation facts') ?>:
+            <?= I18N::number($ohdabCategoryStatistics['original_total']) ?>,
+            <?= I18N::translate('split occupation entries') ?>:
+            <?= I18N::number($ohdabCategoryStatistics['split_total']) ?>,
+            <?= I18N::translate('assigned occupation entries') ?>:
+            <?= I18N::number($ohdabCategoryStatistics['assigned_total']) ?>
+        </p>
+
+        <?php if ($ohdabCategoryStatistics['categories'] === []) : ?>
+            <p class="alert alert-info">
+                <?= I18N::translate('No assigned OhdAB categories are available yet.') ?>
+            </p>
+        <?php else : ?>
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th><?= I18N::translate('OhdAB top category') ?></th>
+                        <th class="text-end"><?= I18N::translate('Occupation entries') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($ohdabCategoryStatistics['categories'] as $categoryStatistics) : ?>
+                        <tr>
+                            <td><?= e($categoryStatistics['category']) ?></td>
+                            <td class="text-end">
+                                <?= I18N::number($categoryStatistics['count']) ?>
+                                <span class="text-muted">(<?= I18N::percentage($categoryStatistics['percentage'], 1) ?>)</span>
+                            </td>
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+        <?php endif ?>
     </div>
 </div>
 

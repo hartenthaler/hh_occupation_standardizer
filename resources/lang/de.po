@@ -163,6 +163,27 @@ msgid_plural "%s rows were processed."
 msgstr[0] "%s Zeile wurde verarbeitet."
 msgstr[1] "%s Zeilen wurden verarbeitet."
 
+msgid "OhdAB category statistics"
+msgstr "OhdAB-Kategoriestatistik"
+
+msgid "Original occupation facts"
+msgstr "Originale Berufsangaben"
+
+msgid "split occupation entries"
+msgstr "aufgeteilte Berufsangaben"
+
+msgid "assigned occupation entries"
+msgstr "zugeordnete Berufsangaben"
+
+msgid "No assigned OhdAB categories are available yet."
+msgstr "Es sind noch keine zugeordneten OhdAB-Kategorien verfügbar."
+
+msgid "OhdAB top category"
+msgstr "OhdAB-Oberkategorie"
+
+msgid "Occupation entries"
+msgstr "Berufsangaben"
+
 msgid "Fallback for unknown terms"
 msgstr "Standardregel für unbekannte Begriffe"
 
