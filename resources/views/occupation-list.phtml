@@ -14,6 +14,7 @@ $externalIdentifierService = new ExternalIdentifierService();
 
 /**
  * @var bool $canManageNormalization
+ * @var string $hierarchyUrl
  * @var array<string,string> $languageOptions
  * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
  * @var list<string> $statusOptions
@@ -25,6 +26,12 @@ $externalIdentifierService = new ExternalIdentifierService();
 <h2 class="wt-page-title"><?= e($title) ?></h2>
 
 <div class="wt-page-content">
+    <p>
+        <a class="btn btn-secondary btn-sm" href="<?= e($hierarchyUrl) ?>">
+            <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+    </p>
+
     <p>
         <?= I18N::translate('This list shows the original occupation facts.') ?>
     </p>

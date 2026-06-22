@@ -311,23 +311,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     {
         return new Menu(
             $this->listTitle(),
-            '#',
+            $this->listUrl($tree),
             $this->listMenuClass(),
-            $this->listUrlAttributes(),
-            [
-                new Menu(
-                    $this->listTitle(),
-                    $this->listUrl($tree),
-                    $this->listMenuClass() . '-list',
-                    $this->listUrlAttributes()
-                ),
-                new Menu(
-                    I18N::translate('Occupation hierarchy (OhdAB)'),
-                    $this->listUrl($tree, ['view' => 'hierarchy']),
-                    $this->listMenuClass() . '-hierarchy',
-                    $this->listUrlAttributes()
-                ),
-            ]
+            $this->listUrlAttributes()
         );
     }
 
@@ -377,6 +363,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         return $this->viewResponse($this->name() . '::occupation-list', [
             'canManageNormalization' => $can_manage_normalization,
+            'hierarchyUrl'            => $this->listUrl($tree, ['view' => 'hierarchy']),
             'languageOptions'        => $this->languageOptions(),
             'rows'                   => $this->occupationRows($tree, $can_manage_normalization),
             'statusOptions'          => self::NORMALIZATION_STATUSES,
