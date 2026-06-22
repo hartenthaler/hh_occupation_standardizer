@@ -39,6 +39,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Ohda
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -1081,10 +1082,30 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
     private function setMetadataValue(string $setting_name, string $setting_value): void
     {
-        DBManager::table(OccupationSchema::TABLE_METADATA)->updateOrInsert(
-            ['setting_name' => $setting_name],
-            ['setting_value' => $setting_value]
-        );
+        $metadata_table = DBManager::table(OccupationSchema::TABLE_METADATA);
+
+        if ($metadata_table->where('setting_name', '=', $setting_name)->exists()) {
+            DBManager::table(OccupationSchema::TABLE_METADATA)
+                ->where('setting_name', '=', $setting_name)
+                ->update(['setting_value' => $setting_value]);
+
+            return;
+        }
+
+        try {
+            DBManager::table(OccupationSchema::TABLE_METADATA)->insert([
+                'setting_name'  => $setting_name,
+                'setting_value' => $setting_value,
+            ]);
+        } catch (QueryException $ex) {
+            if (($ex->errorInfo[1] ?? null) !== 1062) {
+                throw $ex;
+            }
+
+            DBManager::table(OccupationSchema::TABLE_METADATA)
+                ->where('setting_name', '=', $setting_name)
+                ->update(['setting_value' => $setting_value]);
+        }
     }
 
     /**
