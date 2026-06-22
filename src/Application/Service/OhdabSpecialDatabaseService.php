@@ -457,7 +457,7 @@ final class OhdabSpecialDatabaseService
         $group = trim((string) ($row['ohdab'] ?? ''));
         $parent_id = null;
 
-        for ($level = 1; $level <= 4; $level++) {
+        for ($level = 1; $level <= 5; $level++) {
             $label = trim((string) ($row['OhdAB_0' . $level] ?? ''));
 
             if ($class === '' || $group === '' || $label === '') {
