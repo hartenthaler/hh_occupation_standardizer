@@ -1432,7 +1432,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $original_total = (int) DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
             ->where('is_active', '=', true)
             ->distinct()
-            ->count(DB::raw('CONCAT(tree_id, "|", fact_id)'));
+            ->get(['tree_id', 'fact_id'])
+            ->count();
 
         $category_rows = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
             ->join(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links', static function ($join): void {

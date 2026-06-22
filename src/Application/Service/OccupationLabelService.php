@@ -97,11 +97,11 @@ final class OccupationLabelService
             $title_parts = [];
 
             if ($entry['social_status'] !== '') {
-                $title_parts[] = I18N::translate('Social status') . ': ' . $entry['social_status'];
+                $title_parts[] = MoreI18N::xlate('Social status') . ': ' . $entry['social_status'];
             }
 
             if (($entry['language'] ?? '') !== '') {
-                $title_parts[] = I18N::translate('Language') . ': ' . $entry['language'];
+                $title_parts[] = MoreI18N::xlate('Language') . ': ' . $entry['language'];
             }
 
             if ($entry['occupation_normalized'] !== '') {
@@ -133,11 +133,11 @@ final class OccupationLabelService
             }
 
             if ($entry['office'] !== '') {
-                $title_parts[] = I18N::translate('Office') . ': ' . $entry['office'];
+                $title_parts[] = MoreI18N::xlate('Office') . ': ' . $entry['office'];
             }
 
             if ($entry['qualification'] !== '') {
-                $title_parts[] = I18N::translate('Qualification') . ': ' . $entry['qualification'];
+                $title_parts[] = MoreI18N::xlate('Qualification') . ': ' . $entry['qualification'];
             }
 
             if (($entry['code_hisco'] ?? '') !== '') {
@@ -163,7 +163,7 @@ final class OccupationLabelService
             }
 
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
-            $title_parts[] = I18N::translate('Rules') . ': ' . $entry['rule_numbers'];
+            $title_parts[] = MoreI18N::xlate('Rules') . ': ' . $entry['rule_numbers'];
 
             $labels[] = [
                 'label'  => $this->label($entry, $sex, $user_language),

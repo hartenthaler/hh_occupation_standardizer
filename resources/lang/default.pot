@@ -1,0 +1,488 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Occupation Standardizer for webtrees 2.2.6.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-22 12:25+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Hermann Hartenthaler <hermann@hartenthaler.de>\n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.9\n"
+"X-Poedit-Basepath: ../..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: translate;noop;plural:1,2;translateContext:2,1c\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: .git\n"
+
+#: src/Application/Service/OccupationLabelService.php:100
+msgid "Social status"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:104
+msgid "Language"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:112
+msgid "German masculine form"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:116
+msgid "German feminine form"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:120
+msgid "German neutral form"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:124
+msgid "English masculine form"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:128
+msgid "English feminine form"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:132
+msgid "English neutral form"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:136
+msgid "Office"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:140
+msgid "Qualification"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:162
+msgid "OhdAB hierarchy"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:166
+msgid "Rules"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:110
+msgid "Helps standardize historical occupation entries in genealogical sources."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:239
+msgid "No OhdAB special database file was received."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:245
+msgid "The OhdAB special database file could not be uploaded."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:253
+msgid "The uploaded file could not be prepared for import."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:264
+#, php-format
+msgid "%s row was processed."
+msgid_plural "%s rows were processed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/OccupationStandardizerModule.php:597
+msgid "The normalization entry has been updated."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:602
+msgid "The normalization entry could not be updated."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:836
+msgid "Split multiple statements"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:837
+msgid "Splits occupation facts by separators and conjunctions."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:840
+msgid "Social status is not an occupation"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:841
+msgid "Recognizes social status terms such as citizen without counting them as occupations."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:844
+msgid "Widow compounds"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:845
+msgid "Recognizes widow compounds as social status hints."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:848
+msgid "Craft qualification after colon"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:849
+msgid "Separates craft qualifications such as master, journeyman, or apprentice after a colon."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:852
+msgid "Compound craft qualification"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:853
+msgid "Separates known compound craft qualifications from the normalized occupation."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:856
+msgid "Independent master compounds are not split"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:857
+msgid "Keeps independent terms such as schoolmaster or mayor as one occupation."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:860
+msgid "Site-managed normalization mapping table"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:861
+msgid "Applies the locally maintained mapping table for original and normalized occupation terms."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:864
+msgid "Normalize with external OhdAB special database"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:865
+msgid "Uses the imported German OhdAB special database for normalized occupation terms."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:868
+msgid "Fallback for unknown terms"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:869
+msgid "Keeps unknown terms as unclear normalized occupation proposals."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:928
+msgid "The rule settings have been saved."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1022
+msgid "No normalized term"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1140
+msgid "The normalization rule was not saved because language or original text is missing."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1170
+msgid "The normalization rule has been saved."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1185
+msgid "The normalized term was not saved because language or language-specific masculine form is missing."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1199
+msgid "The normalized term was not saved because the combination of language and masculine form already exists."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1232
+msgid "The normalized term has been saved."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1264
+msgid "The normalization rule has been deleted."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1284
+msgid "The normalized term cannot be deleted because it is used by normalization rules."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1294
+msgid "The normalized term has been deleted."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1363
+msgid "The family tree occupation languages have been saved."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1477
+msgid "There is no occupation standardization table to delete."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1490
+msgid "The table was not deleted because the confirmation was missing or the selected tree was invalid."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1506
+#, php-format
+msgid "Deleted %s occupation standardization entry."
+msgid_plural "Deleted %s occupation standardization entries."
+msgstr[0] ""
+msgstr[1] ""
+
+#: resources/views/fact.phtml:111 resources/views/vesta-fact.phtml:185
+msgid "View this family"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:29
+msgid "This list shows the original occupation facts."
+msgstr ""
+
+#: resources/views/occupation-list.phtml:34
+msgid "No occupation facts were found in this family tree."
+msgstr ""
+
+#: resources/views/occupation-list.phtml:39
+msgid "Loading occupation list..."
+msgstr ""
+
+#: resources/views/occupation-list.phtml:56
+msgid "Normalization"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:95
+msgid "Original part"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:103
+msgid "Copied OCCU context fields"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:106
+msgid "These values are copied into the module table only. Editing them does not change GEDCOM data."
+msgstr ""
+
+#: resources/views/occupation-list.phtml:122
+msgid "Location hierarchy"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:138
+msgid "Source XREFs"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:163
+msgid "Normalized occupation"
+msgstr ""
+
+#: resources/views/occupation-list.phtml:220 resources/views/settings.phtml:566
+msgid "Reviewed"
+msgstr ""
+
+#: resources/views/settings.phtml:29
+msgid "Control panel"
+msgstr ""
+
+#: resources/views/settings.phtml:30
+msgid "Modules"
+msgstr ""
+
+#: resources/views/settings.phtml:39
+msgid "Normalization rules"
+msgstr ""
+
+#: resources/views/settings.phtml:41
+msgid "These built-in rules are applied in the configured order. Disabled rules are skipped."
+msgstr ""
+
+#: resources/views/settings.phtml:51
+msgid "Rule"
+msgstr ""
+
+#: resources/views/settings.phtml:52
+msgid "Description"
+msgstr ""
+
+#: resources/views/settings.phtml:53 resources/views/settings.phtml:70
+#: resources/views/settings.phtml:389 resources/views/settings.phtml:448
+#: resources/views/settings.phtml:564
+msgid "Active"
+msgstr ""
+
+#: resources/views/settings.phtml:54
+msgid "Move"
+msgstr ""
+
+#: resources/views/settings.phtml:75
+msgid "Move up"
+msgstr ""
+
+#: resources/views/settings.phtml:80
+msgid "Move down"
+msgstr ""
+
+#: resources/views/settings.phtml:91 resources/views/settings.phtml:262
+#: resources/views/settings.phtml:395 resources/views/settings.phtml:508
+msgid "Save"
+msgstr ""
+
+#: resources/views/settings.phtml:94
+msgid "Restore default rule sorting"
+msgstr ""
+
+#: resources/views/settings.phtml:103
+msgid "OhdAB special database"
+msgstr ""
+
+#: resources/views/settings.phtml:105
+msgid "Upload a tailored German OhdAB XLSX file to import its normalized occupation terms, identifiers, and hierarchy into the module tables."
+msgstr ""
+
+#: resources/views/settings.phtml:106
+msgid "The uploaded file is used only for this import and is deleted afterwards."
+msgstr ""
+
+#: resources/views/settings.phtml:111
+msgid "Last import"
+msgstr ""
+
+#: resources/views/settings.phtml:113
+#, php-format
+msgid "%s row"
+msgid_plural "%s rows"
+msgstr[0] ""
+msgstr[1] ""
+
+#: resources/views/settings.phtml:118
+msgid "No OhdAB special database has been imported yet."
+msgstr ""
+
+#: resources/views/settings.phtml:129
+msgid "XLSX file"
+msgstr ""
+
+#: resources/views/settings.phtml:135
+msgid "Import"
+msgstr ""
+
+#: resources/views/settings.phtml:141
+msgid "OhdAB category statistics"
+msgstr ""
+
+#: resources/views/settings.phtml:143
+msgid "Original occupation facts"
+msgstr ""
+
+#: resources/views/settings.phtml:145
+msgid "split occupation entries"
+msgstr ""
+
+#: resources/views/settings.phtml:147
+msgid "assigned occupation entries"
+msgstr ""
+
+#: resources/views/settings.phtml:153
+msgid "No assigned OhdAB categories are available yet."
+msgstr ""
+
+#: resources/views/settings.phtml:159
+msgid "OhdAB top category"
+msgstr ""
+
+#: resources/views/settings.phtml:160
+msgid "Occupation entries"
+msgstr ""
+
+#: resources/views/settings.phtml:181
+msgid "Normalized occupation terms"
+msgstr ""
+
+#: resources/views/settings.phtml:183
+msgid "Normalized terms contain the shared labels and external identifiers used by one or more mapping rules."
+msgstr ""
+
+#: resources/views/settings.phtml:184
+msgid "The language and the language-specific masculine form identify the normalized term."
+msgstr ""
+
+#: resources/views/settings.phtml:265 resources/views/settings.phtml:398
+msgid "Delete"
+msgstr ""
+
+#: resources/views/settings.phtml:277
+msgid "Add a normalized term"
+msgstr ""
+
+#: resources/views/settings.phtml:331 resources/views/settings.phtml:454
+msgid "Add"
+msgstr ""
+
+#: resources/views/settings.phtml:341
+msgid "Normalization mapping rules"
+msgstr ""
+
+#: resources/views/settings.phtml:343
+msgid "These site-wide rules map language-specific original texts to normalized occupation terms."
+msgstr ""
+
+#: resources/views/settings.phtml:354 resources/views/settings.phtml:413
+msgid "Original text"
+msgstr ""
+
+#: resources/views/settings.phtml:368 resources/views/settings.phtml:427
+msgid "Normalized term"
+msgstr ""
+
+#: resources/views/settings.phtml:410
+msgid "Add a normalization rule"
+msgstr ""
+
+#: resources/views/settings.phtml:466
+msgid "Family tree languages"
+msgstr ""
+
+#: resources/views/settings.phtml:473
+msgid "Define the default language in which occupations are described for each family tree."
+msgstr ""
+
+#: resources/views/settings.phtml:483 resources/views/settings.phtml:562
+#: resources/views/settings.phtml:591
+msgid "Family tree"
+msgstr ""
+
+#: resources/views/settings.phtml:548
+msgid "Occupation standardization tables"
+msgstr ""
+
+#: resources/views/settings.phtml:552
+msgid "No occupation standardization table data exists yet."
+msgstr ""
+
+#: resources/views/settings.phtml:556
+msgid "Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed."
+msgstr ""
+
+#: resources/views/settings.phtml:563
+msgid "Entries"
+msgstr ""
+
+#: resources/views/settings.phtml:565
+msgid "Inactive"
+msgstr ""
+
+#: resources/views/settings.phtml:585
+msgid "Do you really want to delete the occupation standardization table data for the selected family tree?"
+msgstr ""
+
+#: resources/views/settings.phtml:598
+#, php-format
+msgid "%s entry"
+msgid_plural "%s entries"
+msgstr[0] ""
+msgstr[1] ""
+
+#: resources/views/settings.phtml:610
+msgid "Yes, delete the occupation standardization table data for the selected family tree."
+msgstr ""
+
+#: resources/views/settings.phtml:619
+msgid "Delete table data"
+msgstr ""
