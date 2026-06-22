@@ -100,12 +100,12 @@ The module-owned database tables are documented in [docs/database-schema.md](doc
 
 M4 prepares the use of external occupation norm data, especially OhdAB and FactGrid. The intended provisional workflow is:
 
-1. Run a webtrees family tree against the full OhdAB occupation database.
+1. Run a webtrees family tree against the full OhdAB occupation database (this is the "magic" outside of this module).
 2. Extract only the occupation names that are relevant for this family tree into a tailored Excel file.
 3. Upload this tailored Excel file in the module settings and import it completely into the module tables.
 4. Use the imported data as a local German norm source for occupation normalization.
 
-This approach avoids importing the full OhdAB source into every webtrees installation. The full source is much larger and contains tens of thousands of occupation names, while a family-tree-specific extract can stay small, auditable, and practical for module-owned tables.
+This approach avoids importing the full OhdAB source into every webtrees installation. The full source is much larger (130 MB) and contains tens of thousands of occupation names, while a family-tree-specific extract can stay small, auditable, and practical for module-owned tables.
 
 The tailored Excel file is currently expected to be German-language norm data. It can therefore only be applied to occupation terms whose language is `de`. The rule "Normalize with external OhdAB special database" runs after the local mapping table and before the fallback rule for unknown terms.
 
@@ -146,9 +146,23 @@ This module requires **webtrees** version 2.2.
 <a name="Installation"></a>
 ## 📥 Installation
 
-Copy the folder `hh_occupation_standardizer` into `webtrees/modules_v4` and enable the module in the webtrees control panel.
+This section documents installation instructions for this module.
 
-After installation, open the webtrees control panel and configure the module settings. Managers and administrators can then open the occupation list from the webtrees lists menu for each family tree.
+Install and use [Custom Module Manager](https://github.com/Jefferson49/CustomModuleManager) for an easy and convenient installation of **webtrees** custom modules.
+* Open the Custom Module Manager view in **webtrees**, scroll to "Occupation Standardizer", and click the "Install Module" button.
+
+**Manual installation**:
+
+1. Make a database backup.
+1. Download the [latest release](https://github.com/hartenthaler/hh_occupation_standardizer/releases/latest).
+1. Unzip the package into your `webtrees/modules_v4` directory of your web server.
+1. Rename the folder to `hh_occupation_standardizer`.
+
+**Finish installation**:
+* Login to **webtrees** as administrator, go to <span class="pointer">Control Panel/Modules/Lists</span>, and find the module. It will be called "Occupation Standardizer".
+* Enable the module and open the module settings.
+* Configure the desired normalization rules, tree languages, and optional norm-data imports.
+* Managers and administrators can then open the occupation list from the webtrees lists menu for each family tree.
 
 <a name="Translation"></a>
 ## 🌍 Translation
@@ -162,6 +176,8 @@ The normalization data itself can contain language-specific labels. German and E
 ## 🙏 Credits
 
 Developed by Hermann Hartenthaler with support from OpenAI Codex and JetBrains PhpStorm.
+
+Special thanks to Katrin Moeller for creating a tree-specific Excel file after matching the occupation data with OhdAB.
 
 <a name="License"></a>
 ## 📄 License
