@@ -19,6 +19,7 @@ This README contains the following main sections:
 * [Preliminary M4 workflow](#M4Workflow)
 * [Screenshots](#Screenshots)
 * [Roadmap](#Roadmap)
+* [Literature and Links](#Literature)
 * [Requirements](#Requirements)
 * [Installation](#Installation)
 * [Translation](#Translation)
@@ -30,6 +31,10 @@ This README contains the following main sections:
 
 Historical church book entries and historical address books often combine occupations, social status, offices, honorary offices, employers, and spelling variants in a single phrase.
 This makes direct evaluation difficult: a phrase such as `Bürger und Weingärtner` contains a social status and an occupation, while `Arztwitwe` may point to the former occupation of a deceased husband rather than to the occupation of the recorded woman.
+
+Occupation names are among the most frequent person-specific details in genealogical sources.
+They are therefore important entry points for social-structural analysis in economic, social, political, historical, medical, and other research fields.
+Different occupation classifications may focus on activity profiles and industries, on education and qualification levels, or on social prestige and social structures.
 
 The purpose of this module is to prepare historical occupation data for consistent display, review, translation, and later statistical evaluation. It supports:
 
@@ -126,6 +131,13 @@ Screenshot of control panel
 * M3: Review refinements and reusable normalization rules, including extended editing of copied OCCU context fields and promoting manual corrections to reusable rules.
 * M4: External norm data and exchange, including evaluation of FactGrid/OhdAB, Wikidata, GND, HISCO, licensing, hierarchy mapping, and export formats.
 * M5: Integration with `webtrees-statistics` through normalized and aggregated occupation data instead of building separate statistics in this module.
+
+<a name="Literature"></a>
+## 📖 Literature and Links
+
+Useful background information and norm data sources:
+
+* [OhdAB database on FactGrid](https://database.factgrid.de/wiki/FactGrid:OhdAB-Datenbank) - historical occupation database used as an external norm source for German occupation terms.
 
 <a name="Requirements"></a>
 ## 📌 Requirements
