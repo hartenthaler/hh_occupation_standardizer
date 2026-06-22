@@ -311,9 +311,23 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     {
         return new Menu(
             $this->listTitle(),
-            $this->listUrl($tree),
+            '#',
             $this->listMenuClass(),
-            $this->listUrlAttributes()
+            $this->listUrlAttributes(),
+            [
+                new Menu(
+                    $this->listTitle(),
+                    $this->listUrl($tree),
+                    $this->listMenuClass() . '-list',
+                    $this->listUrlAttributes()
+                ),
+                new Menu(
+                    I18N::translate('Occupation hierarchy (OhdAB)'),
+                    $this->listUrl($tree, ['view' => 'hierarchy']),
+                    $this->listMenuClass() . '-hierarchy',
+                    $this->listUrlAttributes()
+                ),
+            ]
         );
     }
 
@@ -329,6 +343,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         Auth::checkComponentAccess($this, ModuleListInterface::class, $tree, $user);
 
+        $query_params = $request->getQueryParams();
+        $view = (string) ($query_params['view'] ?? '');
+
         if ($request->getMethod() === RequestMethodInterface::METHOD_POST) {
             if (!$this->canManageNormalization($tree)) {
                 throw new HttpAccessDeniedException();
@@ -341,6 +358,21 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ($can_manage_normalization) {
             $this->syncNormalizationRows($tree);
+        }
+
+        if ($view === 'hierarchy') {
+            $node_id = (int) ($query_params['node_id'] ?? 0);
+
+            return $this->viewResponse($this->name() . '::occupation-hierarchy', [
+                'ancestors'   => $this->ohdabHierarchyAncestors($node_id),
+                'children'    => $this->ohdabHierarchyChildren($tree, $node_id),
+                'currentNode' => $this->ohdabHierarchyNode($node_id),
+                'hasSource'   => $this->ohdabHierarchySourceId() > 0,
+                'listUrl'     => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'persons'     => $this->ohdabHierarchyPersons($tree, $node_id),
+                'title'       => I18N::translate('Occupation hierarchy (OhdAB)'),
+                'tree'        => $tree,
+            ]);
         }
 
         return $this->viewResponse($this->name() . '::occupation-list', [
@@ -414,6 +446,264 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return I18N::comparator()($a['occupation'], $b['occupation'])
                 ?: I18N::comparator()($a['individual']->sortName(), $b['individual']->sortName());
         })->values();
+    }
+
+    /**
+     * @return array{id:int,level:int,code:string,label:string,parent_id:int|null}|null
+     */
+    private function ohdabHierarchyNode(int $node_id): array|null
+    {
+        if ($node_id <= 0 || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)) {
+            return null;
+        }
+
+        $source_id = $this->ohdabHierarchySourceId();
+
+        if ($source_id <= 0) {
+            return null;
+        }
+
+        $node = DBManager::table(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)
+            ->where('source_id', '=', $source_id)
+            ->where('id', '=', $node_id)
+            ->first();
+
+        return $node !== null ? $this->ohdabHierarchyNodeRow($node) : null;
+    }
+
+    /**
+     * @return list<array{id:int,level:int,code:string,label:string,parent_id:int|null}>
+     */
+    private function ohdabHierarchyAncestors(int $node_id): array
+    {
+        $node = $this->ohdabHierarchyNode($node_id);
+        $ancestors = [];
+
+        while ($node !== null) {
+            array_unshift($ancestors, $node);
+            $node = $node['parent_id'] !== null ? $this->ohdabHierarchyNode($node['parent_id']) : null;
+        }
+
+        return $ancestors;
+    }
+
+    /**
+     * @return list<array{id:int,level:int,code:string,label:string,parent_id:int|null,entry_count:int,individual_count:int}>
+     */
+    private function ohdabHierarchyChildren(Tree $tree, int $node_id): array
+    {
+        $source_id = $this->ohdabHierarchySourceId();
+
+        if ($source_id <= 0 || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)) {
+            return [];
+        }
+
+        $query = DBManager::table(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)
+            ->where('source_id', '=', $source_id);
+
+        if ($node_id > 0) {
+            $query->where('parent_id', '=', $node_id);
+        } else {
+            $query->whereNull('parent_id');
+        }
+
+        $children = $query
+            ->orderBy('code')
+            ->orderBy('label')
+            ->get()
+            ->map(fn (object $node): array => $this->ohdabHierarchyNodeRow($node))
+            ->all();
+
+        if ($children === []) {
+            return [];
+        }
+
+        $child_ids = array_map(static fn (array $node): int => $node['id'], $children);
+        $counts = $this->ohdabHierarchyCounts($tree, $child_ids);
+
+        return array_map(static function (array $node) use ($counts): array {
+            $node_counts = $counts[$node['id']] ?? ['entry_count' => 0, 'individual_count' => 0];
+            $node['entry_count'] = $node_counts['entry_count'];
+            $node['individual_count'] = $node_counts['individual_count'];
+
+            return $node;
+        }, $children);
+    }
+
+    /**
+     * @param list<int> $node_ids
+     *
+     * @return array<int,array{entry_count:int,individual_count:int}>
+     */
+    private function ohdabHierarchyCounts(Tree $tree, array $node_ids): array
+    {
+        if (
+            $node_ids === []
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY)
+        ) {
+            return [];
+        }
+
+        return DBManager::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
+            ->join(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries', 'entries.norm_concept_id', '=', 'links.concept_id')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true)
+            ->whereIn('links.node_id', $node_ids)
+            ->groupBy('links.node_id')
+            ->select([
+                'links.node_id',
+                DB::raw('COUNT(*) AS entry_count'),
+                DB::raw('COUNT(DISTINCT entries.individual_xref) AS individual_count'),
+            ])
+            ->get()
+            ->mapWithKeys(static fn (object $row): array => [
+                (int) $row->node_id => [
+                    'entry_count'      => (int) $row->entry_count,
+                    'individual_count' => (int) $row->individual_count,
+                ],
+            ])
+            ->all();
+    }
+
+    /**
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}>
+     */
+    private function ohdabHierarchyPersons(Tree $tree, int $node_id): Collection
+    {
+        $rows = new Collection();
+
+        if (
+            $node_id <= 0
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY)
+        ) {
+            return $rows;
+        }
+
+        $label_service = new OccupationLabelService($this->activeBuiltinRuleOrder());
+
+        foreach ($this->ohdabHierarchyEntryRows($tree, $node_id) as $entry_row) {
+            $individual = Registry::individualFactory()->make((string) $entry_row->individual_xref, $tree);
+
+            if (!$individual instanceof Individual || !$individual->canShow()) {
+                continue;
+            }
+
+            $entry = $this->normalizationEntryArray($entry_row);
+            $labels = $label_service->labelsForEntries([$entry], $individual->sex(), I18N::languageTag());
+
+            $rows->push([
+                'individual'         => $individual,
+                'label'              => $labels[0]['label'] ?? (string) $entry_row->occupation_normalized,
+                'label_title'        => $labels[0]['title'] ?? '',
+                'original_part_text' => (string) $entry_row->original_part_text,
+                'date'               => (string) ($entry_row->date ?? ''),
+                'place'              => (string) (($entry_row->location_hierarchy ?? '') !== '' ? $entry_row->location_hierarchy : ($entry_row->place ?? '')),
+                'source_names'       => (string) ($entry_row->source_names ?? ''),
+            ]);
+        }
+
+        return $rows->sort(static function (array $a, array $b): int {
+            return I18N::comparator()($a['individual']->sortName(), $b['individual']->sortName())
+                ?: I18N::comparator()($a['label'], $b['label']);
+        })->values();
+    }
+
+    /**
+     * @return Collection<int,object>
+     */
+    private function ohdabHierarchyEntryRows(Tree $tree, int $node_id): Collection
+    {
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->join(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links', 'links.concept_id', '=', 'entries.norm_concept_id')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true)
+            ->where('links.node_id', '=', $node_id)
+            ->orderBy('entries.individual_xref')
+            ->orderBy('entries.original_part_text')
+            ->select([
+                'entries.individual_xref',
+                'entries.part_index',
+                'entries.original_part_text',
+                'entries.date',
+                'entries.place',
+                'entries.location_hierarchy',
+                'entries.source_names',
+                'entries.language',
+                'entries.social_status',
+                'entries.occupation_normalized',
+                'entries.occupation_de_male',
+                'entries.occupation_de_female',
+                'entries.occupation_de_neutral',
+                'entries.occupation_en_male',
+                'entries.occupation_en_female',
+                'entries.occupation_en_neutral',
+                'entries.office',
+                'entries.qualification',
+                'entries.code_hisco',
+                'entries.code_gnd',
+                'entries.code_ohdab',
+                'entries.code_factgrid',
+                'entries.norm_concept_id',
+                'entries.status',
+                'entries.rule_numbers',
+            ])
+            ->get();
+    }
+
+    /**
+     * @return array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
+     */
+    private function normalizationEntryArray(object $entry): array
+    {
+        return [
+            'part_index'            => (int) $entry->part_index,
+            'original_part_text'    => (string) $entry->original_part_text,
+            'language'              => (string) ($entry->language ?? ''),
+            'social_status'         => (string) ($entry->social_status ?? ''),
+            'occupation_normalized' => (string) ($entry->occupation_normalized ?? ''),
+            'occupation_de_male'    => (string) ($entry->occupation_de_male ?? ''),
+            'occupation_de_female'  => (string) ($entry->occupation_de_female ?? ''),
+            'occupation_de_neutral' => (string) ($entry->occupation_de_neutral ?? ''),
+            'occupation_en_male'    => (string) ($entry->occupation_en_male ?? ''),
+            'occupation_en_female'  => (string) ($entry->occupation_en_female ?? ''),
+            'occupation_en_neutral' => (string) ($entry->occupation_en_neutral ?? ''),
+            'office'                => (string) ($entry->office ?? ''),
+            'qualification'         => (string) ($entry->qualification ?? ''),
+            'code_hisco'            => (string) ($entry->code_hisco ?? ''),
+            'code_gnd'              => (string) ($entry->code_gnd ?? ''),
+            'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
+            'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+            'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
+            'status'                => (string) $entry->status,
+            'rule_numbers'          => (string) $entry->rule_numbers,
+        ];
+    }
+
+    /**
+     * @return array{id:int,level:int,code:string,label:string,parent_id:int|null}
+     */
+    private function ohdabHierarchyNodeRow(object $node): array
+    {
+        return [
+            'id'        => (int) $node->id,
+            'level'     => (int) $node->level,
+            'code'      => (string) $node->code,
+            'label'     => (string) $node->label,
+            'parent_id' => $node->parent_id !== null ? (int) $node->parent_id : null,
+        ];
+    }
+
+    private function ohdabHierarchySourceId(): int
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_SOURCES)) {
+            return 0;
+        }
+
+        return (int) (DBManager::table(OccupationSchema::TABLE_NORM_SOURCES)
+            ->where('source_key', '=', OhdabSpecialDatabaseService::SOURCE_KEY)
+            ->value('id') ?? 0);
     }
 
     /**
