@@ -70,6 +70,17 @@ msgstr "Regeln"
 msgid "Occupation Standardizer"
 msgstr "Vereinheitlichung von Berufsangaben"
 
+#: resources/views/occupation-hierarchy.phtml:27
+#: resources/views/occupation-landing.phtml:26
+#: resources/views/occupation-list.phtml:31
+#: src/OccupationStandardizerModule.php:372
+msgid "Occupation hierarchy (OhdAB)"
+msgstr "Berufe-Hierarchie (OhdAB)"
+
+#: resources/views/occupation-landing.phtml:27
+msgid "Show occupations grouped by OhdAB hierarchy."
+msgstr "Berufe nach OhdAB-Hierarchie gruppiert anzeigen."
+
 #: src/OccupationStandardizerModule.php:110
 msgid ""
 "Helps standardize historical occupation entries in genealogical sources."

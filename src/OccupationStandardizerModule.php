@@ -343,6 +343,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $can_manage_normalization = $this->canManageNormalization($tree);
 
+        if ($view === '') {
+            return $this->viewResponse($this->name() . '::occupation-landing', [
+                'hierarchyUrl' => $this->listUrl($tree, ['view' => 'hierarchy']),
+                'listUrl'      => $this->listUrl($tree, ['view' => 'list']),
+                'title'        => $this->listTitle(),
+                'tree'         => $tree,
+            ]);
+        }
+
         if ($can_manage_normalization) {
             $this->syncNormalizationRows($tree);
         }
@@ -533,25 +542,32 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return [];
         }
 
-        return DBManager::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
+        $counts = [];
+        $rows = DBManager::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
             ->join(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries', 'entries.norm_concept_id', '=', 'links.concept_id')
             ->where('entries.tree_id', '=', $tree->id())
             ->where('entries.is_active', '=', true)
             ->whereIn('links.node_id', $node_ids)
-            ->groupBy('links.node_id')
             ->select([
                 'links.node_id',
-                DB::raw('COUNT(*) AS entry_count'),
-                DB::raw('COUNT(DISTINCT entries.individual_xref) AS individual_count'),
+                'entries.individual_xref',
             ])
-            ->get()
-            ->mapWithKeys(static fn (object $row): array => [
-                (int) $row->node_id => [
-                    'entry_count'      => (int) $row->entry_count,
-                    'individual_count' => (int) $row->individual_count,
-                ],
-            ])
-            ->all();
+            ->get();
+
+        foreach ($rows as $row) {
+            $node_id = (int) $row->node_id;
+            $counts[$node_id] ??= [
+                'entry_count'      => 0,
+                'individual_xrefs' => [],
+            ];
+            $counts[$node_id]['entry_count']++;
+            $counts[$node_id]['individual_xrefs'][(string) $row->individual_xref] = true;
+        }
+
+        return array_map(static fn (array $count): array => [
+            'entry_count'      => $count['entry_count'],
+            'individual_count' => count($count['individual_xrefs']),
+        ], $counts);
     }
 
     /**

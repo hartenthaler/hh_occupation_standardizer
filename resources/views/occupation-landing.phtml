@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+
+/**
+ * @var string $hierarchyUrl
+ * @var string $listUrl
+ * @var string $title
+ */
+?>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <a class="btn btn-primary w-100 text-start p-3" href="<?= e($listUrl) ?>">
+                <span class="d-block h4 mb-1"><?= MoreI18N::xlate('Occupations') ?></span>
+                <span class="d-block fw-normal"><?= I18N::translate('This list shows the original occupation facts.') ?></span>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <a class="btn btn-primary w-100 text-start p-3" href="<?= e($hierarchyUrl) ?>">
+                <span class="d-block h4 mb-1"><?= I18N::translate('Occupation hierarchy (OhdAB)') ?></span>
+                <span class="d-block fw-normal"><?= I18N::translate('Show occupations grouped by OhdAB hierarchy.') ?></span>
+            </a>
+        </div>
+    </div>
+</div>
