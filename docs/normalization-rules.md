@@ -67,6 +67,7 @@ The table can store:
 - GND identifier
 - OhdAB identifier
 - FactGrid item id
+- Wikidata item id
 
 The first seeded German examples are:
 

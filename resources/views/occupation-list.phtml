@@ -84,7 +84,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                             <?php endif ?>
                         </td>
                         <?php if ($canManageNormalization) : ?>
-                            <td data-sort="<?= e(implode(' ', array_map(static fn (array $entry): string => $entry['occupation_normalized'] . ' ' . $entry['social_status'] . ' ' . $entry['office'] . ' ' . $entry['qualification'] . ' ' . $entry['code_hisco'] . ' ' . $entry['code_gnd'] . ' ' . $entry['code_ohdab'] . ' ' . $entry['code_factgrid'], $row['normalizationEntries']))) ?>">
+                            <td data-sort="<?= e(implode(' ', array_map(static fn (array $entry): string => $entry['occupation_normalized'] . ' ' . $entry['social_status'] . ' ' . $entry['office'] . ' ' . $entry['qualification'] . ' ' . $entry['code_hisco'] . ' ' . $entry['code_gnd'] . ' ' . $entry['code_ohdab'] . ' ' . $entry['code_factgrid'] . ' ' . $entry['code_wikidata'], $row['normalizationEntries']))) ?>">
                                 <?php foreach ($row['normalizationEntries'] as $entry) : ?>
                                     <form method="post" class="mb-2">
                                         <?= csrf_field() ?>
@@ -176,7 +176,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                                                 <input class="form-control form-control-sm" type="text" name="codeHisco" value="<?= e($entry['code_hisco']) ?>">
                                                 <?php $url = $externalIdentifierService->url('hisco', $entry['code_hisco']) ?>
                                                 <?php if ($url !== '') : ?>
-                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($entry['code_hisco']) ?></a>
                                                 <?php endif ?>
                                             </div>
                                             <div class="col-12 col-xl-4">
@@ -184,7 +184,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                                                 <input class="form-control form-control-sm" type="text" name="codeGnd" value="<?= e($entry['code_gnd']) ?>">
                                                 <?php $url = $externalIdentifierService->url('gnd', $entry['code_gnd']) ?>
                                                 <?php if ($url !== '') : ?>
-                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($entry['code_gnd']) ?></a>
                                                 <?php endif ?>
                                             </div>
                                             <div class="col-12 col-xl-4">
@@ -192,7 +192,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                                                 <input class="form-control form-control-sm" type="text" name="codeOhdab" value="<?= e($entry['code_ohdab']) ?>">
                                                 <?php $url = $externalIdentifierService->url('ohdab', $entry['code_ohdab']) ?>
                                                 <?php if ($url !== '') : ?>
-                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($entry['code_ohdab']) ?></a>
                                                 <?php endif ?>
                                             </div>
                                             <div class="col-12 col-xl-4">
@@ -200,7 +200,15 @@ $externalIdentifierService = new ExternalIdentifierService();
                                                 <input class="form-control form-control-sm" type="text" name="codeFactgrid" value="<?= e($entry['code_factgrid']) ?>">
                                                 <?php $url = $externalIdentifierService->url('factgrid', $entry['code_factgrid']) ?>
                                                 <?php if ($url !== '') : ?>
-                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($entry['code_factgrid']) ?></a>
+                                                <?php endif ?>
+                                            </div>
+                                            <div class="col-12 col-xl-4">
+                                                <label class="form-label small mb-0">Wikidata</label>
+                                                <input class="form-control form-control-sm" type="text" name="codeWikidata" value="<?= e($entry['code_wikidata']) ?>">
+                                                <?php $url = $externalIdentifierService->url('wikidata', $entry['code_wikidata']) ?>
+                                                <?php if ($url !== '') : ?>
+                                                    <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($entry['code_wikidata']) ?></a>
                                                 <?php endif ?>
                                             </div>
                                             <div class="col-12 col-xl-4">

@@ -285,7 +285,7 @@ $ohdabCategoryChartColors = [
                         <input class="form-control form-control-sm" type="text" name="codeHisco" value="<?= e($term['code_hisco']) ?>">
                         <?php $url = $externalIdentifierService->url('hisco', $term['code_hisco']) ?>
                         <?php if ($url !== '') : ?>
-                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($term['code_hisco']) ?></a>
                         <?php endif ?>
                     </div>
                     <div class="col-md-2">
@@ -301,7 +301,7 @@ $ohdabCategoryChartColors = [
                         <input class="form-control form-control-sm" type="text" name="codeOhdab" value="<?= e($term['code_ohdab']) ?>">
                         <?php $url = $externalIdentifierService->url('ohdab', $term['code_ohdab']) ?>
                         <?php if ($url !== '') : ?>
-                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($url) ?></a>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($term['code_ohdab']) ?></a>
                         <?php endif ?>
                     </div>
                     <div class="col-md-2">
@@ -310,6 +310,14 @@ $ohdabCategoryChartColors = [
                         <?php $url = $externalIdentifierService->url('factgrid', $term['code_factgrid']) ?>
                         <?php if ($url !== '') : ?>
                             <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($term['code_factgrid']) ?></a>
+                        <?php endif ?>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-0">Wikidata</label>
+                        <input class="form-control form-control-sm" type="text" name="codeWikidata" value="<?= e($term['code_wikidata']) ?>">
+                        <?php $url = $externalIdentifierService->url('wikidata', $term['code_wikidata']) ?>
+                        <?php if ($url !== '') : ?>
+                            <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($term['code_wikidata']) ?></a>
                         <?php endif ?>
                     </div>
                     <div class="col-md-2 d-flex gap-2">
@@ -380,6 +388,10 @@ $ohdabCategoryChartColors = [
                 <div class="col-md-2">
                     <label class="form-label small mb-0">FactGrid</label>
                     <input class="form-control form-control-sm" type="text" name="codeFactgrid">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-0">Wikidata</label>
+                    <input class="form-control form-control-sm" type="text" name="codeWikidata">
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary btn-sm" type="submit">

@@ -13,6 +13,7 @@ final class ExternalIdentifierService
     private const URL_PATTERNS = [
         'factgrid' => 'https://database.factgrid.de/wiki/Item:%s',
         'gnd'      => 'https://d-nb.info/gnd/%s',
+        'wikidata' => 'https://www.wikidata.org/wiki/%s',
     ];
 
     public function url(string $identifier_type, string $code): string
