@@ -1,0 +1,166 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Tree;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+use Illuminate\Support\Collection;
+
+/**
+ * @var list<array{id:int,level:int,code:string,label:string,parent_id:int|null}> $ancestors
+ * @var list<array{id:int,level:int,code:string,label:string,parent_id:int|null,entry_count:int,individual_count:int}> $children
+ * @var array{id:int,level:int,code:string,label:string,parent_id:int|null}|null $currentNode
+ * @var bool $hasSource
+ * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
+ * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $persons
+ * @var string $title
+ * @var Tree $tree
+ */
+?>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <?php if (!$hasSource) : ?>
+        <p class="alert alert-info">
+            <?= I18N::translate('No OhdAB special database has been imported yet.') ?>
+        </p>
+    <?php else : ?>
+        <nav aria-label="<?= e(I18N::translate('OhdAB hierarchy')) ?>" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="<?= e($listUrl(['view' => 'hierarchy'])) ?>">OhdAB</a>
+                </li>
+                <?php foreach ($ancestors as $ancestor) : ?>
+                    <li class="breadcrumb-item <?= $currentNode !== null && $ancestor['id'] === $currentNode['id'] ? 'active' : '' ?>">
+                        <?php if ($currentNode !== null && $ancestor['id'] === $currentNode['id']) : ?>
+                            <span aria-current="page">
+                                <bdi><?= e($ancestor['label']) ?></bdi>
+                            </span>
+                        <?php else : ?>
+                            <a href="<?= e($listUrl(['view' => 'hierarchy', 'node_id' => $ancestor['id']])) ?>">
+                                <bdi><?= e($ancestor['label']) ?></bdi>
+                            </a>
+                        <?php endif ?>
+                    </li>
+                <?php endforeach ?>
+            </ol>
+        </nav>
+
+        <?php if ($currentNode !== null) : ?>
+            <div class="mb-3">
+                <h3 class="h4 mb-1">
+                    <bdi><?= e($currentNode['label']) ?></bdi>
+                </h3>
+                <div class="text-muted">
+                    <bdi><?= e($currentNode['code']) ?></bdi>
+                </div>
+            </div>
+        <?php elseif ($ancestors === [] && $children === []) : ?>
+            <p class="alert alert-info">
+                <?= I18N::translate('No OhdAB hierarchy entries were found.') ?>
+            </p>
+        <?php endif ?>
+
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="occupation-hierarchy-children-tab" data-bs-toggle="tab" data-bs-target="#occupation-hierarchy-children" type="button" role="tab" aria-controls="occupation-hierarchy-children" aria-selected="true">
+                    <?= I18N::translate('Subcategories') ?>
+                    <span class="badge bg-secondary ms-1"><?= I18N::number(count($children)) ?></span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="occupation-hierarchy-persons-tab" data-bs-toggle="tab" data-bs-target="#occupation-hierarchy-persons" type="button" role="tab" aria-controls="occupation-hierarchy-persons" aria-selected="false">
+                    <?= MoreI18N::xlate('Individuals') ?>
+                    <span class="badge bg-secondary ms-1"><?= I18N::number($persons->count()) ?></span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="occupation-hierarchy-children" role="tabpanel" aria-labelledby="occupation-hierarchy-children-tab" tabindex="0">
+                <?php if ($children === []) : ?>
+                    <p class="alert alert-info">
+                        <?= I18N::translate('There are no lower hierarchy levels for this entry.') ?>
+                    </p>
+                <?php else : ?>
+                    <table class="table table-bordered table-sm wt-table">
+                        <thead>
+                            <tr>
+                                <th><?= I18N::translate('Code') ?></th>
+                                <th><?= I18N::translate('Hierarchy entry') ?></th>
+                                <th class="text-end"><?= I18N::translate('Occupation entries') ?></th>
+                                <th class="text-end"><?= MoreI18N::xlate('Individuals') ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($children as $child) : ?>
+                                <tr>
+                                    <td><bdi><?= e($child['code']) ?></bdi></td>
+                                    <td>
+                                        <a href="<?= e($listUrl(['view' => 'hierarchy', 'node_id' => $child['id']])) ?>">
+                                            <bdi><?= e($child['label']) ?></bdi>
+                                        </a>
+                                    </td>
+                                    <td class="text-end" data-sort="<?= e((string) $child['entry_count']) ?>">
+                                        <?= I18N::number($child['entry_count']) ?>
+                                    </td>
+                                    <td class="text-end" data-sort="<?= e((string) $child['individual_count']) ?>">
+                                        <?= I18N::number($child['individual_count']) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                <?php endif ?>
+            </div>
+
+            <div class="tab-pane fade" id="occupation-hierarchy-persons" role="tabpanel" aria-labelledby="occupation-hierarchy-persons-tab" tabindex="0">
+                <?php if ($currentNode === null) : ?>
+                    <p class="alert alert-info">
+                        <?= I18N::translate('Select a hierarchy entry to see the matching individuals.') ?>
+                    </p>
+                <?php elseif ($persons->isEmpty()) : ?>
+                    <p class="alert alert-info">
+                        <?= I18N::translate('No individuals were found for this hierarchy entry.') ?>
+                    </p>
+                <?php else : ?>
+                    <table class="table table-bordered table-sm wt-table datatables"
+                        <?= view('lists/datatables-attributes') ?>
+                    >
+                        <thead>
+                            <tr>
+                                <th><?= MoreI18N::xlate('Individual') ?></th>
+                                <th><?= MoreI18N::xlate('Occupation') ?></th>
+                                <th><?= I18N::translate('Original occupation') ?></th>
+                                <th><?= MoreI18N::xlate('Date') ?></th>
+                                <th><?= MoreI18N::xlate('Place') ?></th>
+                                <th><?= MoreI18N::xlate('Sources') ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($persons as $person) : ?>
+                                <tr>
+                                    <td data-sort="<?= e($person['individual']->sortName()) ?>">
+                                        <a href="<?= e($person['individual']->url()) ?>"><?= $person['individual']->fullName() ?></a>
+                                    </td>
+                                    <td data-sort="<?= e($person['label']) ?>">
+                                        <span class="badge bg-secondary" title="<?= e($person['label_title']) ?>">
+                                            <bdi><?= e($person['label']) ?></bdi>
+                                        </span>
+                                    </td>
+                                    <td><bdi><?= e($person['original_part_text']) ?></bdi></td>
+                                    <td><bdi><?= e($person['date']) ?></bdi></td>
+                                    <td><bdi><?= e($person['place']) ?></bdi></td>
+                                    <td><bdi><?= e($person['source_names']) ?></bdi></td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                <?php endif ?>
+            </div>
+        </div>
+    <?php endif ?>
+</div>
