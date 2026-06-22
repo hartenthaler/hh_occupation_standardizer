@@ -929,6 +929,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $fingerprint_setting = self::FINGERPRINT_PREFIX . $tree->id();
 
         if ($this->metadataValue($fingerprint_setting) === $fingerprint) {
+            $this->deactivateDuplicateNormalizationRows($tree, date('Y-m-d H:i:s'));
+
             return;
         }
 
@@ -975,6 +977,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         ]);
 
         $this->setMetadataValue($fingerprint_setting, $fingerprint);
+
+        $this->deactivateDuplicateNormalizationRows($tree, $now);
     }
 
     /**
@@ -1009,8 +1013,24 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->where('entry_key', '=', $entry_key)
             ->first();
 
+        if ($existing === null) {
+            $existing = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+                ->where('tree_id', '=', $tree->id())
+                ->where('individual_xref', '=', $individual->xref())
+                ->where('fact_id', '=', $fact->id())
+                ->where('part_index', '=', $entry['part_index'])
+                ->where('is_active', '=', true)
+                ->orderByDesc('reviewed')
+                ->orderByDesc('manually_changed')
+                ->orderByDesc('last_seen_at')
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->first();
+        }
+
         if ($existing !== null) {
             $values = [
+                'entry_key'    => $entry_key,
                 'is_active'    => true,
                 'last_seen_at' => $now,
                 'updated_at'   => $now,
@@ -1025,18 +1045,99 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             }
 
             DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
-                ->where('entry_key', '=', $entry_key)
+                ->where('id', '=', $existing->id)
                 ->update($values);
+
+            $this->deactivateDuplicateNormalizationEntries($tree, $individual->xref(), $fact->id(), $entry['part_index'], (int) $existing->id, $now);
 
             return;
         }
 
-        DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)->insert([
+        $inserted_id = (int) DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)->insertGetId([
             'entry_key'        => $entry_key,
             'reviewed'         => false,
             'manually_changed' => false,
             'created_at'       => $now,
         ] + $context + $this->automaticNormalizationValues($entry));
+
+        $this->deactivateDuplicateNormalizationEntries($tree, $individual->xref(), $fact->id(), $entry['part_index'], $inserted_id, $now);
+    }
+
+    private function deactivateDuplicateNormalizationRows(Tree $tree, string $now): void
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return;
+        }
+
+        $rows = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('is_active', '=', true)
+            ->get(['id', 'individual_xref', 'fact_id', 'part_index', 'reviewed', 'manually_changed', 'last_seen_at', 'updated_at']);
+
+        $groups = [];
+
+        foreach ($rows as $row) {
+            $key = $row->individual_xref . "\0" . $row->fact_id . "\0" . $row->part_index;
+            $groups[$key][] = $row;
+        }
+
+        foreach ($groups as $group) {
+            if (count($group) < 2) {
+                continue;
+            }
+
+            $keep = $group[0];
+
+            foreach ($group as $row) {
+                if ($this->isBetterDuplicateNormalizationRow($row, $keep)) {
+                    $keep = $row;
+                }
+            }
+
+            $this->deactivateDuplicateNormalizationEntries(
+                $tree,
+                (string) $keep->individual_xref,
+                (string) $keep->fact_id,
+                (int) $keep->part_index,
+                (int) $keep->id,
+                $now
+            );
+        }
+    }
+
+    private function isBetterDuplicateNormalizationRow(object $candidate, object $current): bool
+    {
+        if ((bool) $candidate->reviewed !== (bool) $current->reviewed) {
+            return (bool) $candidate->reviewed;
+        }
+
+        if ((bool) $candidate->manually_changed !== (bool) $current->manually_changed) {
+            return (bool) $candidate->manually_changed;
+        }
+
+        $candidate_seen = max((string) ($candidate->last_seen_at ?? ''), (string) ($candidate->updated_at ?? ''));
+        $current_seen = max((string) ($current->last_seen_at ?? ''), (string) ($current->updated_at ?? ''));
+
+        if ($candidate_seen !== $current_seen) {
+            return $candidate_seen > $current_seen;
+        }
+
+        return (int) $candidate->id > (int) $current->id;
+    }
+
+    private function deactivateDuplicateNormalizationEntries(Tree $tree, string $individual_xref, string $fact_id, int $part_index, int $keep_id, string $now): void
+    {
+        DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('individual_xref', '=', $individual_xref)
+            ->where('fact_id', '=', $fact_id)
+            ->where('part_index', '=', $part_index)
+            ->where('is_active', '=', true)
+            ->where('id', '<>', $keep_id)
+            ->update([
+                'is_active'  => false,
+                'updated_at' => $now,
+            ]);
     }
 
     /**
