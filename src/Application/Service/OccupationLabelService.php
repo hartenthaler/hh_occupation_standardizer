@@ -156,6 +156,10 @@ final class OccupationLabelService
                 $title_parts[] = $this->identifierTitle('FactGrid', $entry['code_factgrid']);
             }
 
+            if (($entry['code_wikidata'] ?? '') !== '') {
+                $title_parts[] = $this->identifierTitle('Wikidata', $entry['code_wikidata']);
+            }
+
             $hierarchy = $this->ohdab_special_database_service->hierarchyPath((int) ($entry['norm_concept_id'] ?? 0));
 
             if ($hierarchy !== '') {
@@ -213,6 +217,7 @@ final class OccupationLabelService
                 'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
                 'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+                'code_wikidata'         => (string) ($entry->code_wikidata ?? ''),
                 'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
                 'status'                => (string) $entry->status,
                 'rule_numbers'          => (string) $entry->rule_numbers,
@@ -358,6 +363,7 @@ final class OccupationLabelService
             'code_gnd',
             'code_ohdab',
             'code_factgrid',
+            'code_wikidata',
         ] as $key) {
             if (($entry[$key] ?? '') === '' && (string) ($term->{$key} ?? '') !== '') {
                 $entry[$key] = (string) $term->{$key};
@@ -393,6 +399,7 @@ final class OccupationLabelService
                 'terms.code_gnd',
                 'terms.code_ohdab',
                 'terms.code_factgrid',
+                'terms.code_wikidata',
             ])
             ->where('rules.enabled', '=', true)
             ->get()
@@ -412,6 +419,7 @@ final class OccupationLabelService
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
                 'code_factgrid'         => (string) ($row->code_factgrid ?? ''),
+                'code_wikidata'         => (string) ($row->code_wikidata ?? ''),
             ])
             ->all();
     }

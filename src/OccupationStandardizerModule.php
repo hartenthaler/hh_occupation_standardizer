@@ -532,6 +532,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'code_gnd'              => (string) ($entry->code_gnd ?? ''),
                     'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
                     'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+                    'code_wikidata'         => (string) ($entry->code_wikidata ?? ''),
                     'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
                     'status'                => (string) $entry->status,
                     'reviewed'              => (bool) $entry->reviewed,
@@ -586,6 +587,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
                 'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
                 'code_factgrid'         => trim((string) ($params['codeFactgrid'] ?? '')),
+                'code_wikidata'         => trim((string) ($params['codeWikidata'] ?? '')),
                 'norm_concept_id'       => 0,
                 'status'                => $status,
                 'reviewed'              => (string) ($params['reviewed'] ?? '') === '1',
@@ -766,6 +768,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_gnd'              => $entry['code_gnd'],
             'code_ohdab'            => $entry['code_ohdab'],
             'code_factgrid'         => $entry['code_factgrid'],
+            'code_wikidata'         => $entry['code_wikidata'],
             'norm_concept_id'       => (int) ($entry['norm_concept_id'] ?? 0),
             'status'                => $entry['status'],
             'rule_numbers'          => $entry['rule_numbers'],
@@ -1010,6 +1013,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_gnd'             => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'           => (string) ($row->code_ohdab ?? ''),
                 'code_factgrid'        => (string) ($row->code_factgrid ?? ''),
+                'code_wikidata'        => (string) ($row->code_wikidata ?? ''),
             ])
             ->all();
     }
@@ -1060,6 +1064,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'terms.code_gnd',
                 'terms.code_ohdab',
                 'terms.code_factgrid',
+                'terms.code_wikidata',
             ])
             ->orderBy('rules.language')
             ->orderBy('rules.original_text')
@@ -1083,6 +1088,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_gnd'              => (string) ($row->code_gnd ?? ''),
                 'code_ohdab'            => (string) ($row->code_ohdab ?? ''),
                 'code_factgrid'         => (string) ($row->code_factgrid ?? ''),
+                'code_wikidata'         => (string) ($row->code_wikidata ?? ''),
                 'enabled'               => (bool) $row->enabled,
             ])
             ->all();
@@ -1110,6 +1116,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_gnd'              => $rule['code_gnd'],
                 'code_ohdab'            => $rule['code_ohdab'],
                 'code_factgrid'         => $rule['code_factgrid'],
+                'code_wikidata'         => $rule['code_wikidata'],
             ],
             array_values(array_filter(
                 $this->normalizationRuleRows(),
@@ -1214,6 +1221,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_gnd'               => trim((string) ($params['codeGnd'] ?? '')),
             'code_ohdab'             => trim((string) ($params['codeOhdab'] ?? '')),
             'code_factgrid'          => trim((string) ($params['codeFactgrid'] ?? '')),
+            'code_wikidata'          => trim((string) ($params['codeWikidata'] ?? '')),
             'updated_at'             => date('Y-m-d H:i:s'),
         ];
 

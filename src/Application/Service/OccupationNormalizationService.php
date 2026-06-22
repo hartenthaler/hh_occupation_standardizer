@@ -39,19 +39,19 @@ final class OccupationNormalizationService
         'werkmeister',
     ];
 
-    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> */
+    /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}> */
     private array $normalization_rules;
 
-    /** @var list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> */
+    /** @var list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}> */
     private array $ohdab_special_mappings;
 
     /** @var list<string> */
     private array $builtin_rule_order;
 
     /**
-     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid?:string}> $normalization_rules
+     * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid?:string,code_wikidata?:string}> $normalization_rules
      * @param list<string> $builtin_rule_order
-     * @param list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $ohdab_special_mappings
+     * @param list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}> $ohdab_special_mappings
      */
     public function __construct(array $normalization_rules = [], array $builtin_rule_order = [], array $ohdab_special_mappings = [])
     {
@@ -79,7 +79,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}>
+     * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}>
      */
     public function normalize(string $occupation, string $language = ''): array
     {
@@ -126,7 +126,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
     private function normalizePart(string $part, string $language): array
     {
@@ -150,6 +150,7 @@ final class OccupationNormalizationService
             'code_gnd'              => '',
             'code_ohdab'            => '',
             'code_factgrid'         => '',
+            'code_wikidata'         => '',
             'norm_concept_id'       => 0,
             'status'                => self::STATUS_UNCLEAR,
             'rule_numbers'          => '',
@@ -217,6 +218,7 @@ final class OccupationNormalizationService
                             'code_gnd'              => $rule['code_gnd'],
                             'code_ohdab'            => $rule['code_ohdab'],
                             'code_factgrid'         => $rule['code_factgrid'] ?? '',
+                            'code_wikidata'         => $rule['code_wikidata'] ?? '',
                             'status'                => self::STATUS_RECOGNIZED,
                         ], [$rule_id]);
                     }
@@ -240,6 +242,7 @@ final class OccupationNormalizationService
                             'code_gnd'              => $mapping['code_gnd'],
                             'code_ohdab'            => $mapping['code_ohdab'],
                             'code_factgrid'         => $mapping['code_factgrid'],
+                            'code_wikidata'         => $mapping['code_wikidata'],
                             'norm_concept_id'       => $mapping['norm_concept_id'],
                             'status'                => self::STATUS_RECOGNIZED,
                         ], [$rule_id]);
@@ -265,7 +268,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid?:string} $rule
+     * @param array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid?:string,code_wikidata?:string} $rule
      */
     private function ruleMatches(array $rule, string $original, string $language): bool
     {
@@ -285,7 +288,7 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @param array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string} $mapping
+     * @param array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string} $mapping
      */
     private function ohdabSpecialMappingMatches(array $mapping, string $original, string $language): bool
     {
@@ -301,11 +304,11 @@ final class OccupationNormalizationService
     }
 
     /**
-     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
+     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
      * @param array<string,int|string> $values
      * @param list<string> $rules
      *
-     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
     private function withRules(array $entry, array $values, array $rules): array
     {

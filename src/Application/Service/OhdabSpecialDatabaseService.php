@@ -191,7 +191,7 @@ final class OhdabSpecialDatabaseService
     }
 
     /**
-     * @return list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
+     * @return list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}>
      */
     public function mappings(): array
     {
@@ -215,6 +215,7 @@ final class OhdabSpecialDatabaseService
                 'concepts.occupation_de_neutral',
                 'concepts.ohdab_full_id',
                 'concepts.factgrid_id',
+                'concepts.wikidata_id',
             ])
             ->get()
             ->map(static fn (object $row): array => [
@@ -232,6 +233,7 @@ final class OhdabSpecialDatabaseService
                 'code_gnd'              => '',
                 'code_ohdab'            => (string) $row->ohdab_full_id,
                 'code_factgrid'         => (string) ($row->factgrid_id ?? ''),
+                'code_wikidata'         => (string) ($row->wikidata_id ?? ''),
             ])
             ->all();
     }
@@ -433,6 +435,7 @@ final class OhdabSpecialDatabaseService
                 'ohdab_group'           => trim((string) ($row['ohdab'] ?? '')),
                 'ohdab_individual'      => trim((string) ($row['ind'] ?? '')),
                 'factgrid_id'           => $this->factgridId(trim((string) ($row['QFact'] ?? ''))),
+                'wikidata_id'           => $this->wikidataId($row),
                 'requirement_level'     => trim((string) ($row['anford'] ?? '')),
                 'requirement_label'     => trim((string) ($row['anford_txt'] ?? '')),
                 'updated_at'            => date('Y-m-d H:i:s'),
@@ -554,6 +557,28 @@ final class OhdabSpecialDatabaseService
         }
 
         return $value;
+    }
+
+    /**
+     * @param array<string,string> $row
+     */
+    private function wikidataId(array $row): string
+    {
+        foreach (['Wikidata', 'wikidata', 'QWikidata', 'QWiki'] as $column) {
+            $value = trim((string) ($row[$column] ?? ''));
+
+            if ($value === '') {
+                continue;
+            }
+
+            if (preg_match('/(Q[0-9]+)/u', $value, $match) === 1) {
+                return $match[1];
+            }
+
+            return $value;
+        }
+
+        return '';
     }
 
     private function matchKey(string $value): string
