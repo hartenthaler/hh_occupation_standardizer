@@ -66,6 +66,10 @@ msgstr "OhdAB-Hierarchie"
 msgid "Rules"
 msgstr "Regeln"
 
+#: src/OccupationStandardizerModule.php:105
+msgid "Occupation Standardizer"
+msgstr "Vereinheitlichung von Berufsangaben"
+
 #: src/OccupationStandardizerModule.php:110
 msgid ""
 "Helps standardize historical occupation entries in genealogical sources."
@@ -585,9 +589,6 @@ msgstr ""
 #: resources/views/settings.phtml:619
 msgid "Delete table data"
 msgstr "Tabellendaten löschen"
-
-#~ msgid "Occupation Standardizer"
-#~ msgstr "Vereinheitlichung von Berufsangaben"
 
 #~ msgid "The uploaded file could not be read."
 #~ msgstr "Die hochgeladene Datei konnte nicht gelesen werden."

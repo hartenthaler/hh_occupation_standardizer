@@ -67,6 +67,10 @@ msgstr ""
 msgid "Rules"
 msgstr ""
 
+#: src/OccupationStandardizerModule.php:105
+msgid "Occupation Standardizer"
+msgstr ""
+
 #: src/OccupationStandardizerModule.php:110
 msgid "Helps standardize historical occupation entries in genealogical sources."
 msgstr ""

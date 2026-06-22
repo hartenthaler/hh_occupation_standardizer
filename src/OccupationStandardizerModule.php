@@ -102,7 +102,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
     public function title(): string
     {
-        return I18N::translate(self::MODULE_TITLE);
+        return I18N::translate('Occupation Standardizer');
     }
 
     public function description(): string
