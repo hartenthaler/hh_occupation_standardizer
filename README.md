@@ -1,12 +1,10 @@
-# 🧰 **webtrees** module: Occupation Standardizer
+# **webtrees** module: Occupation Standardizer
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 ![webtrees major version](https://img.shields.io/badge/webtrees-v2.2.x-green)
 
 This [webtrees](https://www.webtrees.net) module helps analyze and standardize historical occupation entries in genealogical sources.
-
-Current module version: **2.2.6.0**.
 
 <a name="Contents"></a>
 ## 📚 Contents
@@ -45,21 +43,19 @@ The purpose of this module is to prepare historical occupation data for consiste
 * separating status from occupation, such as `Bürger und Weingärtner`
 * normalizing spelling variants, such as `Kieffer` to `Küfer`, `Schuster` to `Schuhmacher`, or `Beck` to `Bäcker`
 * treating craft grades such as master, journeyman, or apprentice as qualifiers rather than separate occupations
-* keeping genuine master-compound occupations such as schoolmaster or mayor intact
+* keeping genuine master-compound occupations such as `schoolmaster` or `Bürgermeister` intact
 * preserving the original wording from the source while showing the standardized form as an additional value
-* building a hierarchy of occupations, for example for later statistical summaries by occupation group
+* building a hierarchy of occupations, for example for statistical summaries by occupation group
 * making occupation labels translatable, at least for German and English
 * adding unobtrusive labels to occupation facts so that users can see the normalized interpretation next to the original GEDCOM value
 * linking normalized occupations to external occupation ontologies and authority data, such as OhdAB, FactGrid, GND, Wikidata, and HISCO
 
-The module is deliberately conservative: it does not change GEDCOM data automatically. The original occupation text remains the genealogical source value. Normalized interpretations are stored in module-owned database tables and can be reviewed separately.
+The module is deliberately conservative: it does not change GEDCOM data automatically. The original occupation text remains the genealogical source value. Normalized interpretations are stored in module-owned database tables and can be reviewed separately. A later transfer of selected module-owned information back into GEDCOM is intended, but the exact form and target structures still need to be clarified.
 
 <a name="Scope"></a>
 ## 🔎 Scope
 
 The module currently focuses on individual `INDI:OCCU` facts. Other possible places for occupation-related information, such as military rank, education, offices, or custom GEDCOM structures, are being evaluated separately.
-
-The module is not intended to duplicate statistical charting. Once normalized and hierarchically classified occupation data is available, integration with Rico Sonntag's `webtrees-statistics` module can be considered through separate pull requests.
 
 The current implementation combines three perspectives:
 
@@ -134,7 +130,6 @@ Screenshot of control panel
 * M2: Local normalization rules, module-owned normalization table, occupation labels, and first manual editing of stored normalization entries.
 * M3: Review refinements and reusable normalization rules, including extended editing of copied OCCU context fields and promoting manual corrections to reusable rules.
 * M4: External norm data and exchange, including evaluation of FactGrid/OhdAB, Wikidata, GND, HISCO, licensing, hierarchy mapping, and export formats.
-* M5: Integration with `webtrees-statistics` through normalized and aggregated occupation data instead of building separate statistics in this module.
 
 <a name="Literature"></a>
 ## 📖 Literature and Links
