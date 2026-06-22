@@ -161,10 +161,18 @@ msgid "Recognizes widow compounds as social status hints."
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:848
-msgid "Craft qualification after colon"
+msgid "Kinship-derived compounds"
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:849
+msgid "Recognizes compounds such as daughter, son, or wife as social status hints."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:852
+msgid "Craft qualification after colon"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:853
 msgid "Separates craft qualifications such as master, journeyman, or apprentice after a colon."
 msgstr ""
 

@@ -1161,6 +1161,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'label'       => I18N::translate('Widow compounds'),
                 'description' => I18N::translate('Recognizes widow compounds as social status hints.'),
             ],
+            'M2-R021' => [
+                'label'       => I18N::translate('Kinship-derived compounds'),
+                'description' => I18N::translate('Recognizes compounds such as daughter, son, or wife as social status hints.'),
+            ],
             'M2-R030' => [
                 'label'       => I18N::translate('Craft qualification after colon'),
                 'description' => I18N::translate('Separates craft qualifications such as master, journeyman, or apprentice after a colon.'),

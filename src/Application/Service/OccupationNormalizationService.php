@@ -69,6 +69,7 @@ final class OccupationNormalizationService
             'M2-R001',
             'M2-R010',
             'M2-R020',
+            'M2-R021',
             'M2-R030',
             'M2-R032',
             'M2-R031',
@@ -169,6 +170,18 @@ final class OccupationNormalizationService
                 // M2-R020: Widow compounds are hints, not occupations of the current person.
                 return $this->withRules($entry, [
                     'social_status' => 'Witwe',
+                    'status'        => self::STATUS_UNCLEAR,
+                ], [$rule_id]);
+            }
+
+            if ($rule_id === 'M2-R021' && preg_match('/^(.+?)(tochter|sohn|gattin|ehefrau)$/iu', $original, $match) === 1) {
+                // M2-R021: Kinship-derived compounds are hints, not occupations of the current person.
+                return $this->withRules($entry, [
+                    'social_status' => match (mb_strtolower($match[2])) {
+                        'tochter' => 'Tochter',
+                        'sohn'    => 'Sohn',
+                        default   => 'Gattin',
+                    },
                     'status'        => self::STATUS_UNCLEAR,
                 ], [$rule_id]);
             }

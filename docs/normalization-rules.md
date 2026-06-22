@@ -28,6 +28,13 @@ Compounds such as `Arztwitwe` are recognized as hints, not as occupations of the
 In M2a the current person receives the social status `Witwe` and the entry is marked as `unclear`.
 The later inference that the deceased husband had the occupation `Arzt` before the recorded date is intentionally not written to GEDCOM and is left for a later milestone.
 
+## M2-R021: Kinship-derived compounds
+
+Compounds such as `Ökonomiebesitzerstochter`, `Bauerssohn`, `Arztgattin`, and `Arztehefrau` are recognized as hints, not as occupations of the current person.
+
+In M2a the current person receives the social status `Tochter`, `Sohn`, or `Gattin` and the entry is marked as `unclear`.
+The leading term is a hint about a related person, for example the father or husband. This referenced-person information is not yet stored in separate fields.
+
 ## M2-R030: Craft qualification after colon
 
 Occupation statements such as `Orgelbauer: Meister` are split into:
