@@ -1,4 +1,4 @@
-# webtrees module: Occupation Standardizer
+# 🧰 **webtrees** module: Occupation Standardizer
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
@@ -8,21 +8,60 @@ This [webtrees](https://www.webtrees.net) module helps analyze and standardize h
 
 Current module version: **2.2.6.0**.
 
-## Purpose
+<a name="Contents"></a>
+## 📚 Contents
 
-Historical church book entries often combine occupations, social status, offices, honorary offices, employers, and spelling variants in a single phrase.
+This README contains the following main sections:
 
-This module supports the separation and standardization of these elements, for example:
+* [Purpose](#Purpose)
+* [Scope](#Scope)
+* [Current functionality](#CurrentFunctionality)
+* [Preliminary M4 workflow](#M4Workflow)
+* [Screenshots](#Screenshots)
+* [Roadmap](#Roadmap)
+* [Requirements](#Requirements)
+* [Installation](#Installation)
+* [Translation](#Translation)
+* [Credits](#Credits)
+* [License](#License)
+
+<a name="Purpose"></a>
+## 🎯 Purpose
+
+Historical church book entries and historical address books often combine occupations, social status, offices, honorary offices, employers, and spelling variants in a single phrase.
+This makes direct evaluation difficult: a phrase such as `Bürger und Weingärtner` contains a social status and an occupation, while `Arztwitwe` may point to the former occupation of a deceased husband rather than to the occupation of the recorded woman.
+
+The purpose of this module is to prepare historical occupation data for consistent display, review, translation, and later statistical evaluation. It supports:
 
 * separating status from occupation, such as `Bürger und Weingärtner`
 * normalizing spelling variants, such as `Kieffer` to `Küfer`, `Schuster` to `Schuhmacher`, or `Beck` to `Bäcker`
 * treating craft grades such as master, journeyman, or apprentice as qualifiers rather than separate occupations
 * keeping genuine master-compound occupations such as schoolmaster or mayor intact
 * preserving the original wording from the source while showing the standardized form as an additional value
+* building a hierarchy of occupations, for example for later statistical summaries by occupation group
+* making occupation labels translatable, at least for German and English
+* adding unobtrusive labels to occupation facts so that users can see the normalized interpretation next to the original GEDCOM value
+* linking normalized occupations to external occupation ontologies and authority data, such as OhdAB, FactGrid, GND, Wikidata, and HISCO
 
-## Current functionality
+The module is deliberately conservative: it does not change GEDCOM data automatically. The original occupation text remains the genealogical source value. Normalized interpretations are stored in module-owned database tables and can be reviewed separately.
 
-The first milestone provides a read-only occupation inventory as a new item in the webtrees lists menu.
+<a name="Scope"></a>
+## 🔎 Scope
+
+The module currently focuses on individual `INDI:OCCU` facts. Other possible places for occupation-related information, such as military rank, education, offices, or custom GEDCOM structures, are being evaluated separately.
+
+The module is not intended to duplicate statistical charting. Once normalized and hierarchically classified occupation data is available, integration with Rico Sonntag's `webtrees-statistics` module can be considered through separate pull requests.
+
+The current implementation combines three perspectives:
+
+* a list-menu page for visitors, members, and managers, showing occupation facts and their normalization labels
+* module-owned normalization tables for managers and administrators
+* control-panel settings for normalization rules, language defaults, local mapping tables, OhdAB imports, and maintenance actions
+
+<a name="CurrentFunctionality"></a>
+## ⚙️ Current Functionality
+
+The module provides an occupation inventory as a new item in the webtrees lists menu.
 
 The list reads only individual `OCCU` facts and shows:
 
@@ -35,9 +74,10 @@ The list reads only individual `OCCU` facts and shows:
 * `NOTE`
 * linked sources
 
-The module does not change GEDCOM data in this milestone.
+If no occupation facts exist in the selected family tree, the list remains available and shows a suitable message.
 
-The second milestone adds first automatic normalization suggestions. These suggestions are stored in a module-specific database table, one entry per detected occupation part. The GEDCOM data remains unchanged.
+Automatic normalization suggestions are stored in a module-specific database table, one entry per detected occupation part. The GEDCOM data remains unchanged.
+This is important when one original occupation phrase is split into several interpreted parts. For example, one GEDCOM `OCCU` fact may create separate module entries for status, occupation, office, or qualification.
 
 Managers and administrators can edit the stored normalization entries directly in the occupation list. Saving a correction does not automatically mark the entry as reviewed; the reviewed flag is an explicit decision. Manual changes are kept in the module table and do not modify GEDCOM data.
 
@@ -45,10 +85,13 @@ Administrators can maintain a site-wide normalization mapping table in the modul
 
 The first M4 prototype can import a tailored German OhdAB Excel extract through the module settings. The uploaded file is used only for this import and is deleted afterwards. The module stores its original spellings, normalized concepts, FactGrid identifiers, and OhdAB hierarchy in module-owned norm tables. The new rule "Normalize with external OhdAB special database" then uses this imported source after the local mapping table and before the fallback rule.
 
+Labels are shown next to occupation facts on the standard facts-and-events tab and in supported Vesta fact views. The label text is selected from the normalized occupation term. If available, the module prefers gender-specific or neutral labels and chooses German or English according to the user's language.
+
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
 The module-owned database tables are documented in [docs/database-schema.md](docs/database-schema.md).
 
-## Preliminary M4 workflow
+<a name="M4Workflow"></a>
+## 🧭 Preliminary M4 Workflow
 
 M4 prepares the use of external occupation norm data, especially OhdAB and FactGrid. The intended provisional workflow is:
 
@@ -67,7 +110,16 @@ After a successful import, the uploaded Excel file is no longer needed by webtre
 
 One open question remains for new occupation terms that are later added to the webtrees family tree and are not yet present in the tailored Excel extract. A later M4 step needs a practical workflow for these individual additions, for example by searching the full OhdAB source on demand or by maintaining a small supplemental local mapping.
 
-## Roadmap
+<a name="Screenshots"></a>
+## 🖼 Screenshots
+
+The screenshot shows the module settings in the webtrees control panel. The available sections depend on the current development state and on imported normalization data.
+
+Screenshot of control panel
+<p align="center"><img src="docs/img/control_panel.jpg" alt="Screenshot of Occupation Standardizer control panel" align="center" width="80%"></p>
+
+<a name="Roadmap"></a>
+## ✨ Roadmap
 
 * M1: OCCU inventory and read-only preview.
 * M2: Local normalization rules, module-owned normalization table, occupation labels, and first manual editing of stored normalization entries.
@@ -75,23 +127,33 @@ One open question remains for new occupation terms that are later added to the w
 * M4: External norm data and exchange, including evaluation of FactGrid/OhdAB, Wikidata, GND, HISCO, licensing, hierarchy mapping, and export formats.
 * M5: Integration with `webtrees-statistics` through normalized and aggregated occupation data instead of building separate statistics in this module.
 
-## Scope
-
-This module focuses on collecting, reviewing, and standardizing occupation data. Statistical charts should not be duplicated here. Once normalized occupation data is available, integration with Rico Sonntag's `webtrees-statistics` module can be considered through separate pull requests.
-
-## Requirements
+<a name="Requirements"></a>
+## 📌 Requirements
 
 This module requires **webtrees** version 2.2.
 
-## Installation
+<a name="Installation"></a>
+## 📥 Installation
 
 Copy the folder `hh_occupation_standardizer` into `webtrees/modules_v4` and enable the module in the webtrees control panel.
 
-## Credits
+After installation, open the webtrees control panel and configure the module settings. Managers and administrators can then open the occupation list from the webtrees lists menu for each family tree.
+
+<a name="Translation"></a>
+## 🌍 Translation
+
+The module is prepared for translation using gettext files in `resources/lang`.
+Strings that are already translated by webtrees core are routed through the module's helper class and are intentionally not added to the module translation catalog.
+
+The normalization data itself can contain language-specific labels. German and English masculine, feminine, and neutral occupation labels are supported for normalized occupation terms.
+
+<a name="Credits"></a>
+## 🙏 Credits
 
 Developed by Hermann Hartenthaler with support from OpenAI Codex and JetBrains PhpStorm.
 
-## License
+<a name="License"></a>
+## 📄 License
 
 * Copyright (C) 2026 Hermann Hartenthaler
 * Derived from **webtrees** - Copyright 2026 webtrees development team.
