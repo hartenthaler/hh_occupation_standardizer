@@ -178,6 +178,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'normalizationTerms' => $this->normalizationTermRows(),
             'normalizationTermOptions' => $this->normalizationTermOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
+            'ohdabCategoryStatistics' => $this->ohdabCategoryStatistics(),
             'ohdabSpecialDatabase' => (new OhdabSpecialDatabaseService())->sourceInfo(),
             'title'              => $this->title(),
             'treeLanguages'      => $this->treeLanguageRows(),
@@ -1401,6 +1402,69 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'reviewed_entries' => (int) $row->reviewed_entries,
             ])
             ->all();
+    }
+
+    /**
+     * @return array{original_total:int,split_total:int,assigned_total:int,categories:list<array{category:string,count:int,percentage:float}>}
+     */
+    private function ohdabCategoryStatistics(): array
+    {
+        $empty_statistics = [
+            'original_total' => 0,
+            'split_total'    => 0,
+            'assigned_total' => 0,
+            'categories'     => [],
+        ];
+
+        foreach ([
+            OccupationSchema::TABLE_NORMALIZED_ENTRIES,
+            OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY,
+            OccupationSchema::TABLE_NORM_HIERARCHY_NODES,
+        ] as $table) {
+            if (!DBManager::schema()->hasTable($table)) {
+                return $empty_statistics;
+            }
+        }
+
+        $active_entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true);
+        $split_total = (int) $active_entries->count();
+        $original_total = (int) DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->distinct()
+            ->count(DB::raw('CONCAT(tree_id, "|", fact_id)'));
+
+        $category_rows = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->join(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links', static function ($join): void {
+                $join
+                    ->on('links.concept_id', '=', 'entries.norm_concept_id')
+                    ->where('links.position', '=', 1);
+            })
+            ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
+            ->where('entries.is_active', '=', true)
+            ->where('entries.norm_concept_id', '>', 0)
+            ->groupBy('nodes.label')
+            ->orderBy('nodes.label')
+            ->select([
+                'nodes.label AS category',
+                DB::raw('COUNT(*) AS category_count'),
+            ])
+            ->get();
+
+        $assigned_total = (int) $category_rows->sum('category_count');
+
+        return [
+            'original_total' => $original_total,
+            'split_total'    => $split_total,
+            'assigned_total' => $assigned_total,
+            'categories'     => $category_rows
+                ->map(static fn (object $row): array => [
+                    'category'   => (string) $row->category,
+                    'count'      => (int) $row->category_count,
+                    'percentage' => $assigned_total > 0 ? (int) $row->category_count / $assigned_total : 0.0,
+                ])
+                ->all(),
+        ];
     }
 
     /**
