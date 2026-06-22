@@ -178,6 +178,9 @@ $ohdabCategoryChartColors = [
             <?= I18N::translate('assigned occupation entries') ?>:
             <?= I18N::number($ohdabCategoryStatistics['assigned_total']) ?>
         </p>
+        <p class="small text-muted">
+            <?= I18N::translate('This statistic is calculated across all family trees from active module-owned occupation entries.') ?>
+        </p>
 
         <?php if ($ohdabCategoryStatistics['categories'] === []) : ?>
             <p class="alert alert-info">
