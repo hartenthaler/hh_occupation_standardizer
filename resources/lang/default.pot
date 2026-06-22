@@ -383,6 +383,10 @@ msgstr ""
 msgid "assigned occupation entries"
 msgstr ""
 
+#: resources/views/settings.phtml:149
+msgid "This statistic is calculated across all family trees from active module-owned occupation entries."
+msgstr ""
+
 #: resources/views/settings.phtml:153
 msgid "No assigned OhdAB categories are available yet."
 msgstr ""
