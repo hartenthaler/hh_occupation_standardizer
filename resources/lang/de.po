@@ -81,6 +81,29 @@ msgstr "Berufe-Hierarchie (OhdAB)"
 msgid "Show occupations grouped by OhdAB hierarchy."
 msgstr "Berufe nach OhdAB-Hierarchie gruppiert anzeigen."
 
+#: resources/views/occupation-hierarchy.phtml:75
+msgid "Subcategories"
+msgstr "Unterkategorien"
+
+#: resources/views/occupation-hierarchy.phtml:96
+msgid "There are no lower hierarchy levels for this entry."
+msgstr "Für diesen Eintrag gibt es keine tieferen Hierarchieebenen."
+
+#: resources/views/occupation-hierarchy.phtml:101
+#, php-format
+msgid "The subcategories shown contain %s occupation entry for %s individual."
+msgid_plural "The subcategories shown contain %s occupation entries for %s individuals."
+msgstr[0] "Die angezeigten Unterkategorien enthalten %s Berufseintrag zu %s Person."
+msgstr[1] "Die angezeigten Unterkategorien enthalten %s Berufseinträge zu %s Personen."
+
+#: resources/views/occupation-hierarchy.phtml:115
+msgid "Hierarchy entry"
+msgstr "Hierarchieeintrag"
+
+#: resources/views/occupation-hierarchy.phtml:157
+msgid "Original occupation"
+msgstr "Originalberuf"
+
 #: src/OccupationStandardizerModule.php:110
 msgid ""
 "Helps standardize historical occupation entries in genealogical sources."

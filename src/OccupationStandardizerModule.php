@@ -496,7 +496,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         $query = DBManager::table(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)
-            ->where('source_id', '=', $source_id);
+            ->where('source_id', '=', $source_id)
+            ->where('level', '<=', 4);
 
         if ($node_id > 0) {
             $query->where('parent_id', '=', $node_id);

@@ -18,6 +18,8 @@ use Illuminate\Support\Collection;
  * @var string $title
  * @var Tree $tree
  */
+$childEntryCount = array_sum(array_map(static fn (array $child): int => $child['entry_count'], $children));
+$childIndividualCount = array_sum(array_map(static fn (array $child): int => $child['individual_count'], $children));
 ?>
 
 <h2 class="wt-page-title"><?= e($title) ?></h2>
@@ -92,6 +94,16 @@ use Illuminate\Support\Collection;
                         <?= I18N::translate('There are no lower hierarchy levels for this entry.') ?>
                     </p>
                 <?php else : ?>
+                    <p class="text-muted">
+                        <?= I18N::plural(
+                            'The subcategories shown contain %s occupation entry for %s individual.',
+                            'The subcategories shown contain %s occupation entries for %s individuals.',
+                            $childEntryCount,
+                            I18N::number($childEntryCount),
+                            I18N::number($childIndividualCount)
+                        ) ?>
+                    </p>
+
                     <table class="table table-bordered table-sm wt-table">
                         <thead>
                             <tr>
