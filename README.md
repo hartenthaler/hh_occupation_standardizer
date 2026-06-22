@@ -36,6 +36,10 @@ Occupation names are among the most frequent person-specific details in genealog
 They are therefore important entry points for social-structural analysis in economic, social, political, historical, medical, and other research fields.
 Different occupation classifications may focus on activity profiles and industries, on education and qualification levels, or on social prestige and social structures.
 
+Occupation terms are often gender-specific, for example `Magd`/`Knecht`, `Arzt`/`Ärztin`, or `Orgelbauer/in`.
+For searching, grouping, and analysis, these variants should point to the same normalized occupation concept.
+For display next to a concrete person, however, the module should use the appropriate gender-specific or neutral label where available.
+
 The purpose of this module is to prepare historical occupation data for consistent display, review, translation, and later statistical evaluation. It supports:
 
 * separating status from occupation, such as `Bürger und Weingärtner`
