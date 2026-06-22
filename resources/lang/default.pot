@@ -67,6 +67,21 @@ msgstr ""
 msgid "Rules"
 msgstr ""
 
+#: src/OccupationStandardizerModule.php:105
+msgid "Occupation Standardizer"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:27
+#: resources/views/occupation-landing.phtml:26
+#: resources/views/occupation-list.phtml:31
+#: src/OccupationStandardizerModule.php:372
+msgid "Occupation hierarchy (OhdAB)"
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:27
+msgid "Show occupations grouped by OhdAB hierarchy."
+msgstr ""
+
 #: src/OccupationStandardizerModule.php:110
 msgid "Helps standardize historical occupation entries in genealogical sources."
 msgstr ""
@@ -377,6 +392,10 @@ msgstr ""
 
 #: resources/views/settings.phtml:147
 msgid "assigned occupation entries"
+msgstr ""
+
+#: resources/views/settings.phtml:149
+msgid "This statistic is calculated across all family trees from active module-owned occupation entries."
 msgstr ""
 
 #: resources/views/settings.phtml:153

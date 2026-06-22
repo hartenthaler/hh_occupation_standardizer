@@ -39,6 +39,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Ohda
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -102,7 +103,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
     public function title(): string
     {
-        return I18N::translate(self::MODULE_TITLE);
+        return I18N::translate('Occupation Standardizer');
     }
 
     public function description(): string
@@ -311,23 +312,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     {
         return new Menu(
             $this->listTitle(),
-            '#',
+            $this->listUrl($tree),
             $this->listMenuClass(),
-            $this->listUrlAttributes(),
-            [
-                new Menu(
-                    $this->listTitle(),
-                    $this->listUrl($tree),
-                    $this->listMenuClass() . '-list',
-                    $this->listUrlAttributes()
-                ),
-                new Menu(
-                    I18N::translate('Occupation hierarchy (OhdAB)'),
-                    $this->listUrl($tree, ['view' => 'hierarchy']),
-                    $this->listMenuClass() . '-hierarchy',
-                    $this->listUrlAttributes()
-                ),
-            ]
+            $this->listUrlAttributes()
         );
     }
 
@@ -356,6 +343,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $can_manage_normalization = $this->canManageNormalization($tree);
 
+        if ($view === '') {
+            return $this->viewResponse($this->name() . '::occupation-landing', [
+                'hierarchyUrl' => $this->listUrl($tree, ['view' => 'hierarchy']),
+                'listUrl'      => $this->listUrl($tree, ['view' => 'list']),
+                'title'        => $this->listTitle(),
+                'tree'         => $tree,
+            ]);
+        }
+
         if ($can_manage_normalization) {
             $this->syncNormalizationRows($tree);
         }
@@ -377,6 +373,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         return $this->viewResponse($this->name() . '::occupation-list', [
             'canManageNormalization' => $can_manage_normalization,
+            'hierarchyUrl'            => $this->listUrl($tree, ['view' => 'hierarchy']),
             'languageOptions'        => $this->languageOptions(),
             'rows'                   => $this->occupationRows($tree, $can_manage_normalization),
             'statusOptions'          => self::NORMALIZATION_STATUSES,
@@ -545,25 +542,32 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return [];
         }
 
-        return DBManager::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
+        $counts = [];
+        $rows = DBManager::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
             ->join(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries', 'entries.norm_concept_id', '=', 'links.concept_id')
             ->where('entries.tree_id', '=', $tree->id())
             ->where('entries.is_active', '=', true)
             ->whereIn('links.node_id', $node_ids)
-            ->groupBy('links.node_id')
             ->select([
                 'links.node_id',
-                DB::raw('COUNT(*) AS entry_count'),
-                DB::raw('COUNT(DISTINCT entries.individual_xref) AS individual_count'),
+                'entries.individual_xref',
             ])
-            ->get()
-            ->mapWithKeys(static fn (object $row): array => [
-                (int) $row->node_id => [
-                    'entry_count'      => (int) $row->entry_count,
-                    'individual_count' => (int) $row->individual_count,
-                ],
-            ])
-            ->all();
+            ->get();
+
+        foreach ($rows as $row) {
+            $node_id = (int) $row->node_id;
+            $counts[$node_id] ??= [
+                'entry_count'      => 0,
+                'individual_xrefs' => [],
+            ];
+            $counts[$node_id]['entry_count']++;
+            $counts[$node_id]['individual_xrefs'][(string) $row->individual_xref] = true;
+        }
+
+        return array_map(static fn (array $count): array => [
+            'entry_count'      => $count['entry_count'],
+            'individual_count' => count($count['individual_xrefs']),
+        ], $counts);
     }
 
     /**
@@ -1094,10 +1098,30 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
     private function setMetadataValue(string $setting_name, string $setting_value): void
     {
-        DBManager::table(OccupationSchema::TABLE_METADATA)->updateOrInsert(
-            ['setting_name' => $setting_name],
-            ['setting_value' => $setting_value]
-        );
+        $metadata_table = DBManager::table(OccupationSchema::TABLE_METADATA);
+
+        if ($metadata_table->where('setting_name', '=', $setting_name)->exists()) {
+            DBManager::table(OccupationSchema::TABLE_METADATA)
+                ->where('setting_name', '=', $setting_name)
+                ->update(['setting_value' => $setting_value]);
+
+            return;
+        }
+
+        try {
+            DBManager::table(OccupationSchema::TABLE_METADATA)->insert([
+                'setting_name'  => $setting_name,
+                'setting_value' => $setting_value,
+            ]);
+        } catch (QueryException $ex) {
+            if (($ex->errorInfo[1] ?? null) !== 1062) {
+                throw $ex;
+            }
+
+            DBManager::table(OccupationSchema::TABLE_METADATA)
+                ->where('setting_name', '=', $setting_name)
+                ->update(['setting_value' => $setting_value]);
+        }
     }
 
     /**

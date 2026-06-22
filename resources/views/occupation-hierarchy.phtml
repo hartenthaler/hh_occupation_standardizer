@@ -23,6 +23,12 @@ use Illuminate\Support\Collection;
 <h2 class="wt-page-title"><?= e($title) ?></h2>
 
 <div class="wt-page-content">
+    <p>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl()) ?>">
+            <?= MoreI18N::xlate('Occupations') ?>
+        </a>
+    </p>
+
     <?php if (!$hasSource) : ?>
         <p class="alert alert-info">
             <?= I18N::translate('No OhdAB special database has been imported yet.') ?>
