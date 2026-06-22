@@ -166,6 +166,14 @@ msgid "Recognizes widow compounds as social status hints."
 msgstr "Erkennt Witwen-Zusammensetzungen als Hinweise auf den Stand."
 
 #: src/OccupationStandardizerModule.php:848
+msgid "Kinship-derived compounds"
+msgstr "Familienbezogene Zusammensetzungen"
+
+#: src/OccupationStandardizerModule.php:849
+msgid "Recognizes compounds such as daughter, son, or wife as social status hints."
+msgstr "Erkennt Zusammensetzungen wie Tochter, Sohn oder Gattin als Hinweise auf den Stand."
+
+#: src/OccupationStandardizerModule.php:848
 msgid "Craft qualification after colon"
 msgstr "Handwerksgrad nach Doppelpunkt"
 
@@ -200,6 +208,14 @@ msgstr ""
 "Beruf bei."
 
 #: src/OccupationStandardizerModule.php:860
+msgid "Context-based occupation refinement"
+msgstr "Kontextbezogene Berufspräzisierung"
+
+#: src/OccupationStandardizerModule.php:861
+msgid "Refines broad occupation terms using context from the occupation text or employer field."
+msgstr "Präzisiert allgemeine Berufsbegriffe anhand des Kontextes im Berufstext oder Arbeitgeberfeld."
+
+#: src/OccupationStandardizerModule.php:864
 msgid "Site-managed normalization mapping table"
 msgstr "Websiteweite Umsetzungstabelle"
 

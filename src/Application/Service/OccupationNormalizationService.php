@@ -69,9 +69,11 @@ final class OccupationNormalizationService
             'M2-R001',
             'M2-R010',
             'M2-R020',
+            'M2-R021',
             'M2-R030',
             'M2-R032',
             'M2-R031',
+            'M2-R040',
             'M2-R050',
             'M4-R100',
             'M2-R090',
@@ -79,15 +81,17 @@ final class OccupationNormalizationService
     }
 
     /**
+     * @param array{employer?:string,type?:string,note?:string} $context
+     *
      * @return list<array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}>
      */
-    public function normalize(string $occupation, string $language = ''): array
+    public function normalize(string $occupation, string $language = '', array $context = []): array
     {
         $entries = [];
         $parts = in_array('M2-R001', $this->builtin_rule_order, true) ? $this->splitOccupation($occupation) : [trim($occupation)];
 
         foreach (array_values(array_filter($parts, static fn (string $part): bool => $part !== '')) as $index => $part) {
-            $entries[] = ['part_index' => $index] + $this->normalizePart($part, $language);
+            $entries[] = ['part_index' => $index] + $this->normalizePart($part, $language, $context);
         }
 
         return $entries;
@@ -126,9 +130,11 @@ final class OccupationNormalizationService
     }
 
     /**
+     * @param array{employer?:string,type?:string,note?:string} $context
+     *
      * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
-    private function normalizePart(string $part, string $language): array
+    private function normalizePart(string $part, string $language, array $context): array
     {
         $original = trim($part);
         $lower = mb_strtolower($original);
@@ -173,6 +179,18 @@ final class OccupationNormalizationService
                 ], [$rule_id]);
             }
 
+            if ($rule_id === 'M2-R021' && preg_match('/^(.+?)(tochter|sohn|gattin|ehefrau)$/iu', $original, $match) === 1) {
+                // M2-R021: Kinship-derived compounds are hints, not occupations of the current person.
+                return $this->withRules($entry, [
+                    'social_status' => match (mb_strtolower($match[2])) {
+                        'tochter' => 'Tochter',
+                        'sohn'    => 'Sohn',
+                        default   => 'Gattin',
+                    },
+                    'status'        => self::STATUS_UNCLEAR,
+                ], [$rule_id]);
+            }
+
             if ($rule_id === 'M2-R030' && preg_match('/^(.+?)\s*:\s*(meister|geselle|lehrling)$/iu', $original, $match) === 1) {
                 // M2-R030: Craft qualification after colon.
                 return $this->withRules($entry, [
@@ -195,6 +213,38 @@ final class OccupationNormalizationService
                 // M2-R032: Independent master compounds are not split.
                 return $this->withRules($entry, [
                     'occupation_normalized' => $original,
+                    'status'                => self::STATUS_RECOGNIZED,
+                ], [$rule_id]);
+            }
+
+            if ($rule_id === 'M2-R040' && preg_match('/^arbeiter\s*:\s*fabrik$/iu', $original) === 1) {
+                // M2-R040: Context-based occupation refinement.
+                return $this->withRules($entry, [
+                    'occupation_normalized' => 'Fabrikarbeiter',
+                    'occupation_de_male'    => 'Fabrikarbeiter',
+                    'occupation_de_female'  => 'Fabrikarbeiterin',
+                    'occupation_de_neutral' => 'Fabrikarbeiter/in',
+                    'occupation_en_male'    => 'factory worker',
+                    'occupation_en_female'  => 'factory worker',
+                    'occupation_en_neutral' => 'factory worker',
+                    'status'                => self::STATUS_RECOGNIZED,
+                ], [$rule_id]);
+            }
+
+            if (
+                $rule_id === 'M2-R040'
+                && in_array($lower, ['angestellter', 'angestellte'], true)
+                && preg_match('/(^|[^\pL])bank(?:en)?($|[^\pL])/iu', (string) ($context['employer'] ?? '')) === 1
+            ) {
+                // M2-R040: Context-based occupation refinement.
+                return $this->withRules($entry, [
+                    'occupation_normalized' => 'Bankangestellter',
+                    'occupation_de_male'    => 'Bankangestellter',
+                    'occupation_de_female'  => 'Bankangestellte',
+                    'occupation_de_neutral' => 'Bankangestellte/r',
+                    'occupation_en_male'    => 'bank clerk',
+                    'occupation_en_female'  => 'bank clerk',
+                    'occupation_en_neutral' => 'bank clerk',
                     'status'                => self::STATUS_RECOGNIZED,
                 ], [$rule_id]);
             }

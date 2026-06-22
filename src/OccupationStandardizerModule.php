@@ -433,7 +433,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'type'                 => trim($fact->attribute('TYPE')),
                     'note'                 => trim($fact->attribute('NOTE')),
                     'sources'              => $source_data['names'],
-                    'normalizations'       => $normalization_entries !== [] ? $label_service->labelsForEntries($normalization_entries, $individual->sex(), I18N::languageTag()) : $label_service->labelsForOccupation($occupation, $this->occupationLanguage($tree), $individual->sex(), I18N::languageTag()),
+                    'normalizations'       => $normalization_entries !== [] ? $label_service->labelsForEntries($normalization_entries, $individual->sex(), I18N::languageTag()) : $label_service->labelsForOccupation($occupation, $this->occupationLanguage($tree), $individual->sex(), I18N::languageTag(), [
+                        'employer' => trim($fact->attribute('AGNC')),
+                        'type'     => trim($fact->attribute('TYPE')),
+                        'note'     => trim($fact->attribute('NOTE')),
+                    ]),
                     'normalizationEntries' => $normalization_entries,
                 ]);
             }
@@ -955,7 +959,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 $source_data = $this->sourceData($fact);
                 $place_data = $this->placeData($fact);
 
-                foreach ($normalizer->normalize($occupation, $tree_language) as $entry) {
+                foreach ($normalizer->normalize($occupation, $tree_language, [
+                    'employer' => trim($fact->attribute('AGNC')),
+                    'type'     => trim($fact->attribute('TYPE')),
+                    'note'     => trim($fact->attribute('NOTE')),
+                ]) as $entry) {
                     $entry_key = sha1($tree->id() . '|' . $individual->xref() . '|' . $fact->id() . '|' . $entry['part_index']);
                     $seen_keys[] = $entry_key;
 
@@ -1262,6 +1270,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'label'       => I18N::translate('Widow compounds'),
                 'description' => I18N::translate('Recognizes widow compounds as social status hints.'),
             ],
+            'M2-R021' => [
+                'label'       => I18N::translate('Kinship-derived compounds'),
+                'description' => I18N::translate('Recognizes compounds such as daughter, son, or wife as social status hints.'),
+            ],
             'M2-R030' => [
                 'label'       => I18N::translate('Craft qualification after colon'),
                 'description' => I18N::translate('Separates craft qualifications such as master, journeyman, or apprentice after a colon.'),
@@ -1273,6 +1285,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'M2-R032' => [
                 'label'       => I18N::translate('Independent master compounds are not split'),
                 'description' => I18N::translate('Keeps independent terms such as schoolmaster or mayor as one occupation.'),
+            ],
+            'M2-R040' => [
+                'label'       => I18N::translate('Context-based occupation refinement'),
+                'description' => I18N::translate('Refines broad occupation terms using context from the occupation text or employer field.'),
             ],
             'M2-R050' => [
                 'label'       => I18N::translate('Site-managed normalization mapping table'),

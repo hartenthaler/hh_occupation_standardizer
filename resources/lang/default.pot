@@ -161,10 +161,18 @@ msgid "Recognizes widow compounds as social status hints."
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:848
-msgid "Craft qualification after colon"
+msgid "Kinship-derived compounds"
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:849
+msgid "Recognizes compounds such as daughter, son, or wife as social status hints."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:852
+msgid "Craft qualification after colon"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:853
 msgid "Separates craft qualifications such as master, journeyman, or apprentice after a colon."
 msgstr ""
 
@@ -185,22 +193,30 @@ msgid "Keeps independent terms such as schoolmaster or mayor as one occupation."
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:860
-msgid "Site-managed normalization mapping table"
+msgid "Context-based occupation refinement"
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:861
-msgid "Applies the locally maintained mapping table for original and normalized occupation terms."
+msgid "Refines broad occupation terms using context from the occupation text or employer field."
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:864
-msgid "Normalize with external OhdAB special database"
+msgid "Site-managed normalization mapping table"
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:865
-msgid "Uses the imported German OhdAB special database for normalized occupation terms."
+msgid "Applies the locally maintained mapping table for original and normalized occupation terms."
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:868
+msgid "Normalize with external OhdAB special database"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:869
+msgid "Uses the imported German OhdAB special database for normalized occupation terms."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:872
 msgid "Fallback for unknown terms"
 msgstr ""
 
