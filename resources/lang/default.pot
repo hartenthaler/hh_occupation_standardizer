@@ -291,6 +291,22 @@ msgstr ""
 msgid "Show occupations grouped by OhdAB hierarchy."
 msgstr ""
 
+#: resources/views/occupation-landing.phtml:75
+msgid "Most common normalized occupations"
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:79
+msgid "This chart counts visible normalized occupation entries in the active family tree."
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:83
+msgid "No normalized occupation entries are available."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:956
+msgid "Unknown occupation"
+msgstr ""
+
 #: resources/views/occupation-list.phtml:41
 msgid "No occupation facts were found in this family tree."
 msgstr ""

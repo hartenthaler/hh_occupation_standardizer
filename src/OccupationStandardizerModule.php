@@ -55,6 +55,7 @@ use function array_key_exists;
 use function array_search;
 use function array_splice;
 use function array_column;
+use function array_slice;
 use function array_values;
 use function array_filter;
 use function array_count_values;
@@ -78,11 +79,13 @@ use function route;
 use function round;
 use function sha1;
 use function sort;
+use function str_replace;
 use function strip_tags;
 use function sys_get_temp_dir;
 use function tempnam;
 use function trim;
 use function unlink;
+use function usort;
 
 use const UPLOAD_ERR_NO_FILE;
 use const UPLOAD_ERR_OK;
@@ -360,6 +363,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'hierarchyUrl' => $this->listUrl($tree, ['view' => 'hierarchy']),
                 'listUrl'      => $this->listUrl($tree, ['view' => 'list']),
                 'title'        => $this->listTitle(),
+                'topOccupations' => $this->topNormalizedOccupationRows($tree),
                 'tree'         => $tree,
             ]);
         }
@@ -865,6 +869,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $identifiers['ohdab'][] = trim($concept['ohdab_full_id']);
             $identifiers['factgrid'][] = trim($concept['factgrid_id']);
             $identifiers['wikidata'][] = trim($concept['wikidata_id']);
+
+            foreach ($this->occupationPortalLocalTermIdentifiers($concept) as $type => $code) {
+                $identifiers[$type][] = $code;
+            }
         }
 
         foreach ($people as $person) {
@@ -880,6 +888,56 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $identifiers;
+    }
+
+    /**
+     * @param array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string} $concept
+     *
+     * @return array{hisco:string,gnd:string,ohdab:string,factgrid:string,wikidata:string}
+     */
+    private function occupationPortalLocalTermIdentifiers(array $concept): array
+    {
+        $identifiers = [
+            'hisco'    => '',
+            'gnd'      => '',
+            'ohdab'    => '',
+            'factgrid' => '',
+            'wikidata' => '',
+        ];
+
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            return $identifiers;
+        }
+
+        $language = trim($concept['language']);
+        $occupation = trim($concept['occupation_de_male']) !== '' ? trim($concept['occupation_de_male']) : trim($concept['preferred_label']);
+
+        if ($language === '' || $occupation === '') {
+            return $identifiers;
+        }
+
+        $row = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->where('normalized_key', '=', $this->normalizedTermKey($language, $occupation))
+            ->select([
+                'code_hisco',
+                'code_gnd',
+                'code_ohdab',
+                'code_factgrid',
+                'code_wikidata',
+            ])
+            ->first();
+
+        if ($row === null) {
+            return $identifiers;
+        }
+
+        return [
+            'hisco'    => trim((string) ($row->code_hisco ?? '')),
+            'gnd'      => trim((string) ($row->code_gnd ?? '')),
+            'ohdab'    => trim((string) ($row->code_ohdab ?? '')),
+            'factgrid' => trim((string) ($row->code_factgrid ?? '')),
+            'wikidata' => trim((string) ($row->code_wikidata ?? '')),
+        ];
     }
 
     /**
@@ -923,6 +981,115 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $rows;
+    }
+
+    /**
+     * @return list<array{label:string,count:int,percentage:float,url:string}>
+     */
+    private function topNormalizedOccupationRows(Tree $tree): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return [];
+        }
+
+        $counts = [];
+
+        foreach ($this->activeNormalizedOccupationRows($tree) as $entry_row) {
+            $individual = Registry::individualFactory()->make((string) $entry_row->individual_xref, $tree);
+
+            if (!$individual instanceof Individual || !$individual->canShow() || !$this->occupationFactCanShow($individual, (string) $entry_row->fact_id)) {
+                continue;
+            }
+
+            $concept_id = (int) ($entry_row->norm_concept_id ?? 0);
+
+            if ($concept_id <= 0) {
+                continue;
+            }
+
+            $counts[$concept_id] ??= [
+                'label' => $this->normalizedOccupationChartLabel($entry_row),
+                'count' => 0,
+                'url'   => $this->occupationPortalUrl($tree, $concept_id),
+            ];
+            $counts[$concept_id]['count']++;
+        }
+
+        if ($counts === []) {
+            return [];
+        }
+
+        usort($counts, static function (array $a, array $b): int {
+            return $b['count'] <=> $a['count'] ?: I18N::comparator()($a['label'], $b['label']);
+        });
+
+        $top_counts = array_slice($counts, 0, 10);
+        $maximum_count = max(array_map(static fn (array $row): int => $row['count'], $top_counts));
+
+        return array_map(static fn (array $row): array => [
+            'label'      => $row['label'],
+            'count'      => $row['count'],
+            'percentage' => $maximum_count > 0 ? $row['count'] / $maximum_count * 100 : 0.0,
+            'url'        => $row['url'],
+        ], $top_counts);
+    }
+
+    /**
+     * @return Collection<int,object>
+     */
+    private function activeNormalizedOccupationRows(Tree $tree): Collection
+    {
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true)
+            ->where('entries.norm_concept_id', '>', 0)
+            ->select([
+                'entries.individual_xref',
+                'entries.fact_id',
+                'entries.occupation_normalized',
+                'entries.occupation_de_male',
+                'entries.occupation_de_female',
+                'entries.occupation_de_neutral',
+                'entries.occupation_en_male',
+                'entries.occupation_en_female',
+                'entries.occupation_en_neutral',
+                'entries.norm_concept_id',
+            ])
+            ->get();
+    }
+
+    private function normalizedOccupationChartLabel(object $entry_row): string
+    {
+        $user_language = explode('-', str_replace('_', '-', I18N::languageTag()))[0] ?? '';
+        $candidates = $user_language === 'de'
+            ? [
+                (string) ($entry_row->occupation_de_neutral ?? ''),
+                (string) ($entry_row->occupation_de_male ?? ''),
+                (string) ($entry_row->occupation_de_female ?? ''),
+                (string) ($entry_row->occupation_normalized ?? ''),
+                (string) ($entry_row->occupation_en_neutral ?? ''),
+                (string) ($entry_row->occupation_en_male ?? ''),
+                (string) ($entry_row->occupation_en_female ?? ''),
+            ]
+            : [
+                (string) ($entry_row->occupation_en_neutral ?? ''),
+                (string) ($entry_row->occupation_en_male ?? ''),
+                (string) ($entry_row->occupation_en_female ?? ''),
+                (string) ($entry_row->occupation_de_neutral ?? ''),
+                (string) ($entry_row->occupation_de_male ?? ''),
+                (string) ($entry_row->occupation_de_female ?? ''),
+                (string) ($entry_row->occupation_normalized ?? ''),
+            ];
+
+        foreach ($candidates as $candidate) {
+            $candidate = trim($candidate);
+
+            if ($candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return I18N::translate('Unknown occupation');
     }
 
     private function occupationFactCanShow(Individual $individual, string $fact_id): bool
