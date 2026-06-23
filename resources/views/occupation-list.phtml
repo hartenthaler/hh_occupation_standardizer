@@ -16,7 +16,8 @@ $externalIdentifierService = new ExternalIdentifierService();
  * @var bool $canManageNormalization
  * @var string $hierarchyUrl
  * @var array<string,string> $languageOptions
- * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
+ * @var callable(int):string $portalUrl
+ * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string,norm_concept_id:int}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
  * @var list<string> $statusOptions
  * @var string       $title
  * @var Tree         $tree
@@ -71,8 +72,15 @@ $externalIdentifierService = new ExternalIdentifierService();
                             <bdi><?= e($row['occupation']) ?></bdi>
                             <?php foreach ($row['normalizations'] as $normalization) : ?>
                                 <?php if ($normalization['label'] !== '') : ?>
+                                    <?php $portal_url = $portalUrl((int) ($normalization['norm_concept_id'] ?? 0)) ?>
                                     <span class="badge bg-secondary ms-1" title="<?= e($normalization['title']) ?>">
-                                        <?= e($normalization['label']) ?>
+                                        <?php if ($portal_url !== '') : ?>
+                                            <a class="link-light text-decoration-none" href="<?= e($portal_url) ?>">
+                                                <?= e($normalization['label']) ?>
+                                            </a>
+                                        <?php else : ?>
+                                            <?= e($normalization['label']) ?>
+                                        <?php endif ?>
                                     </span>
                                 <?php endif ?>
                             <?php endforeach ?>

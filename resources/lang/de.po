@@ -577,6 +577,50 @@ msgstr ""
 msgid "Delete table data"
 msgstr "Tabellendaten löschen"
 
+#: resources/views/occupation-portal.phtml:42
+msgid "The normalized occupation could not be found."
+msgstr "Der normierte Beruf konnte nicht gefunden werden."
+
+#: resources/views/occupation-portal.phtml:76
+msgid "External identifiers"
+msgstr "Externe Kennungen"
+
+#: resources/views/occupation-portal.phtml:120
+msgid "No OhdAB hierarchy is available for this occupation."
+msgstr "Für diesen Beruf ist keine OhdAB-Hierarchie verfügbar."
+
+#: resources/views/occupation-portal.phtml:136
+msgid "No visible individuals were found for this occupation."
+msgstr "Für diesen Beruf wurden keine sichtbaren Personen gefunden."
+
+#: resources/views/occupation-portal.phtml:174
+msgid "Original occupations"
+msgstr "Originalberufe"
+
+#: resources/views/occupation-portal.phtml:217
+msgid "Period"
+msgstr "Zeitraum"
+
+#: resources/views/occupation-portal-counts.phtml:19
+msgid "No entries are available."
+msgstr "Es sind keine Einträge verfügbar."
+
+#: src/OccupationStandardizerModule.php:893
+msgid "Earliest year"
+msgstr "Frühestes Jahr"
+
+#: src/OccupationStandardizerModule.php:894
+msgid "Latest year"
+msgstr "Spätestes Jahr"
+
+#: src/OccupationStandardizerModule.php:895
+msgid "Median year"
+msgstr "Medianjahr"
+
+#: src/OccupationStandardizerModule.php:896
+msgid "Average year"
+msgstr "Mittelwertjahr"
+
 #~ msgid "Social status"
 #~ msgstr "Stand"
 

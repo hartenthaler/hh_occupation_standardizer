@@ -468,3 +468,47 @@ msgstr ""
 #: resources/views/settings.phtml:706
 msgid "Delete table data"
 msgstr ""
+
+#: resources/views/occupation-portal.phtml:42
+msgid "The normalized occupation could not be found."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:76
+msgid "External identifiers"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:120
+msgid "No OhdAB hierarchy is available for this occupation."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:136
+msgid "No visible individuals were found for this occupation."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:174
+msgid "Original occupations"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:217
+msgid "Period"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:19
+msgid "No entries are available."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:893
+msgid "Earliest year"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:894
+msgid "Latest year"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:895
+msgid "Median year"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:896
+msgid "Average year"
+msgstr ""

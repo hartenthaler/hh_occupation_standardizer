@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * @var array<string,int> $counts
+ * @var string $title
+ */
+?>
+
+<section class="card h-100">
+    <div class="card-header">
+        <?= e($title) ?>
+    </div>
+    <div class="card-body">
+        <?php if ($counts === []) : ?>
+            <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
+        <?php else : ?>
+            <table class="table table-sm mb-0">
+                <tbody>
+                    <?php foreach ($counts as $label => $count) : ?>
+                        <tr>
+                            <td><bdi><?= e($label) ?></bdi></td>
+                            <td class="text-end"><?= I18N::number($count) ?></td>
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+        <?php endif ?>
+    </div>
+</section>

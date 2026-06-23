@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Hartenthaler\Webtrees\Module\OccupationStandardizer;
 
 use Fig\Http\Message\RequestMethodInterface;
+use Fisharebest\ExtCalendar\GregorianCalendar;
 use Fisharebest\Localization\Translation;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Date as GedcomDate;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\FlashMessages;
 use Fisharebest\Webtrees\Gedcom;
@@ -50,9 +52,13 @@ use function array_map;
 use function array_key_exists;
 use function array_search;
 use function array_splice;
+use function array_column;
 use function array_values;
 use function array_filter;
+use function array_count_values;
+use function array_sum;
 use function array_unique;
+use function arsort;
 use function assert;
 use function class_exists;
 use function date;
@@ -62,10 +68,14 @@ use function implode;
 use function in_array;
 use function is_array;
 use function method_exists;
+use function max;
+use function min;
 use function preg_match_all;
 use function preg_match;
 use function route;
+use function round;
 use function sha1;
+use function sort;
 use function strip_tags;
 use function sys_get_temp_dir;
 use function tempnam;
@@ -365,9 +375,29 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'currentNode' => $this->ohdabHierarchyNode($node_id),
                 'hasSource'   => $this->ohdabHierarchySourceId() > 0,
                 'listUrl'     => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'portalUrl'   => fn (int $concept_id): string => $this->occupationPortalUrl($tree, $concept_id),
                 'persons'     => $this->ohdabHierarchyPersons($tree, $node_id),
                 'title'       => I18N::translate('Occupation hierarchy (OhdAB)'),
                 'tree'        => $tree,
+            ]);
+        }
+
+        if ($view === 'occupation') {
+            $concept_id = (int) ($query_params['concept_id'] ?? 0);
+            $concept = $this->occupationConcept($concept_id);
+            $people = $this->occupationConceptPeople($tree, $concept_id);
+
+            return $this->viewResponse($this->name() . '::occupation-portal', [
+                'concept'       => $concept,
+                'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
+                'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'people'        => $people,
+                'periodStats'   => $this->occupationPortalPeriodStats($people),
+                'placeCounts'   => $this->occupationPortalCounts($people, 'place'),
+                'sourceCounts'  => $this->occupationPortalCounts($people, 'source_names'),
+                'textCounts'    => $this->occupationPortalCounts($people, 'original_part_text'),
+                'title'         => $concept !== null ? (string) $concept['preferred_label'] : I18N::translate('Normalized occupation'),
+                'tree'          => $tree,
             ]);
         }
 
@@ -375,11 +405,17 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'canManageNormalization' => $can_manage_normalization,
             'hierarchyUrl'            => $this->listUrl($tree, ['view' => 'hierarchy']),
             'languageOptions'        => $this->languageOptions(),
+            'portalUrl'              => fn (int $concept_id): string => $this->occupationPortalUrl($tree, $concept_id),
             'rows'                   => $this->occupationRows($tree, $can_manage_normalization),
             'statusOptions'          => self::NORMALIZATION_STATUSES,
             'title'                  => $this->listTitle(),
             'tree'                   => $tree,
         ]);
+    }
+
+    private function occupationPortalUrl(Tree $tree, int $concept_id): string
+    {
+        return $concept_id > 0 ? $this->listUrl($tree, ['view' => 'occupation', 'source' => 'ohdab', 'concept_id' => $concept_id]) : '';
     }
 
     private function occupationQuery(Tree $tree): \Illuminate\Database\Query\Builder
@@ -390,7 +426,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,reviewed:bool,rule_numbers:string}>}>
+     * @return Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string,norm_concept_id:int}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,reviewed:bool,rule_numbers:string}>}>
      */
     private function occupationRows(Tree $tree, bool $can_manage_normalization): Collection
     {
@@ -575,7 +611,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}>
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,concept_id:int,original_part_text:string,date:string,place:string,source_names:string}>
      */
     private function ohdabHierarchyPersons(Tree $tree, int $node_id): Collection
     {
@@ -605,6 +641,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'individual'         => $individual,
                 'label'              => $labels[0]['label'] ?? (string) $entry_row->occupation_normalized,
                 'label_title'        => $labels[0]['title'] ?? '',
+                'concept_id'         => (int) ($entry_row->norm_concept_id ?? 0),
                 'original_part_text' => (string) $entry_row->original_part_text,
                 'date'               => (string) ($entry_row->date ?? ''),
                 'place'              => (string) (($entry_row->location_hierarchy ?? '') !== '' ? $entry_row->location_hierarchy : ($entry_row->place ?? '')),
@@ -632,6 +669,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->orderBy('entries.original_part_text')
             ->select([
                 'entries.individual_xref',
+                'entries.fact_id',
                 'entries.part_index',
                 'entries.original_part_text',
                 'entries.date',
@@ -653,6 +691,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.code_gnd',
                 'entries.code_ohdab',
                 'entries.code_factgrid',
+                'entries.code_wikidata',
                 'entries.norm_concept_id',
                 'entries.status',
                 'entries.rule_numbers',
@@ -661,7 +700,235 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,norm_concept_id:int,status:string,rule_numbers:string}
+     * @return array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null
+     */
+    private function occupationConcept(int $concept_id): array|null
+    {
+        if (
+            $concept_id <= 0
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPTS)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_SOURCES)
+        ) {
+            return null;
+        }
+
+        $row = DBManager::table(OccupationSchema::TABLE_NORM_CONCEPTS . ' AS concepts')
+            ->leftJoin(OccupationSchema::TABLE_NORM_SOURCES . ' AS sources', 'sources.id', '=', 'concepts.source_id')
+            ->where('concepts.id', '=', $concept_id)
+            ->select([
+                'concepts.id',
+                'sources.label AS source_label',
+                'concepts.language',
+                'concepts.preferred_label',
+                'concepts.occupation_de_male',
+                'concepts.occupation_de_female',
+                'concepts.occupation_de_neutral',
+                'concepts.ohdab_full_id',
+                'concepts.factgrid_id',
+                'concepts.wikidata_id',
+                'concepts.requirement_level',
+                'concepts.requirement_label',
+            ])
+            ->first();
+
+        if ($row === null) {
+            return null;
+        }
+
+        return [
+            'id'                    => (int) $row->id,
+            'source_label'          => (string) ($row->source_label ?? ''),
+            'language'              => (string) ($row->language ?? ''),
+            'preferred_label'       => (string) ($row->preferred_label ?? ''),
+            'occupation_de_male'    => (string) ($row->occupation_de_male ?? ''),
+            'occupation_de_female'  => (string) ($row->occupation_de_female ?? ''),
+            'occupation_de_neutral' => (string) ($row->occupation_de_neutral ?? ''),
+            'ohdab_full_id'         => (string) ($row->ohdab_full_id ?? ''),
+            'factgrid_id'           => (string) ($row->factgrid_id ?? ''),
+            'wikidata_id'           => (string) ($row->wikidata_id ?? ''),
+            'requirement_level'     => (string) ($row->requirement_level ?? ''),
+            'requirement_label'     => (string) ($row->requirement_label ?? ''),
+        ];
+    }
+
+    /**
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}>
+     */
+    private function occupationConceptPeople(Tree $tree, int $concept_id): Collection
+    {
+        $rows = new Collection();
+
+        if ($concept_id <= 0 || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return $rows;
+        }
+
+        $label_service = new OccupationLabelService($this->activeBuiltinRuleOrder());
+
+        foreach ($this->occupationConceptEntryRows($tree, $concept_id) as $entry_row) {
+            $individual = Registry::individualFactory()->make((string) $entry_row->individual_xref, $tree);
+
+            if (!$individual instanceof Individual || !$individual->canShow() || !$this->occupationFactCanShow($individual, (string) $entry_row->fact_id)) {
+                continue;
+            }
+
+            $entry = $this->normalizationEntryArray($entry_row);
+            $labels = $label_service->labelsForEntries([$entry], $individual->sex(), I18N::languageTag());
+
+            $rows->push([
+                'individual'         => $individual,
+                'label'              => $labels[0]['label'] ?? (string) $entry_row->occupation_normalized,
+                'label_title'        => $labels[0]['title'] ?? '',
+                'original_part_text' => (string) $entry_row->original_part_text,
+                'date'               => (string) ($entry_row->date ?? ''),
+                'place'              => (string) (($entry_row->location_hierarchy ?? '') !== '' ? $entry_row->location_hierarchy : ($entry_row->place ?? '')),
+                'source_names'       => (string) ($entry_row->source_names ?? ''),
+            ]);
+        }
+
+        return $rows->sort(static function (array $a, array $b): int {
+            return I18N::comparator()($a['individual']->sortName(), $b['individual']->sortName())
+                ?: I18N::comparator()($a['date'], $b['date'])
+                ?: I18N::comparator()($a['original_part_text'], $b['original_part_text']);
+        })->values();
+    }
+
+    /**
+     * @return Collection<int,object>
+     */
+    private function occupationConceptEntryRows(Tree $tree, int $concept_id): Collection
+    {
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true)
+            ->where('entries.norm_concept_id', '=', $concept_id)
+            ->orderBy('entries.individual_xref')
+            ->orderBy('entries.original_part_text')
+            ->select([
+                'entries.individual_xref',
+                'entries.fact_id',
+                'entries.part_index',
+                'entries.original_part_text',
+                'entries.date',
+                'entries.place',
+                'entries.location_hierarchy',
+                'entries.source_names',
+                'entries.language',
+                'entries.social_status',
+                'entries.occupation_normalized',
+                'entries.occupation_de_male',
+                'entries.occupation_de_female',
+                'entries.occupation_de_neutral',
+                'entries.occupation_en_male',
+                'entries.occupation_en_female',
+                'entries.occupation_en_neutral',
+                'entries.office',
+                'entries.qualification',
+                'entries.code_hisco',
+                'entries.code_gnd',
+                'entries.code_ohdab',
+                'entries.code_factgrid',
+                'entries.code_wikidata',
+                'entries.norm_concept_id',
+                'entries.status',
+                'entries.rule_numbers',
+            ])
+            ->get();
+    }
+
+    private function occupationFactCanShow(Individual $individual, string $fact_id): bool
+    {
+        foreach ($individual->facts(['OCCU'], false, null, true) as $fact) {
+            assert($fact instanceof Fact);
+
+            if ($fact->id() === $fact_id) {
+                return $fact->canShow();
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param Collection<int,array<string,mixed>> $rows
+     *
+     * @return array<string,int>
+     */
+    private function occupationPortalCounts(Collection $rows, string $key): array
+    {
+        $values = $rows
+            ->map(static fn (array $row): string => trim((string) ($row[$key] ?? '')))
+            ->filter(static fn (string $value): bool => $value !== '')
+            ->values()
+            ->all();
+
+        $counts = array_count_values($values);
+        arsort($counts);
+
+        return $counts;
+    }
+
+    /**
+     * @param Collection<int,array<string,mixed>> $rows
+     *
+     * @return array<string,string>
+     */
+    private function occupationPortalPeriodStats(Collection $rows): array
+    {
+        $date_ranges = [];
+        $midpoints = [];
+
+        foreach ($rows as $row) {
+            $date_string = trim((string) ($row['date'] ?? ''));
+
+            if ($date_string === '') {
+                continue;
+            }
+
+            $date = new GedcomDate($date_string);
+
+            if (!$date->isOK()) {
+                continue;
+            }
+
+            $minimum = $date->minimumJulianDay();
+            $maximum = $date->maximumJulianDay();
+
+            $date_ranges[] = [
+                'minimum' => $minimum,
+                'maximum' => $maximum,
+            ];
+            $midpoints[] = intdiv($minimum + $maximum, 2);
+        }
+
+        if ($date_ranges === []) {
+            return [];
+        }
+
+        sort($midpoints);
+
+        $count = count($midpoints);
+        $middle = intdiv($count, 2);
+        $median = $count % 2 === 1 ? $midpoints[$middle] : intdiv($midpoints[$middle - 1] + $midpoints[$middle], 2);
+        $average = (int) round(array_sum($midpoints) / $count);
+
+        return [
+            I18N::translate('Earliest year') => $this->julianDayYear(min(array_column($date_ranges, 'minimum'))),
+            I18N::translate('Latest year')   => $this->julianDayYear(max(array_column($date_ranges, 'maximum'))),
+            I18N::translate('Median year')   => $this->julianDayYear($median),
+            I18N::translate('Average year')  => $this->julianDayYear($average),
+        ];
+    }
+
+    private function julianDayYear(int $julian_day): string
+    {
+        $gregorian_calendar = new GregorianCalendar();
+        [$year] = $gregorian_calendar->jdToYmd($julian_day);
+
+        return (string) $year;
+    }
+
+    /**
+     * @return array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}
      */
     private function normalizationEntryArray(object $entry): array
     {
@@ -683,6 +950,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_gnd'              => (string) ($entry->code_gnd ?? ''),
             'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
             'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
+            'code_wikidata'         => (string) ($entry->code_wikidata ?? ''),
             'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
             'status'                => (string) $entry->status,
             'rule_numbers'          => (string) $entry->rule_numbers,

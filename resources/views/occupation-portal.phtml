@@ -1,0 +1,250 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Tree;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+use Illuminate\Support\Collection;
+
+$externalIdentifierService = new ExternalIdentifierService();
+$periodStats ??= [];
+
+/**
+ * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
+ * @var string $hierarchyPath
+ * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
+ * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
+ * @var array<string,string> $periodStats
+ * @var array<string,int> $placeCounts
+ * @var array<string,int> $sourceCounts
+ * @var array<string,int> $textCounts
+ * @var string $title
+ * @var Tree $tree
+ */
+?>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <p>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl()) ?>">
+            <?= MoreI18N::xlate('Occupations') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'hierarchy'])) ?>">
+            <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+    </p>
+
+    <?php if ($concept === null) : ?>
+        <p class="alert alert-warning">
+            <?= I18N::translate('The normalized occupation could not be found.') ?>
+        </p>
+    <?php else : ?>
+        <div class="row g-3">
+            <div class="col-12 col-xl-6">
+                <section class="card">
+                    <div class="card-header">
+                        <?= I18N::translate('Normalized occupation') ?>
+                    </div>
+                    <div class="card-body p-2">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <?php if ($concept['preferred_label'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Label') ?></th>
+                                        <td><bdi><?= e($concept['preferred_label']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['occupation_de_male'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= I18N::translate('German masculine form') ?></th>
+                                        <td><bdi><?= e($concept['occupation_de_male']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['occupation_de_female'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= I18N::translate('German feminine form') ?></th>
+                                        <td><bdi><?= e($concept['occupation_de_female']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['occupation_de_neutral'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= I18N::translate('German neutral form') ?></th>
+                                        <td><bdi><?= e($concept['occupation_de_neutral']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['language'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Language') ?></th>
+                                        <td><bdi><?= e($concept['language']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['source_label'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Source') ?></th>
+                                        <td><bdi><?= e($concept['source_label']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12 col-xl-6">
+                <section class="card">
+                    <div class="card-header">
+                        <?= I18N::translate('External identifiers') ?>
+                    </div>
+                    <div class="card-body p-2">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row">OhdAB</th>
+                                        <td><bdi><?= e($concept['ohdab_full_id']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['factgrid_id'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row">FactGrid</th>
+                                        <td>
+                                            <?php $factgrid_url = $externalIdentifierService->url('factgrid', $concept['factgrid_id']) ?>
+                                            <?php if ($factgrid_url !== '') : ?>
+                                                <a href="<?= e($factgrid_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['factgrid_id']) ?></a>
+                                            <?php else : ?>
+                                                <bdi><?= e($concept['factgrid_id']) ?></bdi>
+                                            <?php endif ?>
+                                        </td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['wikidata_id'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row">Wikidata</th>
+                                        <td>
+                                            <?php $wikidata_url = $externalIdentifierService->url('wikidata', $concept['wikidata_id']) ?>
+                                            <?php if ($wikidata_url !== '') : ?>
+                                                <a href="<?= e($wikidata_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['wikidata_id']) ?></a>
+                                            <?php else : ?>
+                                                <bdi><?= e($concept['wikidata_id']) ?></bdi>
+                                            <?php endif ?>
+                                        </td>
+                                    </tr>
+                                <?php endif ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12">
+                <section class="card">
+                    <div class="card-header">
+                        <?= I18N::translate('OhdAB hierarchy') ?>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($hierarchyPath === '') : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No OhdAB hierarchy is available for this occupation.') ?></p>
+                        <?php else : ?>
+                            <p class="mb-0"><bdi><?= e($hierarchyPath) ?></bdi></p>
+                        <?php endif ?>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12">
+                <section class="card">
+                    <div class="card-header">
+                        <?= MoreI18N::xlate('Individuals') ?>
+                        <span class="badge bg-secondary ms-1"><?= I18N::number($people->count()) ?></span>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($people->isEmpty()) : ?>
+                            <p class="alert alert-info mb-0">
+                                <?= I18N::translate('No visible individuals were found for this occupation.') ?>
+                            </p>
+                        <?php else : ?>
+                            <table class="table table-bordered table-sm wt-table datatables"
+                                <?= view('lists/datatables-attributes') ?>
+                            >
+                                <thead>
+                                    <tr>
+                                        <th><?= MoreI18N::xlate('Individual') ?></th>
+                                        <th><?= MoreI18N::xlate('Occupation') ?></th>
+                                        <th><?= I18N::translate('Original occupation') ?></th>
+                                        <th><?= MoreI18N::xlate('Date') ?></th>
+                                        <th><?= MoreI18N::xlate('Place') ?></th>
+                                        <th><?= MoreI18N::xlate('Sources') ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($people as $person) : ?>
+                                        <tr>
+                                            <td data-sort="<?= e($person['individual']->sortName()) ?>">
+                                                <a href="<?= e($person['individual']->url()) ?>"><?= $person['individual']->fullName() ?></a>
+                                            </td>
+                                            <td data-sort="<?= e($person['label']) ?>">
+                                                <span class="badge bg-secondary" title="<?= e($person['label_title']) ?>">
+                                                    <bdi><?= e($person['label']) ?></bdi>
+                                                </span>
+                                            </td>
+                                            <td><bdi><?= e($person['original_part_text']) ?></bdi></td>
+                                            <td><bdi><?= e($person['date']) ?></bdi></td>
+                                            <td><bdi><?= e($person['place']) ?></bdi></td>
+                                            <td><bdi><?= e($person['source_names']) ?></bdi></td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12 col-xl-4">
+                <?= view('_hh_occupation_standardizer_::occupation-portal-counts', [
+                    'title' => I18N::translate('Original occupations'),
+                    'counts' => $textCounts,
+                ]) ?>
+            </div>
+            <div class="col-12 col-xl-4">
+                <?= view('_hh_occupation_standardizer_::occupation-portal-counts', [
+                    'title' => MoreI18N::xlate('Places'),
+                    'counts' => $placeCounts,
+                ]) ?>
+            </div>
+            <div class="col-12 col-xl-4">
+                <section class="card h-100">
+                    <div class="card-header">
+                        <?= I18N::translate('Period') ?>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($periodStats === []) : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
+                        <?php else : ?>
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <?php foreach ($periodStats as $label => $value) : ?>
+                                        <tr>
+                                            <td><bdi><?= e($label) ?></bdi></td>
+                                            <td class="text-end"><bdi><?= e($value) ?></bdi></td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
+                    </div>
+                </section>
+            </div>
+            <div class="col-12 col-xl-4">
+                <?= view('_hh_occupation_standardizer_::occupation-portal-counts', [
+                    'title' => MoreI18N::xlate('Sources'),
+                    'counts' => $sourceCounts,
+                ]) ?>
+            </div>
+        </div>
+    <?php endif ?>
+</div>

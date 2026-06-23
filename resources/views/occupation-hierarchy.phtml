@@ -14,7 +14,8 @@ use Illuminate\Support\Collection;
  * @var array{id:int,level:int,code:string,label:string,parent_id:int|null}|null $currentNode
  * @var bool $hasSource
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
- * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $persons
+ * @var callable(int):string $portalUrl
+ * @var Collection<int,array{individual:Individual,label:string,label_title:string,concept_id:int,original_part_text:string,date:string,place:string,source_names:string}> $persons
  * @var string $title
  * @var Tree $tree
  */
@@ -166,7 +167,14 @@ $childIndividualCount = array_sum(array_map(static fn (array $child): int => $ch
                                     </td>
                                     <td data-sort="<?= e($person['label']) ?>">
                                         <span class="badge bg-secondary" title="<?= e($person['label_title']) ?>">
-                                            <bdi><?= e($person['label']) ?></bdi>
+                                            <?php $portal_url = $portalUrl($person['concept_id']) ?>
+                                            <?php if ($portal_url !== '') : ?>
+                                                <a class="link-light text-decoration-none" href="<?= e($portal_url) ?>">
+                                                    <bdi><?= e($person['label']) ?></bdi>
+                                                </a>
+                                            <?php else : ?>
+                                                <bdi><?= e($person['label']) ?></bdi>
+                                            <?php endif ?>
                                         </span>
                                     </td>
                                     <td><bdi><?= e($person['original_part_text']) ?></bdi></td>
