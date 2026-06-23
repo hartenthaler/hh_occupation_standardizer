@@ -350,6 +350,22 @@ msgstr "Diese Liste zeigt die ursprünglichen Berufsangaben."
 msgid "Show occupations grouped by OhdAB hierarchy."
 msgstr "Berufe nach OhdAB-Hierarchie gruppiert anzeigen."
 
+#: resources/views/occupation-landing.phtml:75
+msgid "Most common normalized occupations"
+msgstr "Häufigste normierte Berufe"
+
+#: resources/views/occupation-landing.phtml:79
+msgid "This chart counts visible normalized occupation entries in the active family tree."
+msgstr "Dieses Diagramm zählt sichtbare normierte Berufsnennungen im aktiven Stammbaum."
+
+#: resources/views/occupation-landing.phtml:83
+msgid "No normalized occupation entries are available."
+msgstr "Es sind keine normierten Berufsnennungen verfügbar."
+
+#: src/OccupationStandardizerModule.php:956
+msgid "Unknown occupation"
+msgstr "Unbekannter Beruf"
+
 #: resources/views/occupation-list.phtml:41
 msgid "No occupation facts were found in this family tree."
 msgstr "In diesem Stammbaum wurden keine Berufsangaben gefunden."
