@@ -296,8 +296,16 @@ msgid "Most common normalized occupations"
 msgstr ""
 
 #: resources/views/occupation-landing.phtml:79
-msgid "This chart counts visible normalized occupation entries in the active family tree."
-msgstr ""
+msgid ""
+"This top-10 chart shows the most common visible normalized occupation entries "
+"in the active family tree. In total, %s visible normalized occupation entry is "
+"counted."
+msgid_plural ""
+"This top-10 chart shows the most common visible normalized occupation entries "
+"in the active family tree. In total, %s visible normalized occupation entries "
+"are counted."
+msgstr[0] ""
+msgstr[1] ""
 
 #: resources/views/occupation-landing.phtml:83
 msgid "No normalized occupation entries are available."

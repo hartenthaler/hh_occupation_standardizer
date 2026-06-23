@@ -5,13 +5,15 @@ declare(strict_types=1);
 use Fisharebest\Webtrees\I18N;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 
-$topOccupations ??= [];
+$topOccupationChart ??= ['rows' => [], 'total' => 0];
+$topOccupations = $topOccupationChart['rows'];
+$topOccupationTotal = $topOccupationChart['total'];
 
 /**
  * @var string $hierarchyUrl
  * @var string $listUrl
  * @var string $title
- * @var list<array{label:string,count:int,percentage:float,url:string}> $topOccupations
+ * @var array{rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int} $topOccupationChart
  */
 ?>
 
@@ -81,7 +83,7 @@ $topOccupations ??= [];
         </div>
         <div class="card-body">
             <p class="small text-muted">
-                <?= I18N::translate('This chart counts visible normalized occupation entries in the active family tree.') ?>
+                <?= I18N::plural('This top-10 chart shows the most common visible normalized occupation entries in the active family tree. In total, %s visible normalized occupation entry is counted.', 'This top-10 chart shows the most common visible normalized occupation entries in the active family tree. In total, %s visible normalized occupation entries are counted.', $topOccupationTotal, I18N::number($topOccupationTotal)) ?>
             </p>
 
             <?php if ($topOccupations === []) : ?>

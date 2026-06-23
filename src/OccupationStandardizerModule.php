@@ -365,7 +365,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'hierarchyUrl' => $this->listUrl($tree, ['view' => 'hierarchy']),
                 'listUrl'      => $this->listUrl($tree, ['view' => 'list']),
                 'title'        => $this->listTitle(),
-                'topOccupations' => $this->topNormalizedOccupationRows($tree),
+                'topOccupationChart' => $this->topNormalizedOccupationChart($tree),
                 'tree'         => $tree,
             ]);
         }
@@ -1008,12 +1008,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{label:string,count:int,percentage:float,url:string}>
+     * @return array{rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int}
      */
-    private function topNormalizedOccupationRows(Tree $tree): array
+    private function topNormalizedOccupationChart(Tree $tree): array
     {
         if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
-            return [];
+            return ['rows' => [], 'total' => 0];
         }
 
         $counts = [];
@@ -1040,8 +1040,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         if ($counts === []) {
-            return [];
+            return ['rows' => [], 'total' => 0];
         }
+
+        $total = array_sum(array_map(static fn (array $row): int => $row['count'], $counts));
 
         usort($counts, static function (array $a, array $b): int {
             return $b['count'] <=> $a['count'] ?: I18N::comparator()($a['label'], $b['label']);
@@ -1050,12 +1052,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $top_counts = array_slice($counts, 0, 10);
         $maximum_count = max(array_map(static fn (array $row): int => $row['count'], $top_counts));
 
-        return array_map(static fn (array $row): array => [
-            'label'      => $row['label'],
-            'count'      => $row['count'],
-            'percentage' => $maximum_count > 0 ? $row['count'] / $maximum_count * 100 : 0.0,
-            'url'        => $row['url'],
-        ], $top_counts);
+        return [
+            'rows'  => array_map(static fn (array $row): array => [
+                'label'      => $row['label'],
+                'count'      => $row['count'],
+                'percentage' => $maximum_count > 0 ? $row['count'] / $maximum_count * 100 : 0.0,
+                'url'        => $row['url'],
+            ], $top_counts),
+            'total' => $total,
+        ];
     }
 
     /**
