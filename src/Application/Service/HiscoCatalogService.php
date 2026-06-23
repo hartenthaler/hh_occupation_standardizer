@@ -6,6 +6,7 @@ namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Servic
 
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\QueryException;
 
 use function array_filter;
 use function array_map;
@@ -63,7 +64,8 @@ final class HiscoCatalogService
         $row_count += $this->importUnitGroups($files['unit']);
         $row_count += $this->importOccupations($files['occupation']);
 
-        DB::table(OccupationSchema::TABLE_METADATA)->updateOrInsert(
+        $this->safeUpdateOrInsert(
+            OccupationSchema::TABLE_METADATA,
             ['setting_name' => self::METADATA_HASH],
             ['setting_value' => $hash]
         );
@@ -160,7 +162,8 @@ final class HiscoCatalogService
         $count = 0;
 
         foreach ($this->csvRows($file) as $row) {
-            DB::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->updateOrInsert(
+            $this->safeUpdateOrInsert(
+                OccupationSchema::TABLE_HISCO_MAJOR_GROUPS,
                 ['major_id' => (int) $row['major_id']],
                 [
                     'label_en'       => $row['label'],
@@ -179,7 +182,8 @@ final class HiscoCatalogService
         $count = 0;
 
         foreach ($this->csvRows($file) as $row) {
-            DB::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->updateOrInsert(
+            $this->safeUpdateOrInsert(
+                OccupationSchema::TABLE_HISCO_MINOR_GROUPS,
                 ['minor_id' => (int) $row['minor_id']],
                 [
                     'major_id'       => (int) $row['major_id'],
@@ -199,7 +203,8 @@ final class HiscoCatalogService
         $count = 0;
 
         foreach ($this->csvRows($file) as $row) {
-            DB::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->updateOrInsert(
+            $this->safeUpdateOrInsert(
+                OccupationSchema::TABLE_HISCO_UNIT_GROUPS,
                 ['unit_id' => (int) $row['unit_id']],
                 [
                     'minor_id'       => (int) $row['minor_id'],
@@ -219,7 +224,8 @@ final class HiscoCatalogService
         $count = 0;
 
         foreach ($this->csvRows($file) as $row) {
-            DB::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->updateOrInsert(
+            $this->safeUpdateOrInsert(
+                OccupationSchema::TABLE_HISCO_OCCUPATIONS,
                 ['hisco_id' => (int) $row['hisco_id']],
                 [
                     'unit_id'        => (int) $row['unit_id'],
@@ -234,6 +240,31 @@ final class HiscoCatalogService
         }
 
         return $count;
+    }
+
+    /**
+     * @param array<string,int|string> $attributes
+     * @param array<string,int|string|null> $values
+     */
+    private function safeUpdateOrInsert(string $table, array $attributes, array $values): void
+    {
+        try {
+            DB::table($table)->updateOrInsert($attributes, $values);
+
+            return;
+        } catch (QueryException $ex) {
+            if ((string) $ex->getCode() !== '23000') {
+                throw $ex;
+            }
+        }
+
+        $query = DB::table($table);
+
+        foreach ($attributes as $column => $value) {
+            $query->where($column, '=', $value);
+        }
+
+        $query->update($values);
     }
 
     /**
