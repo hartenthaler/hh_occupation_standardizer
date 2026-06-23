@@ -477,6 +477,14 @@ msgstr ""
 msgid "External identifiers"
 msgstr ""
 
+#: resources/views/occupation-portal.phtml:106
+msgid "No external identifiers are available."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:905
+msgid "GND Explorer"
+msgstr ""
+
 #: resources/views/occupation-portal.phtml:145
 msgid "External source data"
 msgstr ""

@@ -585,6 +585,14 @@ msgstr "Der normierte Beruf konnte nicht gefunden werden."
 msgid "External identifiers"
 msgstr "Externe Kennungen"
 
+#: resources/views/occupation-portal.phtml:106
+msgid "No external identifiers are available."
+msgstr "Es sind keine externen Kennungen verfügbar."
+
+#: src/OccupationStandardizerModule.php:905
+msgid "GND Explorer"
+msgstr "GND-Explorer"
+
 #: resources/views/occupation-portal.phtml:145
 msgid "External source data"
 msgstr "Externe Quelldaten"

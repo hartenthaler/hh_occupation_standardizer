@@ -8,6 +8,7 @@ use function array_filter;
 use function array_unique;
 use function array_values;
 use function explode;
+use function implode;
 use function is_array;
 use function is_string;
 use function rawurlencode;
@@ -24,16 +25,27 @@ final class ExternalOccupationAuthorityService
     }
 
     /**
-     * @param array{factgrid_id:string,wikidata_id:string} $concept
+     * @param array<string,list<string>> $identifiers
      *
      * @return list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}>
      */
-    public function rowsForConcept(array $concept, string $language_tag): array
+    public function rowsForIdentifiers(array $identifiers, string $language_tag): array
     {
-        return array_values(array_filter([
-            $this->wikidataRow(trim($concept['wikidata_id']), $language_tag),
-            $this->factgridRow(trim($concept['factgrid_id']), $language_tag),
-        ]));
+        $rows = [];
+
+        foreach ($identifiers['wikidata'] ?? [] as $id) {
+            $rows[] = $this->wikidataRow($id, $language_tag);
+        }
+
+        foreach ($identifiers['factgrid'] ?? [] as $id) {
+            $rows[] = $this->factgridRow($id, $language_tag);
+        }
+
+        foreach ($identifiers['gnd'] ?? [] as $id) {
+            $rows[] = $this->gndRow($id);
+        }
+
+        return array_values(array_filter($rows));
     }
 
     /**
@@ -101,6 +113,37 @@ final class ExternalOccupationAuthorityService
     }
 
     /**
+     * @return array{source:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     */
+    private function gndRow(string $id): array|null
+    {
+        if ($id === '') {
+            return null;
+        }
+
+        $url = 'https://lobid.org/gnd/' . rawurlencode($id) . '.json';
+        $data = $this->http_client->getJson('gnd', $url);
+
+        if ($data === null) {
+            return [
+                'source'        => 'GND',
+                'label'         => '',
+                'description'   => '',
+                'url'           => 'https://d-nb.info/gnd/' . rawurlencode($id),
+                'wikipedia_url' => '',
+            ];
+        }
+
+        return [
+            'source'        => 'GND',
+            'label'         => (string) ($data['preferredName'] ?? ''),
+            'description'   => $this->gndDescription($data),
+            'url'           => 'https://d-nb.info/gnd/' . rawurlencode($id),
+            'wikipedia_url' => '',
+        ];
+    }
+
+    /**
      * @param array<string,mixed>|null $data
      *
      * @return array<string,mixed>|null
@@ -152,6 +195,34 @@ final class ExternalOccupationAuthorityService
         }
 
         return '';
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     */
+    private function gndDescription(array $data): string
+    {
+        $parts = [];
+
+        foreach (['definition', 'professionOrOccupation', 'broaderTermInstantial', 'broaderTermGeneric'] as $key) {
+            $value = $data[$key] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                $parts[] = trim($value);
+            }
+
+            if (is_array($value)) {
+                foreach ($value as $item) {
+                    if (is_array($item) && is_string($item['label'] ?? null) && trim($item['label']) !== '') {
+                        $parts[] = trim($item['label']);
+                    } elseif (is_string($item) && trim($item) !== '') {
+                        $parts[] = trim($item);
+                    }
+                }
+            }
+        }
+
+        return implode('; ', array_values(array_unique($parts)));
     }
 
     /**
