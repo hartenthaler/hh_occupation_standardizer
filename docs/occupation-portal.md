@@ -67,8 +67,14 @@ The planned external sources are:
 - Wikipedia
 - GenWiki
 
-The first implementation adds only the reusable cache and HTTP foundation.
-Source-specific interpretation and display rules are intentionally left to later pull requests.
+The second implementation fetches Wikidata and FactGrid entity data when a
+normalized occupation concept contains the corresponding external identifier.
+The raw JSON response is stored in the local cache and the portal displays a
+small source-data table with the source label, description, source link, and
+the Wikidata-derived Wikipedia link where available.
+
+Full semantic interpretation of external ontology data is intentionally left to
+later pull requests.
 
 ## Open Decisions
 

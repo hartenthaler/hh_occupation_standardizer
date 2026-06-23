@@ -38,6 +38,7 @@ use Fisharebest\Webtrees\Webtrees;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
@@ -389,6 +390,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
             return $this->viewResponse($this->name() . '::occupation-portal', [
                 'concept'       => $concept,
+                'externalAuthorityRows' => $concept !== null ? (new ExternalOccupationAuthorityService())->rowsForConcept($concept, I18N::languageTag()) : [],
                 'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,

@@ -10,10 +10,12 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 use Illuminate\Support\Collection;
 
 $externalIdentifierService = new ExternalIdentifierService();
+$externalAuthorityRows ??= [];
 $periodStats ??= [];
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
+ * @var list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
@@ -136,6 +138,46 @@ $periodStats ??= [];
                                 <?php endif ?>
                             </tbody>
                         </table>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12">
+                <section class="card">
+                    <div class="card-header">
+                        <?= I18N::translate('External source data') ?>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($externalAuthorityRows === []) : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No external source data is available.') ?></p>
+                        <?php else : ?>
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th><?= MoreI18N::xlate('Source') ?></th>
+                                        <th><?= MoreI18N::xlate('Label') ?></th>
+                                        <th><?= MoreI18N::xlate('Description') ?></th>
+                                        <th>Wikipedia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($externalAuthorityRows as $row) : ?>
+                                        <tr>
+                                            <td>
+                                                <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($row['source']) ?></a>
+                                            </td>
+                                            <td><bdi><?= e($row['label']) ?></bdi></td>
+                                            <td><bdi><?= e($row['description']) ?></bdi></td>
+                                            <td>
+                                                <?php if ($row['wikipedia_url'] !== '') : ?>
+                                                    <a href="<?= e($row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                <?php endif ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
                     </div>
                 </section>
             </div>

@@ -585,6 +585,14 @@ msgstr "Der normierte Beruf konnte nicht gefunden werden."
 msgid "External identifiers"
 msgstr "Externe Kennungen"
 
+#: resources/views/occupation-portal.phtml:145
+msgid "External source data"
+msgstr "Externe Quelldaten"
+
+#: resources/views/occupation-portal.phtml:148
+msgid "No external source data is available."
+msgstr "Es sind keine externen Quelldaten verfügbar."
+
 #: resources/views/occupation-portal.phtml:120
 msgid "No OhdAB hierarchy is available for this occupation."
 msgstr "Für diesen Beruf ist keine OhdAB-Hierarchie verfügbar."
