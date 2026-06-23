@@ -22,6 +22,7 @@ Current use:
 | --- | --- |
 | `tree_occu_<tree_id>` | Fingerprint of all current `INDI:OCCU` facts in one tree. If this fingerprint has not changed, synchronization can skip rebuilding normalization rows. |
 | `treeLanguage-<tree_id>` | Default language in which occupation facts are described in one tree. This is maintained in the module settings and used when new normalization rows are created. |
+| `hisco_catalog_hash` | SHA-1 fingerprint of the bundled HISCO CSV catalog. If this changes, the bundled catalog is imported again. |
 
 Changing the site-managed normalization mapping table clears these fingerprints
 so the next manager visit can resynchronize affected occupation rows.
@@ -157,8 +158,75 @@ is generated for display.
 | --- | --- |
 | FactGrid | `https://database.factgrid.de/wiki/Item:<code>` |
 | GND | `https://d-nb.info/gnd/<code>` |
-| HISCO | Not linked yet; no stable code-based item URL has been verified. |
+| HISCO | `https://druid.datalegend.net/HistoryOfWork/HISCO-latest/browser?resource=https%3A%2F%2Fiisg.amsterdam%2Fresource%2Fhisco%2Fcode%2Fhisco%2F<code>` |
 | OhdAB | Not linked yet; no stable code-based item URL has been verified. |
+
+## Bundled HISCO Catalog Tables
+
+The module ships a normalized English HISCO catalog in `resources/data/hisco`.
+The data is imported into module-owned tables on first use and re-imported when
+the bundled CSV fingerprint changes. The original English labels and
+descriptions are preserved. Major and minor group tables include optional
+German label columns so upper classification levels can be translated without
+changing the original source data.
+
+Source:
+
+```bibtex
+@data{JA9B8O_2016,
+author = {Van Leeuwen},
+publisher = {IISH Data Collection},
+title = {{Files from HISCO database}},
+UNF = {UNF:6:P/x7e56FlwNkplEB7kJWiQ==},
+year = {2016},
+version = {V2},
+doi = {10622/JA9B8O},
+url = {https://hdl.handle.net/10622/JA9B8O}
+}
+```
+
+### `occupation_standardizer_hisco_major_groups`
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `major_id` | unsigned tiny integer primary key | HISCO major group id. |
+| `label_en` | `string(255)` | Original English major group label. |
+| `label_de` | `string(255)` nullable | Optional German major group label. |
+| `description_en` | `text` | Original English description. |
+| `updated_at` | timestamp nullable | Last import/update time. |
+
+### `occupation_standardizer_hisco_minor_groups`
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `minor_id` | unsigned tiny integer primary key | HISCO minor group id. |
+| `major_id` | unsigned tiny integer | Parent major group id. |
+| `label_en` | `string(255)` | Original English minor group label. |
+| `label_de` | `string(255)` nullable | Optional German minor group label. |
+| `description_en` | `text` | Original English description. |
+| `updated_at` | timestamp nullable | Last import/update time. |
+
+### `occupation_standardizer_hisco_unit_groups`
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `unit_id` | unsigned small integer primary key | HISCO unit group id. |
+| `minor_id` | unsigned tiny integer | Parent minor group id. |
+| `label_en` | `string(255)` | Original English unit group label. |
+| `description_en` | `text` | Original English description. |
+| `updated_at` | timestamp nullable | Last import/update time. |
+
+### `occupation_standardizer_hisco_occupations`
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `hisco_id` | unsigned medium integer primary key | Five-digit HISCO occupation code without punctuation. |
+| `unit_id` | unsigned small integer | Parent unit group id. |
+| `micro_suffix` | unsigned tiny integer | Last two digits of the HISCO occupation code. |
+| `hisco_pretty` | `string(10)` | Book notation such as `9-41.60`. |
+| `label_en` | `string(255)` | Original English occupation label. |
+| `description_en` | `text` | Original English occupation description. |
+| `updated_at` | timestamp nullable | Last import/update time. |
 
 ## `occupation_standardizer_rules`
 

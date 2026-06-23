@@ -497,6 +497,18 @@ msgstr ""
 msgid "No external identifiers are available."
 msgstr ""
 
+#: resources/views/occupation-portal.phtml:144
+msgid "Unit group"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:148
+msgid "Minor group"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:152
+msgid "Major group"
+msgstr ""
+
 #: src/OccupationStandardizerModule.php:905
 msgid "GND Explorer"
 msgstr ""

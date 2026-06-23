@@ -37,6 +37,7 @@ use Fisharebest\Webtrees\View;
 use Fisharebest\Webtrees\Webtrees;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\HiscoCatalogService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
@@ -165,6 +166,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     public function boot(): void
     {
         (new OccupationSchema())->ensureSchema();
+        (new HiscoCatalogService())->ensureImported($this->resourcesFolder() . 'data/hisco/');
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
         View::registerCustomView('::fact', $this->name() . '::fact');
@@ -398,6 +400,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'concept'       => $concept,
                 'externalAuthorityRows' => (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag()),
                 'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
+                'hiscoCatalogRows' => $this->occupationPortalHiscoCatalogRows($external_identifiers),
                 'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
@@ -977,6 +980,27 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'url'         => $external_identifier_service->url($type, $code),
                     'extra_links' => $extra_links,
                 ];
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param array<string,list<string>> $identifiers
+     *
+     * @return list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}>
+     */
+    private function occupationPortalHiscoCatalogRows(array $identifiers): array
+    {
+        $service = new HiscoCatalogService();
+        $rows = [];
+
+        foreach ($identifiers['hisco'] ?? [] as $code) {
+            $row = $service->occupation($code, I18N::languageTag());
+
+            if ($row !== null) {
+                $rows[] = $row;
             }
         }
 

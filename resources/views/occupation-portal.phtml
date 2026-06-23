@@ -10,12 +10,14 @@ use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
+$hiscoCatalogRows ??= [];
 $periodStats ??= [];
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
  * @var list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
+ * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
@@ -133,6 +135,49 @@ $periodStats ??= [];
                     </div>
                 </section>
             </div>
+
+            <?php if ($hiscoCatalogRows !== []) : ?>
+                <div class="col-12">
+                    <section class="card">
+                        <div class="card-header">
+                            HISCO
+                        </div>
+                        <div class="card-body p-2">
+                            <?php foreach ($hiscoCatalogRows as $row) : ?>
+                                <table class="table table-sm mb-3">
+                                    <tbody>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row">HISCO</th>
+                                            <td><bdi><?= e($row['hisco_pretty']) ?></bdi> <span class="text-muted">(<?= e($row['hisco_id']) ?>)</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Occupation') ?></th>
+                                            <td>
+                                                <bdi><?= e($row['label']) ?></bdi>
+                                                <?php if ($row['description'] !== '') : ?>
+                                                    <div class="small text-muted"><bdi><?= e($row['description']) ?></bdi></div>
+                                                <?php endif ?>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Unit group') ?></th>
+                                            <td><bdi><?= e($row['unit']['code']) ?> <?= e($row['unit']['label']) ?></bdi></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Minor group') ?></th>
+                                            <td><bdi><?= e($row['minor']['code']) ?> <?= e($row['minor']['label']) ?></bdi></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Major group') ?></th>
+                                            <td><bdi><?= e($row['major']['code']) ?> <?= e($row['major']['label']) ?></bdi></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            <?php endforeach ?>
+                        </div>
+                    </section>
+                </div>
+            <?php endif ?>
 
             <div class="col-12">
                 <section class="card">

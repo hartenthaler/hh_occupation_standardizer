@@ -19,6 +19,10 @@ final class OccupationSchema
     public const TABLE_NORM_HIERARCHY_NODES = 'occupation_standardizer_norm_hierarchy_nodes';
     public const TABLE_NORM_CONCEPT_HIERARCHY = 'occupation_standardizer_norm_concept_hierarchy';
     public const TABLE_NORM_VARIANTS = 'occupation_standardizer_norm_variants';
+    public const TABLE_HISCO_MAJOR_GROUPS = 'occupation_standardizer_hisco_major_groups';
+    public const TABLE_HISCO_MINOR_GROUPS = 'occupation_standardizer_hisco_minor_groups';
+    public const TABLE_HISCO_UNIT_GROUPS = 'occupation_standardizer_hisco_unit_groups';
+    public const TABLE_HISCO_OCCUPATIONS = 'occupation_standardizer_hisco_occupations';
 
     public function ensureSchema(): void
     {
@@ -201,6 +205,56 @@ final class OccupationSchema
 
                 $table->unique(['source_id', 'language', 'original_key'], 'idx_occ_std_norm_variant');
                 $table->index(['concept_id'], 'idx_occ_std_norm_variant_concept');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_HISCO_MAJOR_GROUPS)) {
+            DB::schema()->create(self::TABLE_HISCO_MAJOR_GROUPS, static function ($table): void {
+                $table->unsignedTinyInteger('major_id')->primary();
+                $table->string('label_en', 255);
+                $table->string('label_de', 255)->nullable();
+                $table->text('description_en');
+                $table->timestamp('updated_at')->nullable();
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_HISCO_MINOR_GROUPS)) {
+            DB::schema()->create(self::TABLE_HISCO_MINOR_GROUPS, static function ($table): void {
+                $table->unsignedTinyInteger('minor_id')->primary();
+                $table->unsignedTinyInteger('major_id');
+                $table->string('label_en', 255);
+                $table->string('label_de', 255)->nullable();
+                $table->text('description_en');
+                $table->timestamp('updated_at')->nullable();
+
+                $table->index('major_id', 'idx_occ_std_hisco_minor_major');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_HISCO_UNIT_GROUPS)) {
+            DB::schema()->create(self::TABLE_HISCO_UNIT_GROUPS, static function ($table): void {
+                $table->unsignedSmallInteger('unit_id')->primary();
+                $table->unsignedTinyInteger('minor_id');
+                $table->string('label_en', 255);
+                $table->text('description_en');
+                $table->timestamp('updated_at')->nullable();
+
+                $table->index('minor_id', 'idx_occ_std_hisco_unit_minor');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_HISCO_OCCUPATIONS)) {
+            DB::schema()->create(self::TABLE_HISCO_OCCUPATIONS, static function ($table): void {
+                $table->unsignedMediumInteger('hisco_id')->primary();
+                $table->unsignedSmallInteger('unit_id');
+                $table->unsignedTinyInteger('micro_suffix');
+                $table->string('hisco_pretty', 10);
+                $table->string('label_en', 255);
+                $table->text('description_en');
+                $table->timestamp('updated_at')->nullable();
+
+                $table->index('hisco_pretty', 'idx_occ_std_hisco_pretty');
+                $table->index('unit_id', 'idx_occ_std_hisco_occupation_unit');
             });
         }
 

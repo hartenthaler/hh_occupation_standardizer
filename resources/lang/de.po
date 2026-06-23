@@ -605,6 +605,18 @@ msgstr "Externe Kennungen"
 msgid "No external identifiers are available."
 msgstr "Es sind keine externen Kennungen verfügbar."
 
+#: resources/views/occupation-portal.phtml:144
+msgid "Unit group"
+msgstr "Berufsgruppe"
+
+#: resources/views/occupation-portal.phtml:148
+msgid "Minor group"
+msgstr "Untergruppe"
+
+#: resources/views/occupation-portal.phtml:152
+msgid "Major group"
+msgstr "Hauptgruppe"
+
 #: src/OccupationStandardizerModule.php:905
 msgid "GND Explorer"
 msgstr "GND-Explorer"
