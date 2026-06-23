@@ -869,6 +869,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $identifiers['ohdab'][] = trim($concept['ohdab_full_id']);
             $identifiers['factgrid'][] = trim($concept['factgrid_id']);
             $identifiers['wikidata'][] = trim($concept['wikidata_id']);
+
+            foreach ($this->occupationPortalLocalTermIdentifiers($concept) as $type => $code) {
+                $identifiers[$type][] = $code;
+            }
         }
 
         foreach ($people as $person) {
@@ -884,6 +888,56 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $identifiers;
+    }
+
+    /**
+     * @param array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string} $concept
+     *
+     * @return array{hisco:string,gnd:string,ohdab:string,factgrid:string,wikidata:string}
+     */
+    private function occupationPortalLocalTermIdentifiers(array $concept): array
+    {
+        $identifiers = [
+            'hisco'    => '',
+            'gnd'      => '',
+            'ohdab'    => '',
+            'factgrid' => '',
+            'wikidata' => '',
+        ];
+
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            return $identifiers;
+        }
+
+        $language = trim($concept['language']);
+        $occupation = trim($concept['occupation_de_male']) !== '' ? trim($concept['occupation_de_male']) : trim($concept['preferred_label']);
+
+        if ($language === '' || $occupation === '') {
+            return $identifiers;
+        }
+
+        $row = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->where('normalized_key', '=', $this->normalizedTermKey($language, $occupation))
+            ->select([
+                'code_hisco',
+                'code_gnd',
+                'code_ohdab',
+                'code_factgrid',
+                'code_wikidata',
+            ])
+            ->first();
+
+        if ($row === null) {
+            return $identifiers;
+        }
+
+        return [
+            'hisco'    => trim((string) ($row->code_hisco ?? '')),
+            'gnd'      => trim((string) ($row->code_gnd ?? '')),
+            'ohdab'    => trim((string) ($row->code_ohdab ?? '')),
+            'factgrid' => trim((string) ($row->code_factgrid ?? '')),
+            'wikidata' => trim((string) ($row->code_wikidata ?? '')),
+        ];
     }
 
     /**
