@@ -26,6 +26,24 @@ If the cache directory is not writable, the module should continue to work witho
 
 The cache key is based on the full request URL. This keeps source-specific query parameters part of the cache identity.
 
+Visitors may trigger cache misses. The external authority databases are public sources, and their public data may be displayed and cached by the module.
+If an external source is queried or cached, the portal page must show a source reference for the displayed information.
+
+## Page Scope and Visibility
+
+The first occupation portal page is tree-specific.
+It presents information about one normalized occupation in the active tree.
+
+The page is visible to visitors and editors.
+All tree-derived person and occupation data must still pass the ordinary webtrees visibility checks:
+
+- show a person only when the current user may see that person
+- show an occupation entry only when the current user may see that occupation fact
+- do not leak hidden names, private facts, or restricted relationships through counts or lists
+
+The portal should include a card with the list of people in the active tree who exercised this occupation.
+This list is permission-filtered for the current user.
+
 ## External Sources
 
 The planned external sources are:
@@ -43,7 +61,6 @@ Source-specific interpretation and display rules are intentionally left to later
 
 The following decisions still need explicit agreement:
 
-- Whether visitors may trigger cache refreshes, or only managers.
 - Whether Wikipedia summaries should be displayed or only linked.
 - Which source has priority when labels or descriptions disagree.
 - How GenWiki links should be discovered or maintained.
