@@ -47,26 +47,47 @@ $externalIdentifierService = new ExternalIdentifierService();
                     <div class="card-header">
                         <?= I18N::translate('Normalized occupation') ?>
                     </div>
-                    <div class="card-body">
-                        <dl class="row mb-0">
-                            <dt class="col-sm-4"><?= MoreI18N::xlate('Label') ?></dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['preferred_label']) ?></bdi></dd>
-
-                            <dt class="col-sm-4"><?= I18N::translate('German masculine form') ?></dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['occupation_de_male']) ?></bdi></dd>
-
-                            <dt class="col-sm-4"><?= I18N::translate('German feminine form') ?></dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['occupation_de_female']) ?></bdi></dd>
-
-                            <dt class="col-sm-4"><?= I18N::translate('German neutral form') ?></dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['occupation_de_neutral']) ?></bdi></dd>
-
-                            <dt class="col-sm-4"><?= MoreI18N::xlate('Language') ?></dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['language']) ?></bdi></dd>
-
-                            <dt class="col-sm-4"><?= MoreI18N::xlate('Source') ?></dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['source_label']) ?></bdi></dd>
-                        </dl>
+                    <div class="card-body p-2">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <?php if ($concept['preferred_label'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Label') ?></th>
+                                        <td><bdi><?= e($concept['preferred_label']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['occupation_de_male'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= I18N::translate('German masculine form') ?></th>
+                                        <td><bdi><?= e($concept['occupation_de_male']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['occupation_de_female'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= I18N::translate('German feminine form') ?></th>
+                                        <td><bdi><?= e($concept['occupation_de_female']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['occupation_de_neutral'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= I18N::translate('German neutral form') ?></th>
+                                        <td><bdi><?= e($concept['occupation_de_neutral']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['language'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Language') ?></th>
+                                        <td><bdi><?= e($concept['language']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                                <?php if ($concept['source_label'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Source') ?></th>
+                                        <td><bdi><?= e($concept['source_label']) ?></bdi></td>
+                                    </tr>
+                                <?php endif ?>
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             </div>
@@ -76,31 +97,43 @@ $externalIdentifierService = new ExternalIdentifierService();
                     <div class="card-header">
                         <?= I18N::translate('External identifiers') ?>
                     </div>
-                    <div class="card-body">
-                        <dl class="row mb-0">
-                            <dt class="col-sm-4">OhdAB</dt>
-                            <dd class="col-sm-8"><bdi><?= e($concept['ohdab_full_id']) ?></bdi></dd>
-
-                            <dt class="col-sm-4">FactGrid</dt>
-                            <dd class="col-sm-8">
-                                <?php $factgrid_url = $externalIdentifierService->url('factgrid', $concept['factgrid_id']) ?>
-                                <?php if ($factgrid_url !== '') : ?>
-                                    <a href="<?= e($factgrid_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['factgrid_id']) ?></a>
-                                <?php else : ?>
-                                    <bdi><?= e($concept['factgrid_id']) ?></bdi>
+                    <div class="card-body p-2">
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row">OhdAB</th>
+                                        <td><bdi><?= e($concept['ohdab_full_id']) ?></bdi></td>
+                                    </tr>
                                 <?php endif ?>
-                            </dd>
-
-                            <dt class="col-sm-4">Wikidata</dt>
-                            <dd class="col-sm-8">
-                                <?php $wikidata_url = $externalIdentifierService->url('wikidata', $concept['wikidata_id']) ?>
-                                <?php if ($wikidata_url !== '') : ?>
-                                    <a href="<?= e($wikidata_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['wikidata_id']) ?></a>
-                                <?php else : ?>
-                                    <bdi><?= e($concept['wikidata_id']) ?></bdi>
+                                <?php if ($concept['factgrid_id'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row">FactGrid</th>
+                                        <td>
+                                            <?php $factgrid_url = $externalIdentifierService->url('factgrid', $concept['factgrid_id']) ?>
+                                            <?php if ($factgrid_url !== '') : ?>
+                                                <a href="<?= e($factgrid_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['factgrid_id']) ?></a>
+                                            <?php else : ?>
+                                                <bdi><?= e($concept['factgrid_id']) ?></bdi>
+                                            <?php endif ?>
+                                        </td>
+                                    </tr>
                                 <?php endif ?>
-                            </dd>
-                        </dl>
+                                <?php if ($concept['wikidata_id'] !== '') : ?>
+                                    <tr>
+                                        <th class="text-muted w-25" scope="row">Wikidata</th>
+                                        <td>
+                                            <?php $wikidata_url = $externalIdentifierService->url('wikidata', $concept['wikidata_id']) ?>
+                                            <?php if ($wikidata_url !== '') : ?>
+                                                <a href="<?= e($wikidata_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['wikidata_id']) ?></a>
+                                            <?php else : ?>
+                                                <bdi><?= e($concept['wikidata_id']) ?></bdi>
+                                            <?php endif ?>
+                                        </td>
+                                    </tr>
+                                <?php endif ?>
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             </div>
