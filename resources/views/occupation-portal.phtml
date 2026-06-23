@@ -5,15 +5,17 @@ declare(strict_types=1);
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
 use Fisharebest\Webtrees\Tree;
-use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Support\Collection;
 
-$externalIdentifierService = new ExternalIdentifierService();
+$externalAuthorityRows ??= [];
+$externalIdentifierRows ??= [];
 $periodStats ??= [];
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
+ * @var list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
+ * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
@@ -100,42 +102,69 @@ $periodStats ??= [];
                         <?= I18N::translate('External identifiers') ?>
                     </div>
                     <div class="card-body p-2">
-                        <table class="table table-sm mb-0">
-                            <tbody>
-                                <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                        <?php if ($externalIdentifierRows === []) : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No external identifiers are available.') ?></p>
+                        <?php else : ?>
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <?php foreach ($externalIdentifierRows as $row) : ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= e($row['source']) ?></th>
+                                            <td>
+                                                <?php if ($row['url'] !== '') : ?>
+                                                    <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($row['code']) ?></a>
+                                                <?php else : ?>
+                                                    <bdi><?= e($row['code']) ?></bdi>
+                                                <?php endif ?>
+                                                <?php foreach ($row['extra_links'] as $link) : ?>
+                                                    <a class="ms-2" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($link['label']) ?></a>
+                                                <?php endforeach ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12">
+                <section class="card">
+                    <div class="card-header">
+                        <?= I18N::translate('External source data') ?>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($externalAuthorityRows === []) : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No external source data is available.') ?></p>
+                        <?php else : ?>
+                            <table class="table table-sm mb-0">
+                                <thead>
                                     <tr>
-                                        <th class="text-muted w-25" scope="row">OhdAB</th>
-                                        <td><bdi><?= e($concept['ohdab_full_id']) ?></bdi></td>
+                                        <th><?= MoreI18N::xlate('Source') ?></th>
+                                        <th><?= MoreI18N::xlate('Label') ?></th>
+                                        <th><?= MoreI18N::xlate('Description') ?></th>
+                                        <th>Wikipedia</th>
                                     </tr>
-                                <?php endif ?>
-                                <?php if ($concept['factgrid_id'] !== '') : ?>
-                                    <tr>
-                                        <th class="text-muted w-25" scope="row">FactGrid</th>
-                                        <td>
-                                            <?php $factgrid_url = $externalIdentifierService->url('factgrid', $concept['factgrid_id']) ?>
-                                            <?php if ($factgrid_url !== '') : ?>
-                                                <a href="<?= e($factgrid_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['factgrid_id']) ?></a>
-                                            <?php else : ?>
-                                                <bdi><?= e($concept['factgrid_id']) ?></bdi>
-                                            <?php endif ?>
-                                        </td>
-                                    </tr>
-                                <?php endif ?>
-                                <?php if ($concept['wikidata_id'] !== '') : ?>
-                                    <tr>
-                                        <th class="text-muted w-25" scope="row">Wikidata</th>
-                                        <td>
-                                            <?php $wikidata_url = $externalIdentifierService->url('wikidata', $concept['wikidata_id']) ?>
-                                            <?php if ($wikidata_url !== '') : ?>
-                                                <a href="<?= e($wikidata_url) ?>" target="_blank" rel="noopener noreferrer"><?= e($concept['wikidata_id']) ?></a>
-                                            <?php else : ?>
-                                                <bdi><?= e($concept['wikidata_id']) ?></bdi>
-                                            <?php endif ?>
-                                        </td>
-                                    </tr>
-                                <?php endif ?>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($externalAuthorityRows as $row) : ?>
+                                        <tr>
+                                            <td>
+                                                <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($row['source']) ?></a>
+                                            </td>
+                                            <td><bdi><?= e($row['label']) ?></bdi></td>
+                                            <td><bdi><?= e($row['description']) ?></bdi></td>
+                                            <td>
+                                                <?php if ($row['wikipedia_url'] !== '') : ?>
+                                                    <a href="<?= e($row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                <?php endif ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
                     </div>
                 </section>
             </div>

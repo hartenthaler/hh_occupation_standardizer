@@ -477,6 +477,22 @@ msgstr ""
 msgid "External identifiers"
 msgstr ""
 
+#: resources/views/occupation-portal.phtml:106
+msgid "No external identifiers are available."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:905
+msgid "GND Explorer"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:145
+msgid "External source data"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:148
+msgid "No external source data is available."
+msgstr ""
+
 #: resources/views/occupation-portal.phtml:120
 msgid "No OhdAB hierarchy is available for this occupation."
 msgstr ""

@@ -38,6 +38,8 @@ use Fisharebest\Webtrees\Webtrees;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
@@ -386,9 +388,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $concept_id = (int) ($query_params['concept_id'] ?? 0);
             $concept = $this->occupationConcept($concept_id);
             $people = $this->occupationConceptPeople($tree, $concept_id);
+            $external_identifiers = $this->occupationPortalExternalIdentifiers($concept, $people);
 
             return $this->viewResponse($this->name() . '::occupation-portal', [
                 'concept'       => $concept,
+                'externalAuthorityRows' => (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag()),
+                'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
                 'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
@@ -752,7 +757,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}>
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}>
      */
     private function occupationConceptPeople(Tree $tree, int $concept_id): Collection
     {
@@ -782,6 +787,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'date'               => (string) ($entry_row->date ?? ''),
                 'place'              => (string) (($entry_row->location_hierarchy ?? '') !== '' ? $entry_row->location_hierarchy : ($entry_row->place ?? '')),
                 'source_names'       => (string) ($entry_row->source_names ?? ''),
+                'code_hisco'         => (string) ($entry_row->code_hisco ?? ''),
+                'code_gnd'           => (string) ($entry_row->code_gnd ?? ''),
+                'code_ohdab'         => (string) ($entry_row->code_ohdab ?? ''),
+                'code_factgrid'      => (string) ($entry_row->code_factgrid ?? ''),
+                'code_wikidata'      => (string) ($entry_row->code_wikidata ?? ''),
             ]);
         }
 
@@ -833,6 +843,86 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.rule_numbers',
             ])
             ->get();
+    }
+
+    /**
+     * @param array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
+     * @param Collection<int,array<string,mixed>> $people
+     *
+     * @return array<string,list<string>>
+     */
+    private function occupationPortalExternalIdentifiers(array|null $concept, Collection $people): array
+    {
+        $identifiers = [
+            'ohdab'    => [],
+            'hisco'    => [],
+            'gnd'      => [],
+            'factgrid' => [],
+            'wikidata' => [],
+        ];
+
+        if ($concept !== null) {
+            $identifiers['ohdab'][] = trim($concept['ohdab_full_id']);
+            $identifiers['factgrid'][] = trim($concept['factgrid_id']);
+            $identifiers['wikidata'][] = trim($concept['wikidata_id']);
+        }
+
+        foreach ($people as $person) {
+            $identifiers['hisco'][] = trim((string) ($person['code_hisco'] ?? ''));
+            $identifiers['gnd'][] = trim((string) ($person['code_gnd'] ?? ''));
+            $identifiers['ohdab'][] = trim((string) ($person['code_ohdab'] ?? ''));
+            $identifiers['factgrid'][] = trim((string) ($person['code_factgrid'] ?? ''));
+            $identifiers['wikidata'][] = trim((string) ($person['code_wikidata'] ?? ''));
+        }
+
+        foreach ($identifiers as $type => $values) {
+            $identifiers[$type] = array_values(array_filter(array_unique($values), static fn (string $value): bool => $value !== ''));
+        }
+
+        return $identifiers;
+    }
+
+    /**
+     * @param array<string,list<string>> $identifiers
+     *
+     * @return list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}>
+     */
+    private function occupationPortalExternalIdentifierRows(array $identifiers): array
+    {
+        $external_identifier_service = new ExternalIdentifierService();
+        $rows = [];
+
+        foreach ([
+            'ohdab'    => 'OhdAB',
+            'hisco'    => 'HISCO',
+            'gnd'      => 'GND',
+            'factgrid' => 'FactGrid',
+            'wikidata' => 'Wikidata',
+        ] as $type => $label) {
+            foreach ($identifiers[$type] ?? [] as $code) {
+                $extra_links = [];
+
+                if ($type === 'gnd') {
+                    $gnd_explorer_url = $external_identifier_service->url('gnd-explorer', $code);
+
+                    if ($gnd_explorer_url !== '') {
+                        $extra_links[] = [
+                            'label' => I18N::translate('GND Explorer'),
+                            'url'   => $gnd_explorer_url,
+                        ];
+                    }
+                }
+
+                $rows[] = [
+                    'source'      => $label,
+                    'code'        => $code,
+                    'url'         => $external_identifier_service->url($type, $code),
+                    'extra_links' => $extra_links,
+                ];
+            }
+        }
+
+        return $rows;
     }
 
     private function occupationFactCanShow(Individual $individual, string $fact_id): bool

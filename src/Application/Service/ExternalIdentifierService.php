@@ -13,6 +13,7 @@ final class ExternalIdentifierService
     private const URL_PATTERNS = [
         'factgrid' => 'https://database.factgrid.de/wiki/Item:%s',
         'gnd'      => 'https://d-nb.info/gnd/%s',
+        'gnd-explorer' => 'https://explore.gnd.network/gnd/%s/relations',
         'wikidata' => 'https://www.wikidata.org/wiki/%s',
     ];
 
