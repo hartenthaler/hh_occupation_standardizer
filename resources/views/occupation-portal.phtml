@@ -10,6 +10,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 use Illuminate\Support\Collection;
 
 $externalIdentifierService = new ExternalIdentifierService();
+$periodStats ??= [];
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
