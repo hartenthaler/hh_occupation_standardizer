@@ -16,6 +16,7 @@ $externalIdentifierService = new ExternalIdentifierService();
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
+ * @var array<string,string> $periodStats
  * @var array<string,int> $placeCounts
  * @var array<string,int> $sourceCounts
  * @var array<string,int> $textCounts
@@ -213,6 +214,29 @@ $externalIdentifierService = new ExternalIdentifierService();
                     'title' => MoreI18N::xlate('Places'),
                     'counts' => $placeCounts,
                 ]) ?>
+            </div>
+            <div class="col-12 col-xl-4">
+                <section class="card h-100">
+                    <div class="card-header">
+                        <?= I18N::translate('Period') ?>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($periodStats === []) : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
+                        <?php else : ?>
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <?php foreach ($periodStats as $label => $value) : ?>
+                                        <tr>
+                                            <td><bdi><?= e($label) ?></bdi></td>
+                                            <td class="text-end"><bdi><?= e($value) ?></bdi></td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
+                    </div>
+                </section>
             </div>
             <div class="col-12 col-xl-4">
                 <?= view('_hh_occupation_standardizer_::occupation-portal-counts', [

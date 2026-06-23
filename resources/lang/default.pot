@@ -489,6 +489,26 @@ msgstr ""
 msgid "Original occupations"
 msgstr ""
 
+#: resources/views/occupation-portal.phtml:217
+msgid "Period"
+msgstr ""
+
 #: resources/views/occupation-portal-counts.phtml:19
 msgid "No entries are available."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:893
+msgid "Earliest year"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:894
+msgid "Latest year"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:895
+msgid "Median year"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:896
+msgid "Average year"
 msgstr ""

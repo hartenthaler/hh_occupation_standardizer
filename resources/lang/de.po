@@ -597,9 +597,29 @@ msgstr "Für diesen Beruf wurden keine sichtbaren Personen gefunden."
 msgid "Original occupations"
 msgstr "Originalberufe"
 
+#: resources/views/occupation-portal.phtml:217
+msgid "Period"
+msgstr "Zeitraum"
+
 #: resources/views/occupation-portal-counts.phtml:19
 msgid "No entries are available."
 msgstr "Es sind keine Einträge verfügbar."
+
+#: src/OccupationStandardizerModule.php:893
+msgid "Earliest year"
+msgstr "Frühestes Jahr"
+
+#: src/OccupationStandardizerModule.php:894
+msgid "Latest year"
+msgstr "Spätestes Jahr"
+
+#: src/OccupationStandardizerModule.php:895
+msgid "Median year"
+msgstr "Medianjahr"
+
+#: src/OccupationStandardizerModule.php:896
+msgid "Average year"
+msgstr "Mittelwertjahr"
 
 #~ msgid "Social status"
 #~ msgstr "Stand"

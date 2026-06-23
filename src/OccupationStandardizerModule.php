@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Hartenthaler\Webtrees\Module\OccupationStandardizer;
 
 use Fig\Http\Message\RequestMethodInterface;
+use Fisharebest\ExtCalendar\GregorianCalendar;
 use Fisharebest\Localization\Translation;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\DB;
+use Fisharebest\Webtrees\Date as GedcomDate;
 use Fisharebest\Webtrees\Fact;
 use Fisharebest\Webtrees\FlashMessages;
 use Fisharebest\Webtrees\Gedcom;
@@ -50,9 +52,11 @@ use function array_map;
 use function array_key_exists;
 use function array_search;
 use function array_splice;
+use function array_column;
 use function array_values;
 use function array_filter;
 use function array_count_values;
+use function array_sum;
 use function array_unique;
 use function arsort;
 use function assert;
@@ -64,10 +68,14 @@ use function implode;
 use function in_array;
 use function is_array;
 use function method_exists;
+use function max;
+use function min;
 use function preg_match_all;
 use function preg_match;
 use function route;
+use function round;
 use function sha1;
+use function sort;
 use function strip_tags;
 use function sys_get_temp_dir;
 use function tempnam;
@@ -384,6 +392,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
+                'periodStats'   => $this->occupationPortalPeriodStats($people),
                 'placeCounts'   => $this->occupationPortalCounts($people, 'place'),
                 'sourceCounts'  => $this->occupationPortalCounts($people, 'source_names'),
                 'textCounts'    => $this->occupationPortalCounts($people, 'original_part_text'),
@@ -856,6 +865,66 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         arsort($counts);
 
         return $counts;
+    }
+
+    /**
+     * @param Collection<int,array<string,mixed>> $rows
+     *
+     * @return array<string,string>
+     */
+    private function occupationPortalPeriodStats(Collection $rows): array
+    {
+        $date_ranges = [];
+        $midpoints = [];
+
+        foreach ($rows as $row) {
+            $date_string = trim((string) ($row['date'] ?? ''));
+
+            if ($date_string === '') {
+                continue;
+            }
+
+            $date = new GedcomDate($date_string);
+
+            if (!$date->isOK()) {
+                continue;
+            }
+
+            $minimum = $date->minimumJulianDay();
+            $maximum = $date->maximumJulianDay();
+
+            $date_ranges[] = [
+                'minimum' => $minimum,
+                'maximum' => $maximum,
+            ];
+            $midpoints[] = intdiv($minimum + $maximum, 2);
+        }
+
+        if ($date_ranges === []) {
+            return [];
+        }
+
+        sort($midpoints);
+
+        $count = count($midpoints);
+        $middle = intdiv($count, 2);
+        $median = $count % 2 === 1 ? $midpoints[$middle] : intdiv($midpoints[$middle - 1] + $midpoints[$middle], 2);
+        $average = (int) round(array_sum($midpoints) / $count);
+
+        return [
+            I18N::translate('Earliest year') => $this->julianDayYear(min(array_column($date_ranges, 'minimum'))),
+            I18N::translate('Latest year')   => $this->julianDayYear(max(array_column($date_ranges, 'maximum'))),
+            I18N::translate('Median year')   => $this->julianDayYear($median),
+            I18N::translate('Average year')  => $this->julianDayYear($average),
+        ];
+    }
+
+    private function julianDayYear(int $julian_day): string
+    {
+        $gregorian_calendar = new GregorianCalendar();
+        [$year] = $gregorian_calendar->jdToYmd($julian_day);
+
+        return I18N::number($year);
     }
 
     /**
