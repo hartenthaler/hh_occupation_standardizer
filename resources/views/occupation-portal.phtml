@@ -111,13 +111,18 @@ $periodStats ??= [];
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= e($row['source']) ?></th>
                                             <td>
+                                                <bdi><?= e($row['code']) ?></bdi>
                                                 <?php if ($row['url'] !== '') : ?>
-                                                    <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($row['code']) ?></a>
-                                                <?php else : ?>
-                                                    <bdi><?= e($row['code']) ?></bdi>
+                                                    <a class="btn btn-link btn-sm p-0 ms-2 align-baseline" href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer" title="<?= e($row['source']) ?>">
+                                                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                                        <span class="visually-hidden"><?= e($row['source']) ?></span>
+                                                    </a>
                                                 <?php endif ?>
                                                 <?php foreach ($row['extra_links'] as $link) : ?>
-                                                    <a class="ms-2" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($link['label']) ?></a>
+                                                    <a class="btn btn-link btn-sm p-0 ms-2 align-baseline" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer" title="<?= e($link['label']) ?>">
+                                                        <i class="fa-solid fa-network-wired" aria-hidden="true"></i>
+                                                        <span class="visually-hidden"><?= e($link['label']) ?></span>
+                                                    </a>
                                                 <?php endforeach ?>
                                             </td>
                                         </tr>
