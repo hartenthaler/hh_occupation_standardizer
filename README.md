@@ -6,6 +6,8 @@
 
 This [webtrees](https://www.webtrees.net) module helps analyze and standardize historical occupation entries in genealogical sources.
 
+This is a Beta-Version! Don't use it in a productive system. 
+
 <a name="Contents"></a>
 ## 📚 Contents
 
