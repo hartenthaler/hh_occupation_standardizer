@@ -44,7 +44,7 @@ final class OccupationLabelService
     /**
      * @param array{employer?:string,type?:string,note?:string} $context
      *
-     * @return list<array{label:string,title:string,status:string}>
+     * @return list<array{label:string,title:string,status:string,norm_concept_id:int}>
      */
     public function labelsForOccupation(string $occupation, string $language = '', string $sex = 'U', string $user_language = '', array $context = []): array
     {
@@ -56,7 +56,7 @@ final class OccupationLabelService
     }
 
     /**
-     * @return list<array{label:string,title:string,status:string}>
+     * @return list<array{label:string,title:string,status:string,norm_concept_id:int}>
      */
     public function labelsForFact(Fact $fact, string $sex = 'U', string $user_language = ''): array
     {
@@ -82,7 +82,7 @@ final class OccupationLabelService
     /**
      * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string}> $entries
      *
-     * @return list<array{label:string,title:string,status:string}>
+     * @return list<array{label:string,title:string,status:string,norm_concept_id:int}>
      */
     public function labelsForEntries(array $entries, string $sex = 'U', string $user_language = ''): array
     {
@@ -92,7 +92,7 @@ final class OccupationLabelService
     /**
      * @param list<array{part_index:int,original_part_text:string,language?:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,office:string,qualification:string,code_hisco?:string,code_gnd?:string,code_ohdab?:string,code_factgrid?:string,norm_concept_id?:int,status:string,rule_numbers:string}> $entries
      *
-     * @return list<array{label:string,title:string,status:string}>
+     * @return list<array{label:string,title:string,status:string,norm_concept_id:int}>
      */
     private function labels(array $entries, string $sex, string $user_language): array
     {
@@ -177,9 +177,10 @@ final class OccupationLabelService
             $title_parts[] = MoreI18N::xlate('Rules') . ': ' . $entry['rule_numbers'];
 
             $labels[] = [
-                'label'  => $this->label($entry, $sex, $user_language),
-                'title'  => implode("\n", $title_parts),
-                'status' => $entry['status'],
+                'label'           => $this->label($entry, $sex, $user_language),
+                'title'           => implode("\n", $title_parts),
+                'status'          => $entry['status'],
+                'norm_concept_id' => (int) ($entry['norm_concept_id'] ?? 0),
             ];
         }
 

@@ -34,6 +34,19 @@ If an external source is queried or cached, the portal page must show a source r
 The first occupation portal page is tree-specific.
 It presents information about one normalized occupation in the active tree.
 
+The first URL form uses the imported OhdAB concept id as an internal concept reference:
+
+```text
+/tree/{tree}/occupation-standardizer?view=occupation&source=ohdab&concept_id=<id>
+```
+
+The `concept_id` is the module-owned reference to the normalized occupation concept, comparable to an XREF in GEDCOM.
+
+The first links to this page are rendered from:
+
+- normalized occupation badges in the original occupation list
+- normalized occupation badges in the people tab of the OhdAB hierarchy view
+
 The page is visible to visitors and editors.
 All tree-derived person and occupation data must still pass the ordinary webtrees visibility checks:
 
