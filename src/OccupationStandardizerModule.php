@@ -924,7 +924,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $gregorian_calendar = new GregorianCalendar();
         [$year] = $gregorian_calendar->jdToYmd($julian_day);
 
-        return I18N::number($year);
+        return (string) $year;
     }
 
     /**
