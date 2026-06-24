@@ -166,10 +166,10 @@ $childIndividualCount = array_sum(array_map(static fn (array $child): int => $ch
                                         <a href="<?= e($person['individual']->url()) ?>"><?= $person['individual']->fullName() ?></a>
                                     </td>
                                     <td data-sort="<?= e($person['label']) ?>">
-                                        <span class="badge bg-secondary" title="<?= e($person['label_title']) ?>">
+                                        <span class="badge text-bg-light border" title="<?= e($person['label_title']) ?>">
                                             <?php $portal_url = $portalUrl($person['concept_id']) ?>
                                             <?php if ($portal_url !== '') : ?>
-                                                <a class="link-light text-decoration-none" href="<?= e($portal_url) ?>">
+                                                <a class="link-dark text-decoration-none" href="<?= e($portal_url) ?>">
                                                     <bdi><?= e($person['label']) ?></bdi>
                                                 </a>
                                             <?php else : ?>
