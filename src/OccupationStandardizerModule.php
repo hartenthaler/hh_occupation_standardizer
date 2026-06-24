@@ -3055,12 +3055,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $category_counts = [];
         $assigned_total = 0;
 
-        foreach (DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
-            ->where('is_active', '=', true)
-            ->whereNotNull('code_hisco')
-            ->where('code_hisco', '<>', '')
-            ->pluck('code_hisco') as $code) {
-            $row = $service->occupation((string) $code, I18N::languageTag());
+        foreach ($this->hiscoStatisticEntryRows() as $entry_row) {
+            $row = $service->occupation($this->hiscoCodeForEntry($entry_row), I18N::languageTag());
 
             if ($row === null) {
                 continue;
@@ -3093,6 +3089,45 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 array_values($category_counts)
             ),
         ];
+    }
+
+    /**
+     * @return Collection<int,object>
+     */
+    private function hiscoStatisticEntryRows(): Collection
+    {
+        $query = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.is_active', '=', true);
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $query
+                ->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', function ($join): void {
+                    $join
+                        ->on('terms.language', '=', 'entries.language')
+                        ->on('terms.occupation_de_male', '=', 'entries.occupation_de_male');
+                })
+                ->where(static function ($query): void {
+                    $query
+                        ->whereNotNull('entries.code_hisco')
+                        ->where('entries.code_hisco', '<>', '')
+                        ->orWhere(static function ($query): void {
+                            $query
+                                ->whereNotNull('terms.code_hisco')
+                                ->where('terms.code_hisco', '<>', '');
+                        });
+                })
+                ->select([
+                    'entries.code_hisco',
+                    'terms.code_hisco AS term_code_hisco',
+                ]);
+        } else {
+            $query
+                ->whereNotNull('entries.code_hisco')
+                ->where('entries.code_hisco', '<>', '')
+                ->select(['entries.code_hisco']);
+        }
+
+        return $query->get();
     }
 
     /**
