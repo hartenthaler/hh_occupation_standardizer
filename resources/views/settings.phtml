@@ -97,10 +97,7 @@ $ohdabCategoryChartColors = [
                             <td><?= e($rule['description']) ?></td>
                             <td>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="builtinRuleStatus-<?= e($rule['id']) ?>" value="1" id="builtinRuleStatus-<?= e($rule['id']) ?>" <?= $rule['enabled'] ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="builtinRuleStatus-<?= e($rule['id']) ?>">
-                                        <?= MoreI18N::xlate('Active') ?>
-                                    </label>
+                                    <input class="form-check-input" type="checkbox" name="builtinRuleStatus-<?= e($rule['id']) ?>" value="1" id="builtinRuleStatus-<?= e($rule['id']) ?>" aria-label="<?= e(MoreI18N::xlate('Active')) ?>" <?= $rule['enabled'] ? 'checked' : '' ?>>
                                 </div>
                             </td>
                             <td class="move up">
@@ -160,7 +157,15 @@ $ohdabCategoryChartColors = [
                     <label class="form-label" for="ohdab-special-database">
                         <?= I18N::translate('XLSX file') ?>
                     </label>
-                    <input class="form-control" id="ohdab-special-database" type="file" name="ohdabSpecialDatabase" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <label class="btn btn-secondary mb-0" for="ohdab-special-database">
+                            <?= I18N::translate('Choose file') ?>
+                        </label>
+                        <span id="ohdab-special-database-name" class="text-muted">
+                            <?= I18N::translate('No file selected') ?>
+                        </span>
+                    </div>
+                    <input class="visually-hidden" id="ohdab-special-database" type="file" name="ohdabSpecialDatabase" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                 </div>
                 <div class="col-md-4">
                     <button class="btn btn-primary" type="submit">
@@ -712,6 +717,17 @@ document.querySelectorAll('.wt-table-menu td.move').forEach(function (cell) {
         }
     });
 });
+
+const ohdabSpecialDatabaseInput = document.getElementById('ohdab-special-database');
+const ohdabSpecialDatabaseName = document.getElementById('ohdab-special-database-name');
+
+if (ohdabSpecialDatabaseInput !== null && ohdabSpecialDatabaseName !== null) {
+    ohdabSpecialDatabaseInput.addEventListener('change', function () {
+        ohdabSpecialDatabaseName.textContent = ohdabSpecialDatabaseInput.files.length > 0
+            ? ohdabSpecialDatabaseInput.files[0].name
+            : <?= json_encode(I18N::translate('No file selected')) ?>;
+    });
+}
 </script>
 <?php View::endpush() ?>
 

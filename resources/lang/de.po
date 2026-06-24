@@ -603,6 +603,14 @@ msgstr[1] "%s Zeilen"
 msgid "XLSX file"
 msgstr "XLSX-Datei"
 
+#: resources/views/settings.phtml:164
+msgid "Choose file"
+msgstr "Datei auswählen"
+
+#: resources/views/settings.phtml:168 resources/views/settings.phtml:825
+msgid "No file selected"
+msgstr "Keine Datei ausgewählt"
+
 #: resources/views/settings.phtml:173 resources/views/settings.phtml:204
 msgid "OhdAB category statistics"
 msgstr "OhdAB-Kategoriestatistik"
