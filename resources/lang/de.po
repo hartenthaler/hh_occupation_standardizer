@@ -612,8 +612,8 @@ msgid "The normalized occupation could not be found."
 msgstr "Der normierte Beruf konnte nicht gefunden werden."
 
 #: resources/views/occupation-portal.phtml:76
-msgid "External identifiers"
-msgstr "Externe Kennungen"
+msgid "External identifiers and source data"
+msgstr "Externe Kennungen und Quelldaten"
 
 #: resources/views/occupation-portal.phtml:106
 msgid "No external identifiers are available."

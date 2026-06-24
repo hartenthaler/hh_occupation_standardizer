@@ -10,6 +10,13 @@ use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
+$externalAuthorityRowsBySource = [];
+$externalIdentifierSources = [];
+
+foreach ($externalAuthorityRows as $row) {
+    $externalAuthorityRowsBySource[$row['source']][] = $row;
+}
+
 $hiscoCatalogRows ??= [];
 $ohdabHierarchyRows = $hierarchyPath !== '' ? explode(' > ', $hierarchyPath) : [];
 $periodStats ??= [];
@@ -102,15 +109,16 @@ $periodStats ??= [];
             <div class="col-12 col-xl-6">
                 <section class="card">
                     <div class="card-header">
-                        <?= I18N::translate('External identifiers') ?>
+                        <?= I18N::translate('External identifiers and source data') ?>
                     </div>
                     <div class="card-body p-2">
-                        <?php if ($externalIdentifierRows === []) : ?>
+                        <?php if ($externalIdentifierRows === [] && $externalAuthorityRows === []) : ?>
                             <p class="mb-0 text-muted"><?= I18N::translate('No external identifiers are available.') ?></p>
                         <?php else : ?>
                             <table class="table table-sm mb-0">
                                 <tbody>
                                     <?php foreach ($externalIdentifierRows as $row) : ?>
+                                        <?php $externalIdentifierSources[$row['source']] = true ?>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= e($row['source']) ?></th>
                                             <td>
@@ -127,6 +135,58 @@ $periodStats ??= [];
                                                         <span class="visually-hidden"><?= e($link['label']) ?></span>
                                                     </a>
                                                 <?php endforeach ?>
+                                                <?php foreach ($externalAuthorityRowsBySource[$row['source']] ?? [] as $authority_row) : ?>
+                                                    <?php if ($authority_row['label'] !== '') : ?>
+                                                        <div class="small mt-1">
+                                                            <span class="text-muted"><?= MoreI18N::xlate('Label') ?>:</span>
+                                                            <bdi><?= e($authority_row['label']) ?></bdi>
+                                                        </div>
+                                                    <?php endif ?>
+                                                    <?php if ($authority_row['description'] !== '') : ?>
+                                                        <div class="small">
+                                                            <span class="text-muted"><?= MoreI18N::xlate('Description') ?>:</span>
+                                                            <bdi><?= e($authority_row['description']) ?></bdi>
+                                                        </div>
+                                                    <?php endif ?>
+                                                    <?php if ($authority_row['wikipedia_url'] !== '') : ?>
+                                                        <div class="small">
+                                                            <span class="text-muted">Wikipedia:</span>
+                                                            <a href="<?= e($authority_row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                        </div>
+                                                    <?php endif ?>
+                                                <?php endforeach ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                    <?php foreach ($externalAuthorityRows as $authority_row) : ?>
+                                        <?php if (isset($externalIdentifierSources[$authority_row['source']])) : ?>
+                                            <?php continue ?>
+                                        <?php endif ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= e($authority_row['source']) ?></th>
+                                            <td>
+                                                <a class="btn btn-link btn-sm p-0 align-baseline" href="<?= e($authority_row['url']) ?>" target="_blank" rel="noopener noreferrer" title="<?= e($authority_row['source']) ?>">
+                                                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                                    <span class="visually-hidden"><?= e($authority_row['source']) ?></span>
+                                                </a>
+                                                <?php if ($authority_row['label'] !== '') : ?>
+                                                    <div class="small mt-1">
+                                                        <span class="text-muted"><?= MoreI18N::xlate('Label') ?>:</span>
+                                                        <bdi><?= e($authority_row['label']) ?></bdi>
+                                                    </div>
+                                                <?php endif ?>
+                                                <?php if ($authority_row['description'] !== '') : ?>
+                                                    <div class="small">
+                                                        <span class="text-muted"><?= MoreI18N::xlate('Description') ?>:</span>
+                                                        <bdi><?= e($authority_row['description']) ?></bdi>
+                                                    </div>
+                                                <?php endif ?>
+                                                <?php if ($authority_row['wikipedia_url'] !== '') : ?>
+                                                    <div class="small">
+                                                        <span class="text-muted">Wikipedia:</span>
+                                                        <a href="<?= e($authority_row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                    </div>
+                                                <?php endif ?>
                                             </td>
                                         </tr>
                                     <?php endforeach ?>
@@ -203,46 +263,6 @@ $periodStats ??= [];
                     </section>
                 </div>
             <?php endif ?>
-
-            <div class="col-12">
-                <section class="card">
-                    <div class="card-header">
-                        <?= I18N::translate('External source data') ?>
-                    </div>
-                    <div class="card-body">
-                        <?php if ($externalAuthorityRows === []) : ?>
-                            <p class="mb-0 text-muted"><?= I18N::translate('No external source data is available.') ?></p>
-                        <?php else : ?>
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th><?= MoreI18N::xlate('Source') ?></th>
-                                        <th><?= MoreI18N::xlate('Label') ?></th>
-                                        <th><?= MoreI18N::xlate('Description') ?></th>
-                                        <th>Wikipedia</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($externalAuthorityRows as $row) : ?>
-                                        <tr>
-                                            <td>
-                                                <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($row['source']) ?></a>
-                                            </td>
-                                            <td><bdi><?= e($row['label']) ?></bdi></td>
-                                            <td><bdi><?= e($row['description']) ?></bdi></td>
-                                            <td>
-                                                <?php if ($row['wikipedia_url'] !== '') : ?>
-                                                    <a href="<?= e($row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
-                                                <?php endif ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach ?>
-                                </tbody>
-                            </table>
-                        <?php endif ?>
-                    </div>
-                </section>
-            </div>
 
             <div class="col-12">
                 <section class="card">

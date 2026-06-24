@@ -498,7 +498,7 @@ msgid "The normalized occupation could not be found."
 msgstr ""
 
 #: resources/views/occupation-portal.phtml:76
-msgid "External identifiers"
+msgid "External identifiers and source data"
 msgstr ""
 
 #: resources/views/occupation-portal.phtml:106
