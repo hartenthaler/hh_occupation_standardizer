@@ -363,11 +363,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ($view === '') {
             return $this->viewResponse($this->name() . '::occupation-landing', [
-                'hierarchyUrl' => $this->listUrl($tree, ['view' => 'hierarchy']),
-                'listUrl'      => $this->listUrl($tree, ['view' => 'list']),
-                'title'        => $this->listTitle(),
+                'hiscoHierarchyUrl' => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
+                'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
+                'listUrl'           => $this->listUrl($tree, ['view' => 'list']),
+                'title'             => $this->listTitle(),
                 'topOccupationChart' => $this->topNormalizedOccupationChart($tree),
-                'tree'         => $tree,
+                'tree'              => $tree,
             ]);
         }
 
@@ -387,6 +388,22 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'portalUrl'   => fn (int $concept_id): string => $this->occupationPortalUrl($tree, $concept_id),
                 'persons'     => $this->ohdabHierarchyPersons($tree, $node_id),
                 'title'       => I18N::translate('Occupation hierarchy (OhdAB)'),
+                'tree'        => $tree,
+            ]);
+        }
+
+        if ($view === 'hisco-hierarchy') {
+            $level = (string) ($query_params['level'] ?? '');
+            $code = (string) ($query_params['code'] ?? '');
+
+            return $this->viewResponse($this->name() . '::occupation-hisco-hierarchy', [
+                'ancestors'   => $this->hiscoHierarchyAncestors($level, $code),
+                'children'    => $this->hiscoHierarchyChildren($tree, $level, $code),
+                'currentNode' => $this->hiscoHierarchyNode($level, $code),
+                'hasSource'   => $this->hasHiscoCatalog(),
+                'listUrl'     => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'persons'     => $this->hiscoHierarchyPersons($tree, $level, $code),
+                'title'       => I18N::translate('Occupation hierarchy (HISCO)'),
                 'tree'        => $tree,
             ]);
         }
@@ -724,6 +741,408 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.rule_numbers',
             ])
             ->get();
+    }
+
+    private function hasHiscoCatalog(): bool
+    {
+        return DBManager::schema()->hasTable(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)
+            && DBManager::schema()->hasTable(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)
+            && DBManager::schema()->hasTable(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)
+            && DBManager::schema()->hasTable(OccupationSchema::TABLE_HISCO_OCCUPATIONS);
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}|null
+     */
+    private function hiscoHierarchyNode(string $level, string $code): array|null
+    {
+        if (!$this->hasHiscoCatalog()) {
+            return null;
+        }
+
+        $language = I18N::languageTag();
+
+        return match ($level) {
+            'major'      => $this->hiscoMajorNode((int) $code, $language),
+            'minor'      => $this->hiscoMinorNode((int) $code, $language),
+            'unit'       => $this->hiscoUnitNode((int) $code, $language),
+            'occupation' => $this->hiscoOccupationNode((int) preg_replace('/\D+/', '', $code), $language),
+            default      => null,
+        };
+    }
+
+    /**
+     * @return list<array{level:string,code:string,label:string}>
+     */
+    private function hiscoHierarchyAncestors(string $level, string $code): array
+    {
+        if (!$this->hasHiscoCatalog()) {
+            return [];
+        }
+
+        $language = I18N::languageTag();
+        $node = $this->hiscoHierarchyNode($level, $code);
+
+        if ($node === null) {
+            return [];
+        }
+
+        if ($level === 'major') {
+            return [$node];
+        }
+
+        if ($level === 'minor') {
+            $minor = DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)
+                ->where('minor_id', '=', (int) $code)
+                ->first();
+
+            if ($minor === null) {
+                return [$node];
+            }
+
+            return array_values(array_filter([
+                $this->hiscoMajorNode((int) $minor->major_id, $language),
+                $node,
+            ]));
+        }
+
+        if ($level === 'unit') {
+            $unit = DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS . ' AS units')
+                ->join(OccupationSchema::TABLE_HISCO_MINOR_GROUPS . ' AS minors', 'minors.minor_id', '=', 'units.minor_id')
+                ->where('units.unit_id', '=', (int) $code)
+                ->select(['units.unit_id', 'units.minor_id', 'minors.major_id'])
+                ->first();
+
+            if ($unit === null) {
+                return [$node];
+            }
+
+            return array_values(array_filter([
+                $this->hiscoMajorNode((int) $unit->major_id, $language),
+                $this->hiscoMinorNode((int) $unit->minor_id, $language),
+                $node,
+            ]));
+        }
+
+        if ($level === 'occupation') {
+            $occupation = DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS . ' AS occupations')
+                ->join(OccupationSchema::TABLE_HISCO_UNIT_GROUPS . ' AS units', 'units.unit_id', '=', 'occupations.unit_id')
+                ->join(OccupationSchema::TABLE_HISCO_MINOR_GROUPS . ' AS minors', 'minors.minor_id', '=', 'units.minor_id')
+                ->where('occupations.hisco_id', '=', (int) preg_replace('/\D+/', '', $code))
+                ->select(['occupations.hisco_id', 'occupations.unit_id', 'units.minor_id', 'minors.major_id'])
+                ->first();
+
+            if ($occupation === null) {
+                return [$node];
+            }
+
+            return array_values(array_filter([
+                $this->hiscoMajorNode((int) $occupation->major_id, $language),
+                $this->hiscoMinorNode((int) $occupation->minor_id, $language),
+                $this->hiscoUnitNode((int) $occupation->unit_id, $language),
+                $node,
+            ]));
+        }
+
+        return [];
+    }
+
+    /**
+     * @return list<array{level:string,code:string,label:string,entry_count:int,individual_count:int}>
+     */
+    private function hiscoHierarchyChildren(Tree $tree, string $level, string $code): array
+    {
+        if (!$this->hasHiscoCatalog()) {
+            return [];
+        }
+
+        $language = I18N::languageTag();
+
+        if ($level === '' || $code === '') {
+            $children = DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)
+                ->orderBy('major_id')
+                ->get()
+                ->map(fn (object $row): array => $this->hiscoMajorNodeRow($row, $language))
+                ->all();
+        } elseif ($level === 'major') {
+            $children = DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)
+                ->where('major_id', '=', (int) $code)
+                ->orderBy('minor_id')
+                ->get()
+                ->map(fn (object $row): array => $this->hiscoMinorNodeRow($row, $language))
+                ->all();
+        } elseif ($level === 'minor') {
+            $children = DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)
+                ->where('minor_id', '=', (int) $code)
+                ->orderBy('unit_id')
+                ->get()
+                ->map(fn (object $row): array => $this->hiscoUnitNodeRow($row, $language))
+                ->all();
+        } elseif ($level === 'unit') {
+            $children = DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)
+                ->where('unit_id', '=', (int) $code)
+                ->orderBy('hisco_id')
+                ->get()
+                ->map(fn (object $row): array => $this->hiscoOccupationNodeRow($row))
+                ->all();
+        } else {
+            return [];
+        }
+
+        $counts = $this->hiscoHierarchyCounts($tree);
+
+        return array_map(static function (array $node) use ($counts): array {
+            $node_counts = $counts[$node['level'] . ':' . $node['code']] ?? ['entry_count' => 0, 'individual_count' => 0];
+            $node['entry_count'] = $node_counts['entry_count'];
+            $node['individual_count'] = $node_counts['individual_count'];
+
+            return $node;
+        }, $children);
+    }
+
+    /**
+     * @return array<string,array{entry_count:int,individual_count:int}>
+     */
+    private function hiscoHierarchyCounts(Tree $tree): array
+    {
+        $counts = [];
+
+        foreach ($this->hiscoEntryRows($tree) as $entry_row) {
+            $hierarchy = (new HiscoCatalogService())->occupation((string) $entry_row->code_hisco, I18N::languageTag());
+
+            if ($hierarchy === null) {
+                continue;
+            }
+
+            foreach ([
+                'major:' . $hierarchy['major']['code'],
+                'minor:' . $hierarchy['minor']['code'],
+                'unit:' . $hierarchy['unit']['code'],
+                'occupation:' . $hierarchy['hisco_id'],
+            ] as $key) {
+                $counts[$key] ??= [
+                    'entry_count'      => 0,
+                    'individual_xrefs' => [],
+                ];
+                $counts[$key]['entry_count']++;
+                $counts[$key]['individual_xrefs'][(string) $entry_row->individual_xref] = true;
+            }
+        }
+
+        return array_map(static fn (array $count): array => [
+            'entry_count'      => $count['entry_count'],
+            'individual_count' => count($count['individual_xrefs']),
+        ], $counts);
+    }
+
+    /**
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}>
+     */
+    private function hiscoHierarchyPersons(Tree $tree, string $level, string $code): Collection
+    {
+        $rows = new Collection();
+
+        if ($level === '' || $code === '' || !$this->hasHiscoCatalog()) {
+            return $rows;
+        }
+
+        $label_service = new OccupationLabelService($this->activeBuiltinRuleOrder());
+
+        foreach ($this->hiscoEntryRows($tree) as $entry_row) {
+            if (!$this->hiscoEntryMatchesHierarchy((string) $entry_row->code_hisco, $level, $code)) {
+                continue;
+            }
+
+            $individual = Registry::individualFactory()->make((string) $entry_row->individual_xref, $tree);
+
+            if (!$individual instanceof Individual || !$individual->canShow() || !$this->occupationFactCanShow($individual, (string) $entry_row->fact_id)) {
+                continue;
+            }
+
+            $entry = $this->normalizationEntryArray($entry_row);
+            $labels = $label_service->labelsForEntries([$entry], $individual->sex(), I18N::languageTag());
+
+            $rows->push([
+                'individual'         => $individual,
+                'label'              => $labels[0]['label'] ?? (string) $entry_row->occupation_normalized,
+                'label_title'        => $labels[0]['title'] ?? '',
+                'original_part_text' => (string) $entry_row->original_part_text,
+                'date'               => (string) ($entry_row->date ?? ''),
+                'place'              => (string) (($entry_row->location_hierarchy ?? '') !== '' ? $entry_row->location_hierarchy : ($entry_row->place ?? '')),
+                'source_names'       => (string) ($entry_row->source_names ?? ''),
+            ]);
+        }
+
+        return $rows->sort(static function (array $a, array $b): int {
+            return I18N::comparator()($a['individual']->sortName(), $b['individual']->sortName())
+                ?: I18N::comparator()($a['label'], $b['label']);
+        })->values();
+    }
+
+    /**
+     * @return Collection<int,object>
+     */
+    private function hiscoEntryRows(Tree $tree): Collection
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return new Collection();
+        }
+
+        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('is_active', '=', true)
+            ->whereNotNull('code_hisco')
+            ->where('code_hisco', '<>', '')
+            ->orderBy('individual_xref')
+            ->orderBy('original_part_text')
+            ->select([
+                'individual_xref',
+                'fact_id',
+                'part_index',
+                'original_part_text',
+                'date',
+                'place',
+                'location_hierarchy',
+                'source_names',
+                'language',
+                'social_status',
+                'occupation_normalized',
+                'occupation_de_male',
+                'occupation_de_female',
+                'occupation_de_neutral',
+                'occupation_en_male',
+                'occupation_en_female',
+                'occupation_en_neutral',
+                'office',
+                'qualification',
+                'code_hisco',
+                'code_gnd',
+                'code_ohdab',
+                'code_factgrid',
+                'code_wikidata',
+                'norm_concept_id',
+                'status',
+                'rule_numbers',
+            ])
+            ->get();
+    }
+
+    private function hiscoEntryMatchesHierarchy(string $code_hisco, string $level, string $code): bool
+    {
+        $hierarchy = (new HiscoCatalogService())->occupation($code_hisco, I18N::languageTag());
+
+        if ($hierarchy === null) {
+            return false;
+        }
+
+        return match ($level) {
+            'major'      => $hierarchy['major']['code'] === (string) (int) $code,
+            'minor'      => $hierarchy['minor']['code'] === (string) (int) $code,
+            'unit'       => $hierarchy['unit']['code'] === (string) (int) $code,
+            'occupation' => $hierarchy['hisco_id'] === (string) (int) preg_replace('/\D+/', '', $code),
+            default      => false,
+        };
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}|null
+     */
+    private function hiscoMajorNode(int $major_id, string $language): array|null
+    {
+        $row = DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)
+            ->where('major_id', '=', $major_id)
+            ->first();
+
+        return $row !== null ? $this->hiscoMajorNodeRow($row, $language) : null;
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}|null
+     */
+    private function hiscoMinorNode(int $minor_id, string $language): array|null
+    {
+        $row = DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)
+            ->where('minor_id', '=', $minor_id)
+            ->first();
+
+        return $row !== null ? $this->hiscoMinorNodeRow($row, $language) : null;
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}|null
+     */
+    private function hiscoUnitNode(int $unit_id, string $language): array|null
+    {
+        $row = DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)
+            ->where('unit_id', '=', $unit_id)
+            ->first();
+
+        return $row !== null ? $this->hiscoUnitNodeRow($row, $language) : null;
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}|null
+     */
+    private function hiscoOccupationNode(int $hisco_id, string $language): array|null
+    {
+        $row = DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)
+            ->where('hisco_id', '=', $hisco_id)
+            ->first();
+
+        return $row !== null ? $this->hiscoOccupationNodeRow($row) : null;
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}
+     */
+    private function hiscoMajorNodeRow(object $row, string $language): array
+    {
+        return [
+            'level' => 'major',
+            'code'  => (string) $row->major_id,
+            'label' => trim((string) $row->major_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+        ];
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}
+     */
+    private function hiscoMinorNodeRow(object $row, string $language): array
+    {
+        return [
+            'level' => 'minor',
+            'code'  => (string) $row->minor_id,
+            'label' => trim((string) $row->minor_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+        ];
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}
+     */
+    private function hiscoUnitNodeRow(object $row, string $language): array
+    {
+        return [
+            'level' => 'unit',
+            'code'  => (string) $row->unit_id,
+            'label' => trim((string) $row->unit_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+        ];
+    }
+
+    /**
+     * @return array{level:string,code:string,label:string}
+     */
+    private function hiscoOccupationNodeRow(object $row): array
+    {
+        return [
+            'level' => 'occupation',
+            'code'  => (string) $row->hisco_id,
+            'label' => trim((string) $row->hisco_pretty . ' ' . (string) $row->label_en),
+        ];
+    }
+
+    private function useGermanHiscoLabel(string $language): bool
+    {
+        return str_starts_with(strtolower($language), 'de');
     }
 
     /**

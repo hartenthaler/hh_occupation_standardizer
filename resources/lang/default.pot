@@ -88,6 +88,11 @@ msgstr[1] ""
 msgid "Occupation hierarchy (OhdAB)"
 msgstr ""
 
+#: src/OccupationStandardizerModule.php:408
+#: resources/views/occupation-landing.phtml:83
+msgid "Occupation hierarchy (HISCO)"
+msgstr ""
+
 #: src/OccupationStandardizerModule.php:414
 msgid "Normalized occupation"
 msgstr ""
@@ -294,6 +299,10 @@ msgstr ""
 msgid "No OhdAB hierarchy entries were found."
 msgstr ""
 
+#: resources/views/occupation-hisco-hierarchy.phtml:73
+msgid "No HISCO hierarchy entries were found."
+msgstr ""
+
 #: resources/views/occupation-hierarchy.phtml:79
 msgid "Subcategories"
 msgstr ""
@@ -339,6 +348,10 @@ msgstr ""
 
 #: resources/views/occupation-landing.phtml:75
 msgid "Show occupations grouped by OhdAB hierarchy."
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:82
+msgid "Show occupations grouped by HISCO hierarchy."
 msgstr ""
 
 #: resources/views/occupation-landing.phtml:82

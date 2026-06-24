@@ -91,6 +91,11 @@ msgstr[1] "%s Zeilen wurden verarbeitet."
 msgid "Occupation hierarchy (OhdAB)"
 msgstr "Berufe-Hierarchie (OhdAB)"
 
+#: src/OccupationStandardizerModule.php:408
+#: resources/views/occupation-landing.phtml:83
+msgid "Occupation hierarchy (HISCO)"
+msgstr "Berufe-Hierarchie (HISCO)"
+
 #: src/OccupationStandardizerModule.php:414
 msgid "Normalized occupation"
 msgstr "Normierter Beruf"
@@ -350,6 +355,10 @@ msgstr "Es wurde noch keine OhdAB-Spezialdatenbank importiert."
 msgid "No OhdAB hierarchy entries were found."
 msgstr "Es wurden keine OhdAB Hierarchieeinträge gefunden."
 
+#: resources/views/occupation-hisco-hierarchy.phtml:73
+msgid "No HISCO hierarchy entries were found."
+msgstr "Es wurden keine HISCO-Hierarchieeinträge gefunden."
+
 #: resources/views/occupation-hierarchy.phtml:79
 msgid "Subcategories"
 msgstr "Unterkategorien"
@@ -403,6 +412,10 @@ msgstr "Diese Liste zeigt die ursprünglichen Berufsangaben."
 #: resources/views/occupation-landing.phtml:75
 msgid "Show occupations grouped by OhdAB hierarchy."
 msgstr "Berufe nach OhdAB-Hierarchie gruppiert anzeigen."
+
+#: resources/views/occupation-landing.phtml:82
+msgid "Show occupations grouped by HISCO hierarchy."
+msgstr "Berufe nach HISCO-Hierarchie gruppiert anzeigen."
 
 #: resources/views/occupation-landing.phtml:82
 msgid "Most common normalized occupations"
