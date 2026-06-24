@@ -14,6 +14,7 @@ $externalIdentifierService = new ExternalIdentifierService();
 
 /**
  * @var bool $canManageNormalization
+ * @var string $hiscoHierarchyUrl
  * @var string $hierarchyUrl
  * @var array<string,string> $languageOptions
  * @var callable(int):string $portalUrl
@@ -27,9 +28,12 @@ $externalIdentifierService = new ExternalIdentifierService();
 <h2 class="wt-page-title"><?= e($title) ?></h2>
 
 <div class="wt-page-content">
-    <p>
+    <p class="d-flex flex-wrap gap-2">
         <a class="btn btn-secondary btn-sm" href="<?= e($hierarchyUrl) ?>">
             <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($hiscoHierarchyUrl) ?>">
+            <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
         </a>
     </p>
 

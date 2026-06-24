@@ -438,6 +438,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         return $this->viewResponse($this->name() . '::occupation-list', [
             'canManageNormalization' => $can_manage_normalization,
+            'hiscoHierarchyUrl'      => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
             'hierarchyUrl'            => $this->listUrl($tree, ['view' => 'hierarchy']),
             'languageOptions'        => $this->languageOptions(),
             'portalUrl'              => fn (int $concept_id): string => $this->occupationPortalUrl($tree, $concept_id),

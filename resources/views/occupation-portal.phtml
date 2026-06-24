@@ -44,12 +44,15 @@ $periodStats ??= [];
 <h2 class="wt-page-title"><?= e($title) ?></h2>
 
 <div class="wt-page-content">
-    <p>
+    <p class="d-flex flex-wrap gap-2">
         <a class="btn btn-secondary btn-sm" href="<?= e($listUrl()) ?>">
             <?= MoreI18N::xlate('Occupations') ?>
         </a>
         <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'hierarchy'])) ?>">
             <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'hisco-hierarchy'])) ?>">
+            <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
         </a>
     </p>
 
