@@ -23,6 +23,7 @@ use function sha1_file;
 use function str_replace;
 use function strlen;
 use function str_starts_with;
+use function str_contains;
 use function strtolower;
 use function substr;
 use function trim;
@@ -310,7 +311,7 @@ final class OhdabSpecialDatabaseService
             return $label;
         }
 
-        $normalized_code = trim(preg_replace('/\s+/', ' ', $code) ?? $code);
+        $normalized_code = self::normalizedTopLevelCode($code, $label);
 
         if (isset(self::TOP_LEVEL_LABELS_EN[$normalized_code])) {
             return trim($normalized_code . ' ' . self::TOP_LEVEL_LABELS_EN[$normalized_code]);
@@ -321,6 +322,36 @@ final class OhdabSpecialDatabaseService
         }
 
         return $label;
+    }
+
+    private static function normalizedTopLevelCode(string $code, string $label): string
+    {
+        $normalized_code = trim(preg_replace('/\s+/', ' ', strtoupper($code)) ?? $code);
+
+        if (preg_match('/^([AB])\s*([0-9])$/', $normalized_code, $match) === 1) {
+            return $match[1] . ' ' . $match[2];
+        }
+
+        if ($normalized_code === 'A' || preg_match('/^A\s+[0-9]+$/', $normalized_code) === 1) {
+            return 'A';
+        }
+
+        $normalized_label = strtolower($label);
+
+        return match (true) {
+            str_contains($normalized_label, 'milit') => 'B 0',
+            str_contains($normalized_label, 'land-') || str_contains($normalized_label, 'forst') || str_contains($normalized_label, 'garten') => 'B 1',
+            str_contains($normalized_label, 'rohstoff') || str_contains($normalized_label, 'produktion') || str_contains($normalized_label, 'fertigung') => 'B 2',
+            str_contains($normalized_label, 'bau') || str_contains($normalized_label, 'architektur') || str_contains($normalized_label, 'vermessung') => 'B 3',
+            str_contains($normalized_label, 'naturwissenschaft') || str_contains($normalized_label, 'geografie') || str_contains($normalized_label, 'informatik') => 'B 4',
+            str_contains($normalized_label, 'verkehr') || str_contains($normalized_label, 'logistik') || str_contains($normalized_label, 'schutz') || str_contains($normalized_label, 'sicherheit') => 'B 5',
+            str_contains($normalized_label, 'kauf') || str_contains($normalized_label, 'handel') || str_contains($normalized_label, 'vertrieb') || str_contains($normalized_label, 'tourismus') => 'B 6',
+            str_contains($normalized_label, 'unternehmens') || str_contains($normalized_label, 'buchhaltung') || str_contains($normalized_label, 'recht') || str_contains($normalized_label, 'verwaltung') => 'B 7',
+            str_contains($normalized_label, 'gesundheit') || str_contains($normalized_label, 'soziales') || str_contains($normalized_label, 'lehre') || str_contains($normalized_label, 'erziehung') => 'B 8',
+            str_contains($normalized_label, 'sprach') || str_contains($normalized_label, 'literatur') || str_contains($normalized_label, 'geistes') || str_contains($normalized_label, 'kunst') || str_contains($normalized_label, 'kultur') => 'B 9',
+            str_contains($normalized_label, 'stand') => 'A',
+            default => $normalized_code,
+        };
     }
 
     /**

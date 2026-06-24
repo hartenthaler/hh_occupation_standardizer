@@ -24,6 +24,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 - Count HISCO hierarchy entries when the HISCO code is stored on the normalized term instead of the copied entry row.
 - Count HISCO settings statistics from normalized term HISCO codes when copied entry rows do not carry their own code.
+- Detect OhdAB top-level category labels more robustly for English settings statistics.
 
 ## 2.2.6.2 - 2026-06-24
 
