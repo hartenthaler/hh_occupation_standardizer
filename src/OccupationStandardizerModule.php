@@ -908,7 +908,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $counts = [];
 
         foreach ($this->hiscoEntryRows($tree) as $entry_row) {
-            $hierarchy = (new HiscoCatalogService())->occupation((string) $entry_row->code_hisco, I18N::languageTag());
+            $hierarchy = (new HiscoCatalogService())->occupation($this->hiscoCodeForEntry($entry_row), I18N::languageTag());
 
             if ($hierarchy === null) {
                 continue;
@@ -949,7 +949,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $label_service = new OccupationLabelService($this->activeBuiltinRuleOrder());
 
         foreach ($this->hiscoEntryRows($tree) as $entry_row) {
-            if (!$this->hiscoEntryMatchesHierarchy((string) $entry_row->code_hisco, $level, $code)) {
+            if (!$this->hiscoEntryMatchesHierarchy($this->hiscoCodeForEntry($entry_row), $level, $code)) {
                 continue;
             }
 
@@ -988,43 +988,83 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return new Collection();
         }
 
-        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
-            ->where('tree_id', '=', $tree->id())
-            ->where('is_active', '=', true)
-            ->whereNotNull('code_hisco')
-            ->where('code_hisco', '<>', '')
-            ->orderBy('individual_xref')
-            ->orderBy('original_part_text')
-            ->select([
-                'individual_xref',
-                'fact_id',
-                'part_index',
-                'original_part_text',
-                'date',
-                'place',
-                'location_hierarchy',
-                'source_names',
-                'language',
-                'social_status',
-                'occupation_normalized',
-                'occupation_de_male',
-                'occupation_de_female',
-                'occupation_de_neutral',
-                'occupation_en_male',
-                'occupation_en_female',
-                'occupation_en_neutral',
-                'office',
-                'qualification',
-                'code_hisco',
-                'code_gnd',
-                'code_ohdab',
-                'code_factgrid',
-                'code_wikidata',
-                'norm_concept_id',
-                'status',
-                'rule_numbers',
-            ])
+        $query = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true)
+            ->orderBy('entries.individual_xref')
+            ->orderBy('entries.original_part_text');
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $query
+                ->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', function ($join): void {
+                    $join
+                        ->on('terms.language', '=', 'entries.language')
+                        ->on('terms.occupation_de_male', '=', 'entries.occupation_de_male');
+                })
+                ->where(static function ($query): void {
+                    $query
+                        ->whereNotNull('entries.code_hisco')
+                        ->where('entries.code_hisco', '<>', '')
+                        ->orWhere(static function ($query): void {
+                            $query
+                                ->whereNotNull('terms.code_hisco')
+                                ->where('terms.code_hisco', '<>', '');
+                        });
+                });
+        } else {
+            $query
+                ->whereNotNull('entries.code_hisco')
+                ->where('entries.code_hisco', '<>', '');
+        }
+
+        $select = [
+            'entries.individual_xref',
+            'entries.fact_id',
+            'entries.part_index',
+            'entries.original_part_text',
+            'entries.date',
+            'entries.place',
+            'entries.location_hierarchy',
+            'entries.source_names',
+            'entries.language',
+            'entries.social_status',
+            'entries.occupation_normalized',
+            'entries.occupation_de_male',
+            'entries.occupation_de_female',
+            'entries.occupation_de_neutral',
+            'entries.occupation_en_male',
+            'entries.occupation_en_female',
+            'entries.occupation_en_neutral',
+            'entries.office',
+            'entries.qualification',
+            'entries.code_hisco',
+            'entries.code_gnd',
+            'entries.code_ohdab',
+            'entries.code_factgrid',
+            'entries.code_wikidata',
+            'entries.norm_concept_id',
+            'entries.status',
+            'entries.rule_numbers',
+        ];
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $select[] = 'terms.code_hisco AS term_code_hisco';
+        }
+
+        return $query
+            ->select($select)
             ->get();
+    }
+
+    private function hiscoCodeForEntry(object $entry_row): string
+    {
+        $entry_code = trim((string) ($entry_row->code_hisco ?? ''));
+
+        if ($entry_code !== '') {
+            return $entry_code;
+        }
+
+        return trim((string) ($entry_row->term_code_hisco ?? ''));
     }
 
     private function hiscoEntryMatchesHierarchy(string $code_hisco, string $level, string $code): bool

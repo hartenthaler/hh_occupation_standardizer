@@ -17,6 +17,10 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Changed OhdAB links to use the FactGrid item of the imported OhdAB concept.
 - Split the landing-page top-10 chart into separate OhdAB A and B charts.
 
+### Fixed
+
+- Count HISCO hierarchy entries when the HISCO code is stored on the normalized term instead of the copied entry row.
+
 ## 2.2.6.2 - 2026-06-24
 
 ### Added
