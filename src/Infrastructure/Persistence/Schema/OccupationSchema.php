@@ -236,6 +236,7 @@ final class OccupationSchema
                 $table->unsignedSmallInteger('unit_id')->primary();
                 $table->unsignedTinyInteger('minor_id');
                 $table->string('label_en', 255);
+                $table->string('label_de', 255)->nullable();
                 $table->text('description_en');
                 $table->timestamp('updated_at')->nullable();
 
@@ -329,6 +330,12 @@ final class OccupationSchema
         if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'location_hierarchy')) {
             DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table): void {
                 $table->text('location_hierarchy')->nullable();
+            });
+        }
+
+        if (DB::schema()->hasTable(self::TABLE_HISCO_UNIT_GROUPS) && !DB::schema()->hasColumn(self::TABLE_HISCO_UNIT_GROUPS, 'label_de')) {
+            DB::schema()->table(self::TABLE_HISCO_UNIT_GROUPS, static function ($table): void {
+                $table->string('label_de', 255)->nullable();
             });
         }
 

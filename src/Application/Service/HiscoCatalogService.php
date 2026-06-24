@@ -26,6 +26,7 @@ use function trim;
 final class HiscoCatalogService
 {
     private const METADATA_HASH = 'hisco_catalog_hash';
+    private const TRANSLATION_SEED_VERSION = 'de-labels-2026-06-24';
 
     /**
      * @return array{imported:bool,row_count:int}
@@ -100,6 +101,7 @@ final class HiscoCatalogService
                 'occupations.description_en AS occupation_description_en',
                 'units.unit_id',
                 'units.label_en AS unit_label_en',
+                'units.label_de AS unit_label_de',
                 'units.description_en AS unit_description_en',
                 'minors.minor_id',
                 'minors.label_en AS minor_label_en',
@@ -125,7 +127,7 @@ final class HiscoCatalogService
             'description'  => (string) $row->occupation_description_en,
             'unit'         => [
                 'code'        => (string) $row->unit_id,
-                'label'       => (string) $row->unit_label_en,
+                'label'       => $use_german && (string) ($row->unit_label_de ?? '') !== '' ? (string) $row->unit_label_de : (string) $row->unit_label_en,
                 'description' => (string) $row->unit_description_en,
             ],
             'minor'        => [
@@ -154,7 +156,7 @@ final class HiscoCatalogService
      */
     private function catalogHash(array $files): string
     {
-        return hash('sha1', implode('|', array_map(static fn (string $file): string => (string) sha1_file($file), $files)));
+        return hash('sha1', self::TRANSLATION_SEED_VERSION . '|' . implode('|', array_map(static fn (string $file): string => (string) sha1_file($file), $files)));
     }
 
     private function importMajorGroups(string $file): int
@@ -167,6 +169,7 @@ final class HiscoCatalogService
                 ['major_id' => (int) $row['major_id']],
                 [
                     'label_en'       => $row['label'],
+                    'label_de'       => $this->majorGroupLabelDe((int) $row['major_id']),
                     'description_en' => $row['description'],
                     'updated_at'     => date('Y-m-d H:i:s'),
                 ]
@@ -188,6 +191,7 @@ final class HiscoCatalogService
                 [
                     'major_id'       => (int) $row['major_id'],
                     'label_en'       => $row['label'],
+                    'label_de'       => $this->minorGroupLabelDe((int) $row['minor_id']),
                     'description_en' => $row['description'],
                     'updated_at'     => date('Y-m-d H:i:s'),
                 ]
@@ -209,6 +213,7 @@ final class HiscoCatalogService
                 [
                     'minor_id'       => (int) $row['minor_id'],
                     'label_en'       => $row['label'],
+                    'label_de'       => $this->unitGroupLabelDe((int) $row['unit_id']),
                     'description_en' => $row['description'],
                     'updated_at'     => date('Y-m-d H:i:s'),
                 ]
@@ -313,5 +318,35 @@ final class HiscoCatalogService
     private function useGerman(string $language_tag): bool
     {
         return $language_tag === 'de' || str_starts_with($language_tag, 'de-');
+    }
+
+    private function majorGroupLabelDe(int $major_id): string|null
+    {
+        return [
+            0 => 'Wissenschaftliche, technische und verwandte Berufe',
+            1 => 'Wissenschaftliche, technische und verwandte Berufe',
+            2 => 'Leitungs- und Verwaltungsberufe',
+            3 => 'Bürokräfte und verwandte Berufe',
+            4 => 'Verkaufsberufe',
+            5 => 'Dienstleistungsberufe',
+            6 => 'Land- und Forstwirte, Fischer und Jäger',
+            7 => 'Produktions- und verwandte Berufe, Bediener von Transportmitteln und Arbeitskräfte',
+            8 => 'Produktions- und verwandte Berufe, Bediener von Transportmitteln und Arbeitskräfte',
+            9 => 'Produktions- und verwandte Berufe, Bediener von Transportmitteln und Arbeitskräfte',
+        ][$major_id] ?? null;
+    }
+
+    private function minorGroupLabelDe(int $minor_id): string|null
+    {
+        return [
+            94 => 'Produktions- und verwandte Berufe, anderweitig nicht klassifiziert',
+        ][$minor_id] ?? null;
+    }
+
+    private function unitGroupLabelDe(int $unit_id): string|null
+    {
+        return [
+            941 => 'Musikinstrumentenbauer und -stimmer',
+        ][$unit_id] ?? null;
     }
 }

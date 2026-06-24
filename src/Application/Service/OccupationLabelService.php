@@ -151,6 +151,16 @@ final class OccupationLabelService
                 $title_parts[] = MoreI18N::xlate('Qualification') . ': ' . $entry['qualification'];
             }
 
+            if (($entry['code_ohdab'] ?? '') !== '') {
+                $title_parts[] = $this->identifierTitle('OhdAB', $entry['code_ohdab']);
+            }
+
+            $hierarchy = $this->ohdab_special_database_service->hierarchyPath((int) ($entry['norm_concept_id'] ?? 0));
+
+            if ($hierarchy !== '') {
+                $title_parts[] = I18N::translate('OhdAB hierarchy') . ': ' . $hierarchy;
+            }
+
             if (($entry['code_hisco'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('HISCO', $entry['code_hisco']);
 
@@ -165,22 +175,12 @@ final class OccupationLabelService
                 $title_parts[] = $this->identifierTitle('GND', $entry['code_gnd']);
             }
 
-            if (($entry['code_ohdab'] ?? '') !== '') {
-                $title_parts[] = $this->identifierTitle('OhdAB', $entry['code_ohdab']);
-            }
-
             if (($entry['code_factgrid'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('FactGrid', $entry['code_factgrid']);
             }
 
             if (($entry['code_wikidata'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('Wikidata', $entry['code_wikidata']);
-            }
-
-            $hierarchy = $this->ohdab_special_database_service->hierarchyPath((int) ($entry['norm_concept_id'] ?? 0));
-
-            if ($hierarchy !== '') {
-                $title_parts[] = I18N::translate('OhdAB hierarchy') . ': ' . $hierarchy;
             }
 
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);

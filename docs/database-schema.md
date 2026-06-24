@@ -213,6 +213,7 @@ url = {https://hdl.handle.net/10622/JA9B8O}
 | `unit_id` | unsigned small integer primary key | HISCO unit group id. |
 | `minor_id` | unsigned tiny integer | Parent minor group id. |
 | `label_en` | `string(255)` | Original English unit group label. |
+| `label_de` | `string(255)` nullable | Optional German unit group label. |
 | `description_en` | `text` | Original English description. |
 | `updated_at` | timestamp nullable | Last import/update time. |
 
