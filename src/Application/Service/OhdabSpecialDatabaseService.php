@@ -307,8 +307,10 @@ final class OhdabSpecialDatabaseService
 
     public static function translatedHierarchyLabel(string $code, string $label, string $language_tag): string
     {
+        $display_code = self::normalizedDisplayCode($code);
+
         if (str_starts_with(strtolower($language_tag), 'de')) {
-            return $label;
+            return self::labelWithCode($display_code, $label);
         }
 
         $normalized_code = self::normalizedTopLevelCode($code, $label);
@@ -317,11 +319,7 @@ final class OhdabSpecialDatabaseService
             return trim($normalized_code . ' ' . self::TOP_LEVEL_LABELS_EN[$normalized_code]);
         }
 
-        if (str_starts_with($normalized_code, 'A ')) {
-            return trim($normalized_code . ' ' . self::TOP_LEVEL_LABELS_EN['A']);
-        }
-
-        return $label;
+        return self::labelWithCode($display_code, $label);
     }
 
     private static function normalizedTopLevelCode(string $code, string $label): string
@@ -332,7 +330,7 @@ final class OhdabSpecialDatabaseService
             return $match[1] . ' ' . $match[2];
         }
 
-        if ($normalized_code === 'A' || preg_match('/^A\s+[0-9]+$/', $normalized_code) === 1) {
+        if ($normalized_code === 'A') {
             return 'A';
         }
 
@@ -352,6 +350,28 @@ final class OhdabSpecialDatabaseService
             str_contains($normalized_label, 'stand') => 'A',
             default => $normalized_code,
         };
+    }
+
+    private static function normalizedDisplayCode(string $code): string
+    {
+        $normalized_code = trim(preg_replace('/\s+/', ' ', strtoupper($code)) ?? $code);
+
+        if (preg_match('/^([AB])\s*([0-9])$/', $normalized_code, $match) === 1) {
+            return $match[1] . ' ' . $match[2];
+        }
+
+        return $normalized_code;
+    }
+
+    private static function labelWithCode(string $code, string $label): string
+    {
+        $label = trim($label);
+
+        if ($code === '' || $label === '' || str_starts_with($label, $code . ' ')) {
+            return $label;
+        }
+
+        return trim($code . ' ' . $label);
     }
 
     /**
