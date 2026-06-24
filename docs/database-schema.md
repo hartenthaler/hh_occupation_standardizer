@@ -163,12 +163,9 @@ is generated for display.
 
 ## Bundled HISCO Catalog Tables
 
-The module ships a normalized English HISCO catalog in `resources/data/hisco`.
-The data is imported into module-owned tables on first use and re-imported when
-the bundled CSV fingerprint changes. The original English labels and
-descriptions are preserved. Major and minor group tables include optional
-German label columns so upper classification levels can be translated without
-changing the original source data.
+The module ships normalized HISCO CSV files in `resources/data/hisco`.
+They are imported into module-owned tables on first use and re-imported when
+their bundled CSV fingerprint changes.
 
 Source:
 
