@@ -27,8 +27,12 @@ into separate CSV files before being added to this module.
 - `hisco_minor_group.csv`: HISCO minor groups
 - `hisco_unit_group.csv`: HISCO unit groups
 - `hisco_occupation.csv`: individual HISCO occupations
+- `hisco_hierarchy_de.csv`: curated German labels and descriptions for major, minor, and unit groups
+- `hisco_hierarchy_de_notes.md`: translation notes for the German hierarchy file
+- `build_de.py`: helper script used to create the German hierarchy translation file
 - `hisco_schema.sql`: documentation of the module-specific database structure
 
 The module imports these files into its own database tables on first use. The
-English original labels and descriptions are preserved. The major and minor
-group tables also contain optional fields for translated labels.
+English original labels and descriptions are preserved. German hierarchy labels
+and descriptions are stored separately and are reimported only when the checksum
+of `hisco_hierarchy_de.csv` changes.

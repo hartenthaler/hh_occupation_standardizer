@@ -1143,7 +1143,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'level'       => 'major',
             'code'        => (string) $row->major_id,
             'label'       => trim((string) $row->major_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
-            'description' => (string) ($row->description_en ?? ''),
+            'description' => $this->useGermanHiscoLabel($language) && (string) ($row->description_de ?? '') !== '' ? (string) $row->description_de : (string) ($row->description_en ?? ''),
         ];
     }
 
@@ -1156,7 +1156,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'level'       => 'minor',
             'code'        => (string) $row->minor_id,
             'label'       => trim((string) $row->minor_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
-            'description' => (string) ($row->description_en ?? ''),
+            'description' => $this->useGermanHiscoLabel($language) && (string) ($row->description_de ?? '') !== '' ? (string) $row->description_de : (string) ($row->description_en ?? ''),
         ];
     }
 
@@ -1169,7 +1169,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'level'       => 'unit',
             'code'        => (string) $row->unit_id,
             'label'       => trim((string) $row->unit_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
-            'description' => (string) ($row->description_en ?? ''),
+            'description' => $this->useGermanHiscoLabel($language) && (string) ($row->description_de ?? '') !== '' ? (string) $row->description_de : (string) ($row->description_en ?? ''),
         ];
     }
 

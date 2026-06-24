@@ -26,7 +26,7 @@ use function trim;
 final class HiscoCatalogService
 {
     private const METADATA_HASH = 'hisco_catalog_hash';
-    private const TRANSLATION_SEED_VERSION = 'de-labels-2026-06-24';
+    private const TRANSLATION_FILE = 'hisco_hierarchy_de.csv';
 
     /**
      * @return array{imported:bool,row_count:int}
@@ -43,6 +43,7 @@ final class HiscoCatalogService
             'unit'       => $data_directory . 'hisco_unit_group.csv',
             'occupation' => $data_directory . 'hisco_occupation.csv',
         ];
+        $translation_file = $data_directory . self::TRANSLATION_FILE;
 
         foreach ($files as $file) {
             if (!is_file($file)) {
@@ -50,7 +51,7 @@ final class HiscoCatalogService
             }
         }
 
-        $hash = $this->catalogHash($files);
+        $hash = $this->catalogHash($files, is_file($translation_file) ? $translation_file : null);
         $stored_hash = (string) (DB::table(OccupationSchema::TABLE_METADATA)
             ->where('setting_name', '=', self::METADATA_HASH)
             ->value('setting_value') ?? '');
@@ -64,6 +65,10 @@ final class HiscoCatalogService
         $row_count += $this->importMinorGroups($files['minor']);
         $row_count += $this->importUnitGroups($files['unit']);
         $row_count += $this->importOccupations($files['occupation']);
+
+        if (is_file($translation_file)) {
+            $row_count += $this->importGermanHierarchyTranslations($translation_file);
+        }
 
         $this->safeUpdateOrInsert(
             OccupationSchema::TABLE_METADATA,
@@ -103,14 +108,17 @@ final class HiscoCatalogService
                 'units.label_en AS unit_label_en',
                 'units.label_de AS unit_label_de',
                 'units.description_en AS unit_description_en',
+                'units.description_de AS unit_description_de',
                 'minors.minor_id',
                 'minors.label_en AS minor_label_en',
                 'minors.label_de AS minor_label_de',
                 'minors.description_en AS minor_description_en',
+                'minors.description_de AS minor_description_de',
                 'majors.major_id',
                 'majors.label_en AS major_label_en',
                 'majors.label_de AS major_label_de',
                 'majors.description_en AS major_description_en',
+                'majors.description_de AS major_description_de',
             ])
             ->first();
 
@@ -128,17 +136,17 @@ final class HiscoCatalogService
             'unit'         => [
                 'code'        => (string) $row->unit_id,
                 'label'       => $use_german && (string) ($row->unit_label_de ?? '') !== '' ? (string) $row->unit_label_de : (string) $row->unit_label_en,
-                'description' => (string) $row->unit_description_en,
+                'description' => $use_german && (string) ($row->unit_description_de ?? '') !== '' ? (string) $row->unit_description_de : (string) $row->unit_description_en,
             ],
             'minor'        => [
                 'code'        => (string) $row->minor_id,
                 'label'       => $use_german && (string) ($row->minor_label_de ?? '') !== '' ? (string) $row->minor_label_de : (string) $row->minor_label_en,
-                'description' => (string) $row->minor_description_en,
+                'description' => $use_german && (string) ($row->minor_description_de ?? '') !== '' ? (string) $row->minor_description_de : (string) $row->minor_description_en,
             ],
             'major'        => [
                 'code'        => (string) $row->major_id,
                 'label'       => $use_german && (string) ($row->major_label_de ?? '') !== '' ? (string) $row->major_label_de : (string) $row->major_label_en,
-                'description' => (string) $row->major_description_en,
+                'description' => $use_german && (string) ($row->major_description_de ?? '') !== '' ? (string) $row->major_description_de : (string) $row->major_description_en,
             ],
         ];
     }
@@ -154,9 +162,12 @@ final class HiscoCatalogService
     /**
      * @param array<string,string> $files
      */
-    private function catalogHash(array $files): string
+    private function catalogHash(array $files, string|null $translation_file): string
     {
-        return hash('sha1', self::TRANSLATION_SEED_VERSION . '|' . implode('|', array_map(static fn (string $file): string => (string) sha1_file($file), $files)));
+        $hash_parts = array_map(static fn (string $file): string => (string) sha1_file($file), $files);
+        $hash_parts[] = $translation_file !== null ? (string) sha1_file($translation_file) : 'no-hisco-hierarchy-de';
+
+        return hash('sha1', implode('|', $hash_parts));
     }
 
     private function importMajorGroups(string $file): int
@@ -169,8 +180,9 @@ final class HiscoCatalogService
                 ['major_id' => (int) $row['major_id']],
                 [
                     'label_en'       => $row['label'],
-                    'label_de'       => $this->majorGroupLabelDe((int) $row['major_id']),
+                    'label_de'       => null,
                     'description_en' => $row['description'],
+                    'description_de' => null,
                     'updated_at'     => date('Y-m-d H:i:s'),
                 ]
             );
@@ -191,8 +203,9 @@ final class HiscoCatalogService
                 [
                     'major_id'       => (int) $row['major_id'],
                     'label_en'       => $row['label'],
-                    'label_de'       => $this->minorGroupLabelDe((int) $row['minor_id']),
+                    'label_de'       => null,
                     'description_en' => $row['description'],
+                    'description_de' => null,
                     'updated_at'     => date('Y-m-d H:i:s'),
                 ]
             );
@@ -213,11 +226,57 @@ final class HiscoCatalogService
                 [
                     'minor_id'       => (int) $row['minor_id'],
                     'label_en'       => $row['label'],
-                    'label_de'       => $this->unitGroupLabelDe((int) $row['unit_id']),
+                    'label_de'       => null,
                     'description_en' => $row['description'],
+                    'description_de' => null,
                     'updated_at'     => date('Y-m-d H:i:s'),
                 ]
             );
+            $count++;
+        }
+
+        return $count;
+    }
+
+    private function importGermanHierarchyTranslations(string $file): int
+    {
+        $count = 0;
+
+        foreach ($this->csvRows($file) as $row) {
+            $level = (string) ($row['level'] ?? '');
+            $code = (int) ($row['code'] ?? 0);
+
+            if ($code <= 0 && $level !== 'major') {
+                continue;
+            }
+
+            $table = match ($level) {
+                'major' => OccupationSchema::TABLE_HISCO_MAJOR_GROUPS,
+                'minor' => OccupationSchema::TABLE_HISCO_MINOR_GROUPS,
+                'unit'  => OccupationSchema::TABLE_HISCO_UNIT_GROUPS,
+                default => '',
+            };
+            $key_column = match ($level) {
+                'major' => 'major_id',
+                'minor' => 'minor_id',
+                'unit'  => 'unit_id',
+                default => '',
+            };
+
+            if ($table === '' || $key_column === '') {
+                continue;
+            }
+
+            $label_de = trim((string) ($row['label_de'] ?? ''));
+            $description_de = trim((string) ($row['description_de'] ?? ''));
+
+            DB::table($table)
+                ->where($key_column, '=', $code)
+                ->update([
+                    'label_de'       => $label_de !== '' ? $label_de : null,
+                    'description_de' => $description_de !== '' ? $description_de : null,
+                    'updated_at'     => date('Y-m-d H:i:s'),
+                ]);
             $count++;
         }
 
@@ -320,33 +379,4 @@ final class HiscoCatalogService
         return $language_tag === 'de' || str_starts_with($language_tag, 'de-');
     }
 
-    private function majorGroupLabelDe(int $major_id): string|null
-    {
-        return [
-            0 => 'Wissenschaftliche, technische und verwandte Berufe',
-            1 => 'Wissenschaftliche, technische und verwandte Berufe',
-            2 => 'Leitungs- und Verwaltungsberufe',
-            3 => 'Bürokräfte und verwandte Berufe',
-            4 => 'Verkaufsberufe',
-            5 => 'Dienstleistungsberufe',
-            6 => 'Land- und Forstwirte, Fischer und Jäger',
-            7 => 'Produktions- und verwandte Berufe, Bediener von Transportmitteln und Arbeitskräfte',
-            8 => 'Produktions- und verwandte Berufe, Bediener von Transportmitteln und Arbeitskräfte',
-            9 => 'Produktions- und verwandte Berufe, Bediener von Transportmitteln und Arbeitskräfte',
-        ][$major_id] ?? null;
-    }
-
-    private function minorGroupLabelDe(int $minor_id): string|null
-    {
-        return [
-            94 => 'Produktions- und verwandte Berufe, anderweitig nicht klassifiziert',
-        ][$minor_id] ?? null;
-    }
-
-    private function unitGroupLabelDe(int $unit_id): string|null
-    {
-        return [
-            941 => 'Musikinstrumentenbauer und -stimmer',
-        ][$unit_id] ?? null;
-    }
 }

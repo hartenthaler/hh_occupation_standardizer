@@ -214,6 +214,7 @@ final class OccupationSchema
                 $table->string('label_en', 255);
                 $table->string('label_de', 255)->nullable();
                 $table->text('description_en');
+                $table->text('description_de')->nullable();
                 $table->timestamp('updated_at')->nullable();
             });
         }
@@ -225,6 +226,7 @@ final class OccupationSchema
                 $table->string('label_en', 255);
                 $table->string('label_de', 255)->nullable();
                 $table->text('description_en');
+                $table->text('description_de')->nullable();
                 $table->timestamp('updated_at')->nullable();
 
                 $table->index('major_id', 'idx_occ_std_hisco_minor_major');
@@ -238,6 +240,7 @@ final class OccupationSchema
                 $table->string('label_en', 255);
                 $table->string('label_de', 255)->nullable();
                 $table->text('description_en');
+                $table->text('description_de')->nullable();
                 $table->timestamp('updated_at')->nullable();
 
                 $table->index('minor_id', 'idx_occ_std_hisco_unit_minor');
@@ -337,6 +340,14 @@ final class OccupationSchema
             DB::schema()->table(self::TABLE_HISCO_UNIT_GROUPS, static function ($table): void {
                 $table->string('label_de', 255)->nullable();
             });
+        }
+
+        foreach ([self::TABLE_HISCO_MAJOR_GROUPS, self::TABLE_HISCO_MINOR_GROUPS, self::TABLE_HISCO_UNIT_GROUPS] as $table_name) {
+            if (DB::schema()->hasTable($table_name) && !DB::schema()->hasColumn($table_name, 'description_de')) {
+                DB::schema()->table($table_name, static function ($table): void {
+                    $table->text('description_de')->nullable();
+                });
+            }
         }
 
         if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, 'last_seen_at')) {

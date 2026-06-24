@@ -197,6 +197,7 @@ database schema was derived from that structure.
 | `label_en` | `string(255)` | Original English major group label. |
 | `label_de` | `string(255)` nullable | Optional German major group label. |
 | `description_en` | `text` | Original English description. |
+| `description_de` | `text` nullable | Optional German major group description. |
 | `updated_at` | timestamp nullable | Last import/update time. |
 
 ### `occupation_standardizer_hisco_minor_groups`
@@ -208,6 +209,7 @@ database schema was derived from that structure.
 | `label_en` | `string(255)` | Original English minor group label. |
 | `label_de` | `string(255)` nullable | Optional German minor group label. |
 | `description_en` | `text` | Original English description. |
+| `description_de` | `text` nullable | Optional German minor group description. |
 | `updated_at` | timestamp nullable | Last import/update time. |
 
 ### `occupation_standardizer_hisco_unit_groups`
@@ -219,6 +221,7 @@ database schema was derived from that structure.
 | `label_en` | `string(255)` | Original English unit group label. |
 | `label_de` | `string(255)` nullable | Optional German unit group label. |
 | `description_en` | `text` | Original English description. |
+| `description_de` | `text` nullable | Optional German unit group description. |
 | `updated_at` | timestamp nullable | Last import/update time. |
 
 ### `occupation_standardizer_hisco_occupations`

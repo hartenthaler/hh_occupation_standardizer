@@ -10,6 +10,7 @@ CREATE TABLE occupation_standardizer_hisco_major_groups (
     label_en       VARCHAR(255) NOT NULL,
     label_de       VARCHAR(255) NULL,
     description_en TEXT NOT NULL,
+    description_de TEXT NULL,
     updated_at     TIMESTAMP NULL,
     PRIMARY KEY (major_id)
 );
@@ -20,6 +21,7 @@ CREATE TABLE occupation_standardizer_hisco_minor_groups (
     label_en       VARCHAR(255) NOT NULL,
     label_de       VARCHAR(255) NULL,
     description_en TEXT NOT NULL,
+    description_de TEXT NULL,
     updated_at     TIMESTAMP NULL,
     PRIMARY KEY (minor_id),
     KEY idx_occ_std_hisco_minor_major (major_id)
@@ -29,7 +31,9 @@ CREATE TABLE occupation_standardizer_hisco_unit_groups (
     unit_id        SMALLINT UNSIGNED NOT NULL,
     minor_id       TINYINT UNSIGNED NOT NULL,
     label_en       VARCHAR(255) NOT NULL,
+    label_de       VARCHAR(255) NULL,
     description_en TEXT NOT NULL,
+    description_de TEXT NULL,
     updated_at     TIMESTAMP NULL,
     PRIMARY KEY (unit_id),
     KEY idx_occ_std_hisco_unit_minor (minor_id)
