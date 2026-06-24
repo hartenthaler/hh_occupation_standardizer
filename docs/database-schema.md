@@ -159,7 +159,7 @@ is generated for display.
 | FactGrid | `https://database.factgrid.de/wiki/Item:<code>` |
 | GND | `https://d-nb.info/gnd/<code>` |
 | HISCO | `https://druid.datalegend.net/HistoryOfWork/HISCO-latest/browser?resource=https%3A%2F%2Fiisg.amsterdam%2Fresource%2Fhisco%2Fcode%2Fhisco%2F<code>` |
-| OhdAB | Not linked yet; no stable code-based item URL has been verified. |
+| OhdAB | Use the FactGrid item id for the imported OhdAB concept: `https://database.factgrid.de/wiki/Item:<factgrid_id>`. FactGrid may contain both the OhdAB concept item and a more general historical occupation item; the OhdAB concept item is the relevant target for OhdAB links. |
 
 ## Bundled HISCO Catalog Tables
 

@@ -16,7 +16,7 @@ The module settings page is website-wide unless a family tree is explicitly sele
 
 Website-wide data includes:
 
-- imported OhdAB special database data
+- imported OhdAB and HISCO special database data
 - normalized occupation terms
 - normalization mapping rules
 - enabled and ordered built-in normalization rules

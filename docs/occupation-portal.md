@@ -36,7 +36,7 @@ The page can show:
 - normalized occupation details
 - external identifiers and source data
 - OhdAB hierarchy
-- HISCO hierarchy, when a HISCO code is available
+- HISCO hierarchy
 - visible individuals in the active tree who exercised this occupation
 - original occupation variants mapped to this normalized occupation
 - places
@@ -49,11 +49,11 @@ The persons card is permission-filtered for the current user.
 
 The currently supported external identifier families are:
 
-- Wikidata
-- FactGrid
-- GND / DNB
-- HISCO
 - OhdAB
+- HISCO
+- FactGrid
+- Wikidata
+- GND / DNB
 
 The implementation fetches Wikidata, FactGrid, and GND entity data when a normalized occupation concept or one of its visible occupation entries contains the corresponding external identifier.
 The raw JSON response is stored in the local cache and the page displays a small source-data table with the source label, description, source link, and the Wikidata-derived Wikipedia link where available.

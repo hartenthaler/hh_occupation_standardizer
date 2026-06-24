@@ -12,6 +12,10 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Added a HISCO hierarchy tile to the occupation landing page.
 - Added a HISCO hierarchy browser with major groups, minor groups, unit groups, occupations, counts, and matching visible individuals in the active family tree.
 
+### Changed
+
+- Changed OhdAB links to use the FactGrid item of the imported OhdAB concept.
+
 ## 2.2.6.2 - 2026-06-24
 
 ### Added
@@ -33,5 +37,4 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
-- Fixed missing translation of `Qualification`.
-- Fixed missing translation of normalization status values such as `recognized`.
+- Several translations.

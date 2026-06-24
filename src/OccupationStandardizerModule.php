@@ -1408,16 +1408,60 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     }
                 }
 
+                if ($type === 'ohdab') {
+                    $url = $this->ohdabFactGridUrl($code);
+                } else {
+                    $url = $external_identifier_service->url($type, $code);
+                }
+
                 $rows[] = [
                     'source'      => $label,
                     'code'        => $code,
-                    'url'         => $external_identifier_service->url($type, $code),
+                    'url'         => $url,
                     'extra_links' => $extra_links,
                 ];
             }
         }
 
         return $rows;
+    }
+
+    private function ohdabFactGridUrl(string $ohdab_full_id): string
+    {
+        $factgrid_id = $this->ohdabFactGridId($ohdab_full_id);
+
+        return $factgrid_id !== '' ? (new ExternalIdentifierService())->url('factgrid', $factgrid_id) : '';
+    }
+
+    private function ohdabFactGridId(string $ohdab_full_id): string
+    {
+        $ohdab_full_id = trim($ohdab_full_id);
+
+        if ($ohdab_full_id === '') {
+            return '';
+        }
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPTS)) {
+            $factgrid_id = (string) (DBManager::table(OccupationSchema::TABLE_NORM_CONCEPTS)
+                ->where('ohdab_full_id', '=', $ohdab_full_id)
+                ->whereNotNull('factgrid_id')
+                ->where('factgrid_id', '<>', '')
+                ->value('factgrid_id') ?? '');
+
+            if ($factgrid_id !== '') {
+                return $factgrid_id;
+            }
+        }
+
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return '';
+        }
+
+        return (string) (DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('code_ohdab', '=', $ohdab_full_id)
+            ->whereNotNull('code_factgrid')
+            ->where('code_factgrid', '<>', '')
+            ->value('code_factgrid') ?? '');
     }
 
     /**

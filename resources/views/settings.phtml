@@ -400,7 +400,7 @@ $ohdabCategoryChartColors = [
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small mb-0">OhdAB</label>
-                        <?php $url = $externalIdentifierService->url('ohdab', $term['code_ohdab']) ?>
+                        <?php $url = $term['code_ohdab'] !== '' ? $externalIdentifierService->url('factgrid', $term['code_factgrid']) : '' ?>
                         <?php if ($url !== '') : ?>
                             <div class="input-group input-group-sm">
                                 <input class="form-control form-control-sm" type="text" name="codeOhdab" value="<?= e($term['code_ohdab']) ?>">
