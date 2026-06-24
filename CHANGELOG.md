@@ -15,6 +15,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 ### Changed
 
 - Changed OhdAB links to use the FactGrid item of the imported OhdAB concept.
+- Show imported HISCO descriptions as hover text in the HISCO hierarchy browser.
 - Split the landing-page top-10 chart into separate OhdAB A and B charts.
 
 ### Fixed

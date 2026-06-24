@@ -752,7 +752,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{level:string,code:string,label:string}|null
+     * @return array{level:string,code:string,label:string,description:string}|null
      */
     private function hiscoHierarchyNode(string $level, string $code): array|null
     {
@@ -1085,7 +1085,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{level:string,code:string,label:string}|null
+     * @return array{level:string,code:string,label:string,description:string}|null
      */
     private function hiscoMajorNode(int $major_id, string $language): array|null
     {
@@ -1097,7 +1097,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{level:string,code:string,label:string}|null
+     * @return array{level:string,code:string,label:string,description:string}|null
      */
     private function hiscoMinorNode(int $minor_id, string $language): array|null
     {
@@ -1109,7 +1109,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{level:string,code:string,label:string}|null
+     * @return array{level:string,code:string,label:string,description:string}|null
      */
     private function hiscoUnitNode(int $unit_id, string $language): array|null
     {
@@ -1133,50 +1133,54 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{level:string,code:string,label:string}
+     * @return array{level:string,code:string,label:string,description:string}
      */
     private function hiscoMajorNodeRow(object $row, string $language): array
     {
         return [
-            'level' => 'major',
-            'code'  => (string) $row->major_id,
-            'label' => trim((string) $row->major_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+            'level'       => 'major',
+            'code'        => (string) $row->major_id,
+            'label'       => trim((string) $row->major_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+            'description' => (string) ($row->description_en ?? ''),
         ];
     }
 
     /**
-     * @return array{level:string,code:string,label:string}
+     * @return array{level:string,code:string,label:string,description:string}
      */
     private function hiscoMinorNodeRow(object $row, string $language): array
     {
         return [
-            'level' => 'minor',
-            'code'  => (string) $row->minor_id,
-            'label' => trim((string) $row->minor_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+            'level'       => 'minor',
+            'code'        => (string) $row->minor_id,
+            'label'       => trim((string) $row->minor_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+            'description' => (string) ($row->description_en ?? ''),
         ];
     }
 
     /**
-     * @return array{level:string,code:string,label:string}
+     * @return array{level:string,code:string,label:string,description:string}
      */
     private function hiscoUnitNodeRow(object $row, string $language): array
     {
         return [
-            'level' => 'unit',
-            'code'  => (string) $row->unit_id,
-            'label' => trim((string) $row->unit_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+            'level'       => 'unit',
+            'code'        => (string) $row->unit_id,
+            'label'       => trim((string) $row->unit_id . ' ' . ($this->useGermanHiscoLabel($language) && (string) ($row->label_de ?? '') !== '' ? (string) $row->label_de : (string) $row->label_en)),
+            'description' => (string) ($row->description_en ?? ''),
         ];
     }
 
     /**
-     * @return array{level:string,code:string,label:string}
+     * @return array{level:string,code:string,label:string,description:string}
      */
     private function hiscoOccupationNodeRow(object $row): array
     {
         return [
-            'level' => 'occupation',
-            'code'  => (string) $row->hisco_id,
-            'label' => trim((string) $row->hisco_pretty . ' ' . (string) $row->label_en),
+            'level'       => 'occupation',
+            'code'        => (string) $row->hisco_id,
+            'label'       => trim((string) $row->hisco_pretty . ' ' . (string) $row->label_en),
+            'description' => (string) ($row->description_en ?? ''),
         ];
     }
 

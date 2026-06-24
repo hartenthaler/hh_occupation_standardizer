@@ -9,9 +9,9 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 use Illuminate\Support\Collection;
 
 /**
- * @var list<array{level:string,code:string,label:string}> $ancestors
- * @var list<array{level:string,code:string,label:string,entry_count:int,individual_count:int}> $children
- * @var array{level:string,code:string,label:string}|null $currentNode
+ * @var list<array{level:string,code:string,label:string,description:string}> $ancestors
+ * @var list<array{level:string,code:string,label:string,description:string,entry_count:int,individual_count:int}> $children
+ * @var array{level:string,code:string,label:string,description:string}|null $currentNode
  * @var bool $hasSource
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $persons
@@ -47,11 +47,11 @@ $childIndividualCount = array_sum(array_map(static fn (array $child): int => $ch
                 <?php foreach ($ancestors as $ancestor) : ?>
                     <li class="breadcrumb-item <?= $currentNode !== null && $ancestor['level'] === $currentNode['level'] && $ancestor['code'] === $currentNode['code'] ? 'active' : '' ?>">
                         <?php if ($currentNode !== null && $ancestor['level'] === $currentNode['level'] && $ancestor['code'] === $currentNode['code']) : ?>
-                            <span aria-current="page">
+                            <span aria-current="page" title="<?= e($ancestor['description']) ?>">
                                 <bdi><?= e($ancestor['label']) ?></bdi>
                             </span>
                         <?php else : ?>
-                            <a href="<?= e($listUrl(['view' => 'hisco-hierarchy', 'level' => $ancestor['level'], 'code' => $ancestor['code']])) ?>">
+                            <a href="<?= e($listUrl(['view' => 'hisco-hierarchy', 'level' => $ancestor['level'], 'code' => $ancestor['code']])) ?>" title="<?= e($ancestor['description']) ?>">
                                 <bdi><?= e($ancestor['label']) ?></bdi>
                             </a>
                         <?php endif ?>
@@ -63,7 +63,7 @@ $childIndividualCount = array_sum(array_map(static fn (array $child): int => $ch
         <?php if ($currentNode !== null) : ?>
             <div class="mb-3">
                 <h3 class="h4 mb-1">
-                    <bdi><?= e($currentNode['label']) ?></bdi>
+                    <bdi title="<?= e($currentNode['description']) ?>"><?= e($currentNode['label']) ?></bdi>
                 </h3>
                 <div class="text-muted">
                     <?= I18N::translate('HISCO hierarchy') ?>
@@ -121,7 +121,7 @@ $childIndividualCount = array_sum(array_map(static fn (array $child): int => $ch
                                 <tr>
                                     <td><bdi><?= e($child['code']) ?></bdi></td>
                                     <td>
-                                        <a href="<?= e($listUrl(['view' => 'hisco-hierarchy', 'level' => $child['level'], 'code' => $child['code']])) ?>">
+                                        <a href="<?= e($listUrl(['view' => 'hisco-hierarchy', 'level' => $child['level'], 'code' => $child['code']])) ?>" title="<?= e($child['description']) ?>">
                                             <bdi><?= e($child['label']) ?></bdi>
                                         </a>
                                     </td>
