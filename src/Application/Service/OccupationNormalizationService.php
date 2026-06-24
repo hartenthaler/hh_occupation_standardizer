@@ -193,20 +193,25 @@ final class OccupationNormalizationService
 
             if ($rule_id === 'M2-R030' && preg_match('/^(.+?)\s*:\s*(meister|geselle|lehrling)$/iu', $original, $match) === 1) {
                 // M2-R030: Craft qualification after colon.
-                return $this->withRules($entry, [
+                $occupation = $this->normalizeOccupationName($match[1]);
+                $entry = $this->withRules($entry, [
                     'occupation_normalized' => $this->normalizeOccupationName($match[1]),
                     'qualification'         => self::QUALIFICATIONS[mb_strtolower($match[2])],
                     'status'                => self::STATUS_RECOGNIZED,
                 ], [$rule_id]);
+
+                return $this->enrichMappedOccupation($entry, $occupation, $language, [$rule_id]);
             }
 
             if ($rule_id === 'M2-R031' && $lower === 'orgelbaumeister') {
                 // M2-R031: Compound craft qualification.
-                return $this->withRules($entry, [
+                $entry = $this->withRules($entry, [
                     'occupation_normalized' => 'Orgelbauer',
                     'qualification'         => 'Meister',
                     'status'                => self::STATUS_RECOGNIZED,
                 ], [$rule_id]);
+
+                return $this->enrichMappedOccupation($entry, 'Orgelbauer', $language, [$rule_id]);
             }
 
             if ($rule_id === 'M2-R032' && in_array($lower, self::MASTER_COMPOUND_EXCEPTIONS, true)) {
@@ -315,6 +320,67 @@ final class OccupationNormalizationService
     private function normalizeOccupationName(string $occupation): string
     {
         return trim($occupation);
+    }
+
+    /**
+     * @param array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
+     * @param list<string> $rules
+     *
+     * @return array{original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}
+     */
+    private function enrichMappedOccupation(array $entry, string $occupation, string $language, array $rules): array
+    {
+        foreach ($this->builtin_rule_order as $rule_id) {
+            if ($rule_id === 'M2-R050') {
+                foreach ($this->normalization_rules as $rule) {
+                    if ($this->ruleMatches($rule, $occupation, $language)) {
+                        return $this->withRules($entry, [
+                            'language'              => $rule['language'] !== '' ? $rule['language'] : $language,
+                            'social_status'         => $rule['social_status'],
+                            'occupation_normalized' => $rule['occupation_normalized'],
+                            'occupation_de_male'    => $rule['occupation_de_male'] ?? '',
+                            'occupation_de_female'  => $rule['occupation_de_female'] ?? '',
+                            'occupation_de_neutral' => $rule['occupation_de_neutral'] ?? '',
+                            'occupation_en_male'    => $rule['occupation_en_male'] ?? '',
+                            'occupation_en_female'  => $rule['occupation_en_female'] ?? '',
+                            'occupation_en_neutral' => $rule['occupation_en_neutral'] ?? '',
+                            'code_hisco'            => $rule['code_hisco'],
+                            'code_gnd'              => $rule['code_gnd'],
+                            'code_ohdab'            => $rule['code_ohdab'],
+                            'code_factgrid'         => $rule['code_factgrid'] ?? '',
+                            'code_wikidata'         => $rule['code_wikidata'] ?? '',
+                            'status'                => self::STATUS_RECOGNIZED,
+                        ], [...$rules, $rule_id]);
+                    }
+                }
+            }
+
+            if ($rule_id === 'M4-R100') {
+                foreach ($this->ohdab_special_mappings as $mapping) {
+                    if ($this->ohdabSpecialMappingMatches($mapping, $occupation, $language)) {
+                        return $this->withRules($entry, [
+                            'language'              => $mapping['language'] !== '' ? $mapping['language'] : $language,
+                            'occupation_normalized' => $mapping['occupation_normalized'],
+                            'occupation_de_male'    => $mapping['occupation_de_male'],
+                            'occupation_de_female'  => $mapping['occupation_de_female'],
+                            'occupation_de_neutral' => $mapping['occupation_de_neutral'],
+                            'occupation_en_male'    => $mapping['occupation_en_male'],
+                            'occupation_en_female'  => $mapping['occupation_en_female'],
+                            'occupation_en_neutral' => $mapping['occupation_en_neutral'],
+                            'code_hisco'            => $mapping['code_hisco'],
+                            'code_gnd'              => $mapping['code_gnd'],
+                            'code_ohdab'            => $mapping['code_ohdab'],
+                            'code_factgrid'         => $mapping['code_factgrid'],
+                            'code_wikidata'         => $mapping['code_wikidata'],
+                            'norm_concept_id'       => $mapping['norm_concept_id'],
+                            'status'                => self::STATUS_RECOGNIZED,
+                        ], [...$rules, $rule_id]);
+                    }
+                }
+            }
+        }
+
+        return $entry;
     }
 
     /**
