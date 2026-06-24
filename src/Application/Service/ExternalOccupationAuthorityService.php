@@ -27,7 +27,7 @@ final class ExternalOccupationAuthorityService
     /**
      * @param array<string,list<string>> $identifiers
      *
-     * @return list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}>
+     * @return list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}>
      */
     public function rowsForIdentifiers(array $identifiers, string $language_tag): array
     {
@@ -49,7 +49,7 @@ final class ExternalOccupationAuthorityService
     }
 
     /**
-     * @return array{source:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}|null
      */
     private function wikidataRow(string $id, string $language_tag): array|null
     {
@@ -64,6 +64,7 @@ final class ExternalOccupationAuthorityService
         if ($entity === null) {
             return [
                 'source'        => 'Wikidata',
+                'code'          => $id,
                 'label'         => '',
                 'description'   => '',
                 'url'           => 'https://www.wikidata.org/wiki/' . rawurlencode($id),
@@ -73,6 +74,7 @@ final class ExternalOccupationAuthorityService
 
         return [
             'source'        => 'Wikidata',
+            'code'          => $id,
             'label'         => $this->languageValue($entity['labels'] ?? [], $language_tag),
             'description'   => $this->languageValue($entity['descriptions'] ?? [], $language_tag),
             'url'           => 'https://www.wikidata.org/wiki/' . rawurlencode($id),
@@ -81,7 +83,7 @@ final class ExternalOccupationAuthorityService
     }
 
     /**
-     * @return array{source:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}|null
      */
     private function factgridRow(string $id, string $language_tag): array|null
     {
@@ -96,6 +98,7 @@ final class ExternalOccupationAuthorityService
         if ($entity === null) {
             return [
                 'source'        => 'FactGrid',
+                'code'          => $id,
                 'label'         => '',
                 'description'   => '',
                 'url'           => 'https://database.factgrid.de/wiki/Item:' . rawurlencode($id),
@@ -105,6 +108,7 @@ final class ExternalOccupationAuthorityService
 
         return [
             'source'        => 'FactGrid',
+            'code'          => $id,
             'label'         => $this->languageValue($entity['labels'] ?? [], $language_tag),
             'description'   => $this->languageValue($entity['descriptions'] ?? [], $language_tag),
             'url'           => 'https://database.factgrid.de/wiki/Item:' . rawurlencode($id),
@@ -113,7 +117,7 @@ final class ExternalOccupationAuthorityService
     }
 
     /**
-     * @return array{source:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}|null
      */
     private function gndRow(string $id): array|null
     {
@@ -127,6 +131,7 @@ final class ExternalOccupationAuthorityService
         if ($data === null) {
             return [
                 'source'        => 'GND',
+                'code'          => $id,
                 'label'         => '',
                 'description'   => '',
                 'url'           => 'https://d-nb.info/gnd/' . rawurlencode($id),
@@ -136,6 +141,7 @@ final class ExternalOccupationAuthorityService
 
         return [
             'source'        => 'GND',
+            'code'          => $id,
             'label'         => (string) ($data['preferredName'] ?? ''),
             'description'   => $this->gndDescription($data),
             'url'           => 'https://d-nb.info/gnd/' . rawurlencode($id),

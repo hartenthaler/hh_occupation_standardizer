@@ -10,11 +10,11 @@ use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
-$externalAuthorityRowsBySource = [];
-$externalIdentifierSources = [];
+$externalAuthorityRowsBySourceAndCode = [];
+$externalIdentifierSourceCodes = [];
 
 foreach ($externalAuthorityRows as $row) {
-    $externalAuthorityRowsBySource[$row['source']][] = $row;
+    $externalAuthorityRowsBySourceAndCode[$row['source']][$row['code']][] = $row;
 }
 
 $hiscoCatalogRows ??= [];
@@ -23,7 +23,7 @@ $periodStats ??= [];
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
- * @var list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
+ * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
  * @var string $hierarchyPath
@@ -118,7 +118,7 @@ $periodStats ??= [];
                             <table class="table table-sm mb-0">
                                 <tbody>
                                     <?php foreach ($externalIdentifierRows as $row) : ?>
-                                        <?php $externalIdentifierSources[$row['source']] = true ?>
+                                        <?php $externalIdentifierSourceCodes[$row['source'] . "\n" . $row['code']] = true ?>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= e($row['source']) ?></th>
                                             <td>
@@ -135,7 +135,7 @@ $periodStats ??= [];
                                                         <span class="visually-hidden"><?= e($link['label']) ?></span>
                                                     </a>
                                                 <?php endforeach ?>
-                                                <?php foreach ($externalAuthorityRowsBySource[$row['source']] ?? [] as $authority_row) : ?>
+                                                <?php foreach ($externalAuthorityRowsBySourceAndCode[$row['source']][$row['code']] ?? [] as $authority_row) : ?>
                                                     <?php if ($authority_row['label'] !== '') : ?>
                                                         <div class="small mt-1">
                                                             <span class="text-muted"><?= MoreI18N::xlate('Label') ?>:</span>
@@ -159,12 +159,13 @@ $periodStats ??= [];
                                         </tr>
                                     <?php endforeach ?>
                                     <?php foreach ($externalAuthorityRows as $authority_row) : ?>
-                                        <?php if (isset($externalIdentifierSources[$authority_row['source']])) : ?>
+                                        <?php if (isset($externalIdentifierSourceCodes[$authority_row['source'] . "\n" . $authority_row['code']])) : ?>
                                             <?php continue ?>
                                         <?php endif ?>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= e($authority_row['source']) ?></th>
                                             <td>
+                                                <bdi><?= e($authority_row['code']) ?></bdi>
                                                 <a class="btn btn-link btn-sm p-0 align-baseline" href="<?= e($authority_row['url']) ?>" target="_blank" rel="noopener noreferrer" title="<?= e($authority_row['source']) ?>">
                                                     <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                                                     <span class="visually-hidden"><?= e($authority_row['source']) ?></span>
