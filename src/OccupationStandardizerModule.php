@@ -1538,13 +1538,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private function topNormalizedOccupationCharts(Tree $tree): array
     {
         $charts = [
-            'A' => [
-                'title' => I18N::translate('Most common normalized social statuses'),
+            'B' => [
+                'title' => I18N::translate('Most common normalized occupations'),
                 'rows'  => [],
                 'total' => 0,
             ],
-            'B' => [
-                'title' => I18N::translate('Most common normalized occupations'),
+            'A' => [
+                'title' => I18N::translate('Most common normalized social statuses'),
                 'rows'  => [],
                 'total' => 0,
             ],
@@ -1556,8 +1556,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         $counts = [
-            'A' => [],
             'B' => [],
+            'A' => [],
         ];
 
         foreach ($this->activeNormalizedOccupationRows($tree) as $entry_row) {
@@ -1665,6 +1665,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private function normalizedOccupationChartLabel(object $entry_row): string
     {
         $user_language = explode('-', str_replace('_', '-', I18N::languageTag()))[0] ?? '';
+        $factgrid_label = $this->ohdabSpecialDatabaseService()->conceptLabel((int) ($entry_row->norm_concept_id ?? 0), I18N::languageTag());
         $candidates = $user_language === 'de'
             ? [
                 (string) ($entry_row->occupation_de_neutral ?? ''),
@@ -1673,6 +1674,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 (string) ($entry_row->term_occupation_de_male ?? ''),
                 (string) ($entry_row->occupation_de_female ?? ''),
                 (string) ($entry_row->term_occupation_de_female ?? ''),
+                $factgrid_label,
                 (string) ($entry_row->occupation_normalized ?? ''),
                 (string) ($entry_row->occupation_en_neutral ?? ''),
                 (string) ($entry_row->term_occupation_en_neutral ?? ''),
@@ -1688,6 +1690,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 (string) ($entry_row->term_occupation_en_male ?? ''),
                 (string) ($entry_row->occupation_en_female ?? ''),
                 (string) ($entry_row->term_occupation_en_female ?? ''),
+                $factgrid_label,
                 (string) ($entry_row->occupation_de_neutral ?? ''),
                 (string) ($entry_row->term_occupation_de_neutral ?? ''),
                 (string) ($entry_row->occupation_de_male ?? ''),

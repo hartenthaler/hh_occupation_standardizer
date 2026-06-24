@@ -231,7 +231,7 @@ $periodStats ??= [];
                                     <?php foreach ($ohdabHierarchyRows as $index => $label) : ?>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= I18N::translate('Level') ?> <?= I18N::number($index + 1) ?></th>
-                                            <td><bdi><?= e(trim($label['code'] . ' ' . $label['label'])) ?></bdi></td>
+                                            <td><bdi><?= e(trim($label['label'])) ?></bdi></td>
                                         </tr>
                                     <?php endforeach ?>
                                 </tbody>

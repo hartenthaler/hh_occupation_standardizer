@@ -344,6 +344,25 @@ final class OhdabSpecialDatabaseService
         return $this->hierarchy_label_cache[$cache_key] = $factgrid_label !== '' ? $factgrid_label : $fallback;
     }
 
+    public function conceptLabel(int $concept_id, string $language_tag): string
+    {
+        if ($concept_id <= 0 || !DB::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPTS)) {
+            return '';
+        }
+
+        $factgrid_id = (string) (DB::table(OccupationSchema::TABLE_NORM_CONCEPTS)
+            ->where('id', '=', $concept_id)
+            ->value('factgrid_id') ?? '');
+
+        $entity = $this->factGridEntity($factgrid_id);
+
+        if ($entity === null) {
+            return '';
+        }
+
+        return self::stripCodePrefix($this->languageValue($entity['labels'] ?? [], $language_tag));
+    }
+
     private function factGridHierarchyLabel(int $node_id, string $code, string $language_tag): string
     {
         if (
@@ -573,6 +592,17 @@ final class OhdabSpecialDatabaseService
         }
 
         return trim($code . ' ' . $label);
+    }
+
+    private static function stripCodePrefix(string $label): string
+    {
+        $label = trim($label);
+
+        if (preg_match('/^[AB]\s*[0-9]+(?:-[0-9]+)?\s*[:\\-]\s*(.+)$/u', $label, $match) === 1) {
+            return trim($match[1]);
+        }
+
+        return $label;
     }
 
     /**

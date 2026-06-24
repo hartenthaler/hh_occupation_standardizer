@@ -255,7 +255,7 @@ final class OccupationLabelService
         $parts = [];
 
         foreach ($this->ohdab_special_database_service->hierarchyRows($concept_id) as $row) {
-            $parts[] = trim($row['code'] . ' ' . $row['label']);
+            $parts[] = trim($row['label']);
         }
 
         return $this->ohdab_hierarchy_cache[$concept_id] = implode(' > ', array_values(array_filter($parts)));
