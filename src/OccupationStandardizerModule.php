@@ -395,13 +395,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $concept = $this->occupationConcept($concept_id);
             $people = $this->occupationConceptPeople($tree, $concept_id);
             $external_identifiers = $this->occupationPortalExternalIdentifiers($concept, $people);
+            $ohdab_service = new OhdabSpecialDatabaseService();
 
             return $this->viewResponse($this->name() . '::occupation-portal', [
                 'concept'       => $concept,
                 'externalAuthorityRows' => (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag()),
                 'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
                 'hiscoCatalogRows' => $this->occupationPortalHiscoCatalogRows($external_identifiers),
-                'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
+                'hierarchyPath' => $concept !== null ? $ohdab_service->hierarchyPath($concept_id) : '',
+                'ohdabHierarchyRows' => $concept !== null ? $ohdab_service->hierarchyRows($concept_id) : [],
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
                 'periodStats'   => $this->occupationPortalPeriodStats($people),

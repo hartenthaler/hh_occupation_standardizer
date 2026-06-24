@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
+$ohdabHierarchyRows ??= [];
 $externalAuthorityRowsBySourceAndCode = [];
 $externalIdentifierSourceCodes = [];
 
@@ -20,7 +21,6 @@ foreach ($externalAuthorityRows as $row) {
 $hiscoCatalogRows ??= [];
 $hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): string => $row['hisco_pretty'], $hiscoCatalogRows)));
 $hierarchyColumnClass = $hiscoCatalogRows !== [] ? 'col-12 col-xl-6' : 'col-12';
-$ohdabHierarchyRows = $hierarchyPath !== '' ? array_reverse(explode(' > ', $hierarchyPath)) : [];
 $periodStats ??= [];
 
 /**
@@ -28,6 +28,7 @@ $periodStats ??= [];
  * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
+ * @var list<array{code:string,label:string}> $ohdabHierarchyRows
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
@@ -209,15 +210,28 @@ $periodStats ??= [];
                         <?php endif ?>
                     </div>
                     <div class="card-body p-2">
-                        <?php if ($ohdabHierarchyRows === []) : ?>
+                        <?php if ($ohdabHierarchyRows === [] && $concept['preferred_label'] === '') : ?>
                             <p class="mb-0 text-muted"><?= I18N::translate('No OhdAB hierarchy is available for this occupation.') ?></p>
                         <?php else : ?>
                             <table class="table table-sm mb-0">
                                 <tbody>
+                                    <?php if ($concept['preferred_label'] !== '') : ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Occupation') ?></th>
+                                            <td>
+                                                <bdi>
+                                                    <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                                                        <?= e($concept['ohdab_full_id']) ?>
+                                                    <?php endif ?>
+                                                    <?= e($concept['preferred_label']) ?>
+                                                </bdi>
+                                            </td>
+                                        </tr>
+                                    <?php endif ?>
                                     <?php foreach ($ohdabHierarchyRows as $index => $label) : ?>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= I18N::translate('Level') ?> <?= I18N::number($index + 1) ?></th>
-                                            <td><bdi><?= e($label) ?></bdi></td>
+                                            <td><bdi><?= e(trim($label['code'] . ' ' . $label['label'])) ?></bdi></td>
                                         </tr>
                                     <?php endforeach ?>
                                 </tbody>
@@ -231,7 +245,7 @@ $periodStats ??= [];
                 <div class="col-12 col-xl-6">
                     <section class="card">
                         <div class="card-header">
-                            HISCO
+                            <?= I18N::translate('HISCO hierarchy') ?>
                             <?php if ($hiscoCatalogIds !== []) : ?>
                                 <span class="text-muted">(<?= e(implode(', ', $hiscoCatalogIds)) ?>)</span>
                             <?php endif ?>
