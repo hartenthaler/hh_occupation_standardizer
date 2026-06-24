@@ -196,6 +196,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'normalizationTerms' => $this->normalizationTermRows(),
             'normalizationTermOptions' => $this->normalizationTermOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
+            'hiscoStatistics'     => $this->hiscoStatistics(),
             'ohdabCategoryStatistics' => $this->ohdabCategoryStatistics(),
             'ohdabSpecialDatabase' => (new OhdabSpecialDatabaseService())->sourceInfo(),
             'title'              => $this->title(),
@@ -2460,6 +2461,91 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'percentage' => $assigned_total > 0 ? (int) $row->category_count / $assigned_total : 0.0,
                 ])
                 ->all(),
+        ];
+    }
+
+    /**
+     * @return array{original_total:int,split_total:int,assigned_total:int,table_counts:list<array{table:string,count:int}>,categories:list<array{category:string,count:int,percentage:float}>}
+     */
+    private function hiscoStatistics(): array
+    {
+        $empty_statistics = [
+            'original_total' => 0,
+            'split_total'    => 0,
+            'assigned_total' => 0,
+            'table_counts'   => [],
+            'categories'     => [],
+        ];
+
+        foreach ([
+            OccupationSchema::TABLE_NORMALIZED_ENTRIES,
+            OccupationSchema::TABLE_HISCO_MAJOR_GROUPS,
+            OccupationSchema::TABLE_HISCO_MINOR_GROUPS,
+            OccupationSchema::TABLE_HISCO_UNIT_GROUPS,
+            OccupationSchema::TABLE_HISCO_OCCUPATIONS,
+        ] as $table) {
+            if (!DBManager::schema()->hasTable($table)) {
+                return $empty_statistics;
+            }
+        }
+
+        $table_counts = [
+            ['table' => 'Major groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->count()],
+            ['table' => 'Minor groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->count()],
+            ['table' => 'Unit groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->count()],
+            ['table' => 'Occupations', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->count()],
+        ];
+
+        $active_entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true);
+        $split_total = (int) $active_entries->count();
+        $original_total = (int) DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->distinct()
+            ->get(['tree_id', 'fact_id'])
+            ->count();
+
+        $service = new HiscoCatalogService();
+        $category_counts = [];
+        $assigned_total = 0;
+
+        foreach (DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->whereNotNull('code_hisco')
+            ->where('code_hisco', '<>', '')
+            ->pluck('code_hisco') as $code) {
+            $row = $service->occupation((string) $code, I18N::languageTag());
+
+            if ($row === null) {
+                continue;
+            }
+
+            $category = trim($row['major']['code'] . ' ' . $row['major']['label']);
+
+            if ($category === '') {
+                continue;
+            }
+
+            $category_counts[$category] = ($category_counts[$category] ?? 0) + 1;
+            $assigned_total++;
+        }
+
+        ksort($category_counts, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return [
+            'original_total' => $original_total,
+            'split_total'    => $split_total,
+            'assigned_total' => $assigned_total,
+            'table_counts'   => $table_counts,
+            'categories'     => array_map(
+                static fn (string $category, int $count): array => [
+                    'category'   => $category,
+                    'count'      => $count,
+                    'percentage' => $assigned_total > 0 ? $count / $assigned_total : 0.0,
+                ],
+                array_keys($category_counts),
+                array_values($category_counts)
+            ),
         ];
     }
 

@@ -541,6 +541,58 @@ msgstr ""
 msgid "Level"
 msgstr ""
 
+#: resources/views/settings.phtml
+msgid "HISCO catalog"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "The bundled HISCO catalog is imported into module-owned database tables and used to show hierarchy details for HISCO identifiers."
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO database tables"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "No HISCO catalog tables are available yet."
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "Database table"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "Rows"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Major groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Minor groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Unit groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Occupations"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO category statistics"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "No assigned HISCO categories are available yet."
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO major group"
+msgstr ""
+
 #: resources/views/occupation-portal.phtml:136
 msgid "No visible individuals were found for this occupation."
 msgstr ""

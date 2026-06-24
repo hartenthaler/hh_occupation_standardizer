@@ -655,6 +655,62 @@ msgstr "Für diesen Beruf ist keine OhdAB-Hierarchie verfügbar."
 msgid "Level"
 msgstr "Ebene"
 
+#: resources/views/settings.phtml
+msgid "HISCO catalog"
+msgstr "HISCO-Katalog"
+
+#: resources/views/settings.phtml
+msgid ""
+"The bundled HISCO catalog is imported into module-owned database tables and "
+"used to show hierarchy details for HISCO identifiers."
+msgstr ""
+"Der mitgelieferte HISCO-Katalog wird in modulseigene Datenbanktabellen "
+"importiert und verwendet, um Hierarchiedetails zu HISCO-Kennungen anzuzeigen."
+
+#: resources/views/settings.phtml
+msgid "HISCO database tables"
+msgstr "HISCO-Datenbanktabellen"
+
+#: resources/views/settings.phtml
+msgid "No HISCO catalog tables are available yet."
+msgstr "Es sind noch keine HISCO-Katalogtabellen verfügbar."
+
+#: resources/views/settings.phtml
+msgid "Database table"
+msgstr "Datenbanktabelle"
+
+#: resources/views/settings.phtml
+msgid "Rows"
+msgstr "Zeilen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Major groups"
+msgstr "Hauptgruppen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Minor groups"
+msgstr "Untergruppen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Unit groups"
+msgstr "Einheitsgruppen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Occupations"
+msgstr "Berufe"
+
+#: resources/views/settings.phtml
+msgid "HISCO category statistics"
+msgstr "HISCO-Kategoriestatistik"
+
+#: resources/views/settings.phtml
+msgid "No assigned HISCO categories are available yet."
+msgstr "Es sind noch keine zugeordneten HISCO-Kategorien verfügbar."
+
+#: resources/views/settings.phtml
+msgid "HISCO major group"
+msgstr "HISCO-Hauptgruppe"
+
 #: resources/views/occupation-portal.phtml:136
 msgid "No visible individuals were found for this occupation."
 msgstr "Für diesen Beruf wurden keine sichtbaren Personen gefunden."
