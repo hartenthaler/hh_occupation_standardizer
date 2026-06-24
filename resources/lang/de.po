@@ -647,6 +647,10 @@ msgstr "Es sind keine externen Quelldaten verfügbar."
 msgid "No OhdAB hierarchy is available for this occupation."
 msgstr "Für diesen Beruf ist keine OhdAB-Hierarchie verfügbar."
 
+#: resources/views/occupation-portal.phtml:126
+msgid "Level"
+msgstr "Ebene"
+
 #: resources/views/occupation-portal.phtml:136
 msgid "No visible individuals were found for this occupation."
 msgstr "Für diesen Beruf wurden keine sichtbaren Personen gefunden."

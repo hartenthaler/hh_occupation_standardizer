@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
 $hiscoCatalogRows ??= [];
+$ohdabHierarchyRows = $hierarchyPath !== '' ? explode(' > ', $hierarchyPath) : [];
 $periodStats ??= [];
 
 /**
@@ -136,6 +137,30 @@ $periodStats ??= [];
                 </section>
             </div>
 
+            <div class="col-12">
+                <section class="card">
+                    <div class="card-header">
+                        <?= I18N::translate('OhdAB hierarchy') ?>
+                    </div>
+                    <div class="card-body p-2">
+                        <?php if ($ohdabHierarchyRows === []) : ?>
+                            <p class="mb-0 text-muted"><?= I18N::translate('No OhdAB hierarchy is available for this occupation.') ?></p>
+                        <?php else : ?>
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <?php foreach ($ohdabHierarchyRows as $index => $label) : ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Level') ?> <?= I18N::number($index + 1) ?></th>
+                                            <td><bdi><?= e($label) ?></bdi></td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php endif ?>
+                    </div>
+                </section>
+            </div>
+
             <?php if ($hiscoCatalogRows !== []) : ?>
                 <div class="col-12">
                     <section class="card">
@@ -214,21 +239,6 @@ $periodStats ??= [];
                                     <?php endforeach ?>
                                 </tbody>
                             </table>
-                        <?php endif ?>
-                    </div>
-                </section>
-            </div>
-
-            <div class="col-12">
-                <section class="card">
-                    <div class="card-header">
-                        <?= I18N::translate('OhdAB hierarchy') ?>
-                    </div>
-                    <div class="card-body">
-                        <?php if ($hierarchyPath === '') : ?>
-                            <p class="mb-0 text-muted"><?= I18N::translate('No OhdAB hierarchy is available for this occupation.') ?></p>
-                        <?php else : ?>
-                            <p class="mb-0"><bdi><?= e($hierarchyPath) ?></bdi></p>
                         <?php endif ?>
                     </div>
                 </section>

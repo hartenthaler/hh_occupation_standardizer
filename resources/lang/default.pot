@@ -533,6 +533,10 @@ msgstr ""
 msgid "No OhdAB hierarchy is available for this occupation."
 msgstr ""
 
+#: resources/views/occupation-portal.phtml:126
+msgid "Level"
+msgstr ""
+
 #: resources/views/occupation-portal.phtml:136
 msgid "No visible individuals were found for this occupation."
 msgstr ""
