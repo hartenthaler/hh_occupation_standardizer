@@ -18,7 +18,8 @@ foreach ($externalAuthorityRows as $row) {
 }
 
 $hiscoCatalogRows ??= [];
-$ohdabHierarchyRows = $hierarchyPath !== '' ? explode(' > ', $hierarchyPath) : [];
+$hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): string => $row['hisco_pretty'], $hiscoCatalogRows)));
+$ohdabHierarchyRows = $hierarchyPath !== '' ? array_reverse(explode(' > ', $hierarchyPath)) : [];
 $periodStats ??= [];
 
 /**
@@ -202,6 +203,9 @@ $periodStats ??= [];
                 <section class="card">
                     <div class="card-header">
                         <?= I18N::translate('OhdAB hierarchy') ?>
+                        <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                            <span class="text-muted">(<?= e($concept['ohdab_full_id']) ?>)</span>
+                        <?php endif ?>
                     </div>
                     <div class="card-body p-2">
                         <?php if ($ohdabHierarchyRows === []) : ?>
@@ -227,15 +231,14 @@ $periodStats ??= [];
                     <section class="card">
                         <div class="card-header">
                             HISCO
+                            <?php if ($hiscoCatalogIds !== []) : ?>
+                                <span class="text-muted">(<?= e(implode(', ', $hiscoCatalogIds)) ?>)</span>
+                            <?php endif ?>
                         </div>
                         <div class="card-body p-2">
                             <?php foreach ($hiscoCatalogRows as $row) : ?>
                                 <table class="table table-sm mb-3">
                                     <tbody>
-                                        <tr>
-                                            <th class="text-muted w-25" scope="row">HISCO</th>
-                                            <td><bdi><?= e($row['hisco_pretty']) ?></bdi> <span class="text-muted">(<?= e($row['hisco_id']) ?>)</span></td>
-                                        </tr>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Occupation') ?></th>
                                             <td>
