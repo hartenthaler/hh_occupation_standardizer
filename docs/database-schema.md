@@ -87,7 +87,7 @@ written back to GEDCOM by the module.
 | `code_factgrid` | `string(64)` nullable | FactGrid item id, e.g. `Q699480`. |
 | `code_wikidata` | `string(64)` nullable | Wikidata item id, e.g. `Q28640`. |
 | `norm_concept_id` | integer nullable | Linked imported norm concept, currently used for the tailored German OhdAB special database. |
-| `status` | `string(32)` | Normalization status, currently `recognized`, `unclear`, or `ignored`. |
+| `status` | `string(32)` | Normalization status, currently `recognized`, `unclear`, or `ignored`. These values are stored as stable internal keys and translated for display. |
 | `reviewed` | boolean | Explicit reviewer decision. Saving a manual edit does not automatically set this flag. |
 | `manually_changed` | boolean | Internal flag that protects unfinished manual edits from being overwritten by later automatic synchronization. |
 | `is_active` | boolean | Whether the row still corresponds to a currently existing `OCCU` part. Deleted or changed GEDCOM facts leave inactive rows instead of immediately deleting review history. |

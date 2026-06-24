@@ -18,7 +18,7 @@ $externalIdentifierService = new ExternalIdentifierService();
  * @var array<string,string> $languageOptions
  * @var callable(int):string $portalUrl
  * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string,norm_concept_id:int}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
- * @var list<string> $statusOptions
+ * @var array<string,string> $statusOptions
  * @var string       $title
  * @var Tree         $tree
  */
@@ -183,7 +183,7 @@ $externalIdentifierService = new ExternalIdentifierService();
                                                 <input class="form-control form-control-sm" type="text" name="office" value="<?= e($entry['office']) ?>">
                                             </div>
                                             <div class="col-12 col-xl-6">
-                                                <label class="form-label small mb-0"><?= MoreI18N::xlate('Qualification') ?></label>
+                                                <label class="form-label small mb-0"><?= I18N::translate('Qualification') ?></label>
                                                 <input class="form-control form-control-sm" type="text" name="qualification" value="<?= e($entry['qualification']) ?>">
                                             </div>
                                             <div class="col-12 col-xl-4">
@@ -229,9 +229,9 @@ $externalIdentifierService = new ExternalIdentifierService();
                                             <div class="col-12 col-xl-4">
                                                 <label class="form-label small mb-0"><?= MoreI18N::xlate('Status') ?></label>
                                                 <select class="form-select form-select-sm" name="status">
-                                                    <?php foreach ($statusOptions as $status) : ?>
+                                                    <?php foreach ($statusOptions as $status => $statusLabel) : ?>
                                                         <option value="<?= e($status) ?>" <?= $entry['status'] === $status ? 'selected' : '' ?>>
-                                                            <?= I18N::translate($status) ?>
+                                                            <?= e($statusLabel) ?>
                                                         </option>
                                                     <?php endforeach ?>
                                                 </select>

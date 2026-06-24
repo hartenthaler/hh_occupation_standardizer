@@ -99,7 +99,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     use ModuleListTrait;
 
     private const MODULE_TITLE = 'Occupation Standardizer';
-    private const VERSION = '2.2.6.1';
+    private const VERSION = '2.2.6.2';
     private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/hartenthaler/hh_occupation_standardizer/main/latest-version.txt';
     private const SUPPORT_URL = 'https://github.com/hartenthaler/hh_occupation_standardizer';
     private const ROUTE_URL = '/tree/{tree}/occupation-standardizer';
@@ -422,10 +422,22 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'languageOptions'        => $this->languageOptions(),
             'portalUrl'              => fn (int $concept_id): string => $this->occupationPortalUrl($tree, $concept_id),
             'rows'                   => $this->occupationRows($tree, $can_manage_normalization),
-            'statusOptions'          => self::NORMALIZATION_STATUSES,
+            'statusOptions'          => $this->normalizationStatusOptions(),
             'title'                  => $this->listTitle(),
             'tree'                   => $tree,
         ]);
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private function normalizationStatusOptions(): array
+    {
+        return [
+            OccupationNormalizationService::STATUS_RECOGNIZED => I18N::translate('recognized'),
+            OccupationNormalizationService::STATUS_UNCLEAR    => I18N::translate('unclear'),
+            OccupationNormalizationService::STATUS_IGNORED    => I18N::translate('ignored'),
+        ];
     }
 
     private function occupationPortalUrl(Tree $tree, int $concept_id): string

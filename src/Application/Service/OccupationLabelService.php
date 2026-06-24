@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service;
 
-use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\I18N;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
@@ -150,7 +150,7 @@ final class OccupationLabelService
             }
 
             if ($entry['qualification'] !== '') {
-                $title_parts[] = MoreI18N::xlate('Qualification') . ': ' . $entry['qualification'];
+                $title_parts[] = I18N::translate('Qualification') . ': ' . $entry['qualification'];
             }
 
             if (($entry['code_ohdab'] ?? '') !== '') {
@@ -185,7 +185,7 @@ final class OccupationLabelService
                 $title_parts[] = $this->identifierTitle('Wikidata', $entry['code_wikidata']);
             }
 
-            $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
+            $title_parts[] = MoreI18N::xlate('Status') . ': ' . $this->statusLabel($entry['status']);
             $title_parts[] = MoreI18N::xlate('Rules') . ': ' . $entry['rule_numbers'];
 
             $labels[] = [
@@ -197,6 +197,16 @@ final class OccupationLabelService
         }
 
         return $labels;
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            OccupationNormalizationService::STATUS_RECOGNIZED => I18N::translate('recognized'),
+            OccupationNormalizationService::STATUS_UNCLEAR    => I18N::translate('unclear'),
+            OccupationNormalizationService::STATUS_IGNORED    => I18N::translate('ignored'),
+            default                                           => $status,
+        };
     }
 
     private function identifierTitle(string $label, string $code): string

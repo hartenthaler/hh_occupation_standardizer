@@ -96,6 +96,8 @@ The module also ships a compact normalized English HISCO catalog. It is imported
 
 Labels are shown next to occupation facts on the standard facts-and-events tab and in supported Vesta fact views. The label text is selected from the normalized occupation term. If available, the module prefers gender-specific or neutral labels and chooses German or English according to the user's language.
 
+Module-specific editing terms, such as qualification fields and normalization status values, are translated through the module catalog. Generic webtrees interface terms continue to use existing core translations and are intentionally hidden from the module catalog.
+
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
 The module-owned database tables are documented in [docs/database-schema.md](docs/database-schema.md).
 
@@ -175,6 +177,7 @@ Install and use [Custom Module Manager](https://github.com/Jefferson49/CustomMod
 
 The module is prepared for translation using gettext files in `resources/lang`.
 Strings that are already translated by webtrees core are routed through the module's helper class and are intentionally not added to the module translation catalog.
+Module-specific strings, including normalization status values such as `recognized`, `unclear`, and `ignored`, remain in the module catalog so translation tools can extract them reliably.
 
 The normalization data itself can contain language-specific labels. German and English masculine, feminine, and neutral occupation labels are supported for normalized occupation terms.
 
