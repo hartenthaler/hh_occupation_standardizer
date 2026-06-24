@@ -185,6 +185,15 @@ url = {https://hdl.handle.net/10622/JA9B8O}
 }
 ```
 
+The cited source provides the HISCO data as a downloaded source table. For this
+module, that table was normalized into separate CSV files in
+`resources/data/hisco` (in this case with assistance from Claude). During this
+preparation step the single source table was split into major groups, minor
+groups, unit groups, and occupation rows, and the corresponding module-owned
+database schema was derived from that structure. On first use, the module
+imports these normalized CSV files once into the HISCO catalog tables below and
+re-imports them only when the bundled CSV fingerprint changes.
+
 ### `occupation_standardizer_hisco_major_groups`
 
 | Column | Type | Meaning |
