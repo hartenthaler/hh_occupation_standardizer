@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service;
 
+use Fisharebest\Webtrees\I18N;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Illuminate\Database\Capsule\Manager as DB;
 use SimpleXMLElement;
@@ -21,6 +22,8 @@ use function preg_replace;
 use function sha1_file;
 use function str_replace;
 use function strlen;
+use function str_starts_with;
+use function strtolower;
 use function substr;
 use function trim;
 
@@ -30,6 +33,20 @@ final class OhdabSpecialDatabaseService
 {
     public const SOURCE_KEY = 'ohdab_special_de';
     public const SOURCE_LANGUAGE = 'de';
+
+    private const TOP_LEVEL_LABELS_EN = [
+        'A'   => 'Social statuses',
+        'B 0' => 'Military occupations',
+        'B 1' => 'Agriculture, forestry, animal husbandry, and horticulture',
+        'B 2' => 'Raw material extraction, production, and manufacturing',
+        'B 3' => 'Construction, architecture, surveying, and building technology',
+        'B 4' => 'Natural sciences, geography, and computer science',
+        'B 5' => 'Transport, logistics, protection, and security',
+        'B 6' => 'Commercial services, trade, sales, hotels, and tourism',
+        'B 7' => 'Business organization, accounting, law, and administration',
+        'B 8' => 'Health, social affairs, teaching, and education',
+        'B 9' => 'Language, literature, humanities, social sciences and economics, media, art, culture, and design',
+    ];
 
     /**
      * @return array{imported:bool,row_count:int,message:string}
@@ -252,7 +269,9 @@ final class OhdabSpecialDatabaseService
             ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
             ->where('links.concept_id', '=', $concept_id)
             ->orderBy('links.position')
-            ->pluck('nodes.label')
+            ->select(['nodes.code', 'nodes.label'])
+            ->get()
+            ->map(static fn (object $row): string => self::translatedHierarchyLabel((string) $row->code, (string) $row->label, I18N::languageTag()))
             ->filter(static fn (string $label): bool => trim($label) !== '')
             ->implode(' > ');
     }
@@ -278,11 +297,30 @@ final class OhdabSpecialDatabaseService
             ->get()
             ->map(static fn (object $row): array => [
                 'code'  => (string) $row->code,
-                'label' => (string) $row->label,
+                'label' => self::translatedHierarchyLabel((string) $row->code, (string) $row->label, I18N::languageTag()),
             ])
             ->filter(static fn (array $row): bool => trim($row['code'] . $row['label']) !== '')
             ->values()
             ->all();
+    }
+
+    public static function translatedHierarchyLabel(string $code, string $label, string $language_tag): string
+    {
+        if (str_starts_with(strtolower($language_tag), 'de')) {
+            return $label;
+        }
+
+        $normalized_code = trim(preg_replace('/\s+/', ' ', $code) ?? $code);
+
+        if (isset(self::TOP_LEVEL_LABELS_EN[$normalized_code])) {
+            return trim($normalized_code . ' ' . self::TOP_LEVEL_LABELS_EN[$normalized_code]);
+        }
+
+        if (str_starts_with($normalized_code, 'A ')) {
+            return trim($normalized_code . ' ' . self::TOP_LEVEL_LABELS_EN['A']);
+        }
+
+        return $label;
     }
 
     /**
