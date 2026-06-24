@@ -15,6 +15,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 ### Changed
 
 - Changed OhdAB links to use the FactGrid item of the imported OhdAB concept.
+- Split the landing-page top-10 chart into separate OhdAB A and B charts.
 
 ## 2.2.6.2 - 2026-06-24
 

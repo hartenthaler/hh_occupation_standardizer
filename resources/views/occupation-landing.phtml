@@ -5,17 +5,58 @@ declare(strict_types=1);
 use Fisharebest\Webtrees\I18N;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 
-$topOccupationChart ??= ['rows' => [], 'total' => 0];
-$topOccupations = $topOccupationChart['rows'];
-$topOccupationTotal = $topOccupationChart['total'];
+$topOccupationCharts ??= [];
 
 /**
  * @var string $hiscoHierarchyUrl
  * @var string $hierarchyUrl
  * @var string $listUrl
  * @var string $title
- * @var array{rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int} $topOccupationChart
+ * @var array<string,array{title:string,rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int}> $topOccupationCharts
  */
+?>
+
+<?php
+$renderTopOccupationChart = static function (array $chart): void {
+    $rows = $chart['rows'] ?? [];
+    $total = (int) ($chart['total'] ?? 0);
+    ?>
+    <section class="card mt-3">
+        <div class="card-header">
+            <?= e((string) ($chart['title'] ?? '')) ?>
+        </div>
+        <div class="card-body">
+            <p class="small text-muted">
+                <?= I18N::plural('This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized entry is counted.', 'This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized entries are counted.', $total, I18N::number($total)) ?>
+            </p>
+
+            <?php if ($rows === []) : ?>
+                <p class="mb-0 text-muted"><?= I18N::translate('No normalized entries are available.') ?></p>
+            <?php else : ?>
+                <div class="hh-occupation-top-chart d-grid gap-2">
+                    <?php foreach ($rows as $row) : ?>
+                        <div class="hh-occupation-top-chart-row">
+                            <div class="hh-occupation-top-chart-label text-truncate">
+                                <?php if ($row['url'] !== '') : ?>
+                                    <a href="<?= e($row['url']) ?>"><bdi><?= e($row['label']) ?></bdi></a>
+                                <?php else : ?>
+                                    <bdi><?= e($row['label']) ?></bdi>
+                                <?php endif ?>
+                            </div>
+                            <div class="hh-occupation-top-chart-track" aria-hidden="true">
+                                <div class="hh-occupation-top-chart-bar" style="width: <?= e((string) $row['percentage']) ?>%;"></div>
+                            </div>
+                            <div class="text-end">
+                                <?= I18N::number($row['count']) ?>
+                            </div>
+                        </div>
+                    <?php endforeach ?>
+                </div>
+            <?php endif ?>
+        </div>
+    </section>
+    <?php
+};
 ?>
 
 <style>
@@ -85,38 +126,7 @@ $topOccupationTotal = $topOccupationChart['total'];
         </div>
     </div>
 
-    <section class="card mt-3">
-        <div class="card-header">
-            <?= I18N::translate('Most common normalized occupations') ?>
-        </div>
-        <div class="card-body">
-            <p class="small text-muted">
-                <?= I18N::plural('This top-10 chart shows the most common visible normalized occupation entries in the active family tree. In total, %s visible normalized occupation entry is counted.', 'This top-10 chart shows the most common visible normalized occupation entries in the active family tree. In total, %s visible normalized occupation entries are counted.', $topOccupationTotal, I18N::number($topOccupationTotal)) ?>
-            </p>
-
-            <?php if ($topOccupations === []) : ?>
-                <p class="mb-0 text-muted"><?= I18N::translate('No normalized occupation entries are available.') ?></p>
-            <?php else : ?>
-                <div class="hh-occupation-top-chart d-grid gap-2">
-                    <?php foreach ($topOccupations as $row) : ?>
-                        <div class="hh-occupation-top-chart-row">
-                            <div class="hh-occupation-top-chart-label text-truncate">
-                                <?php if ($row['url'] !== '') : ?>
-                                    <a href="<?= e($row['url']) ?>"><bdi><?= e($row['label']) ?></bdi></a>
-                                <?php else : ?>
-                                    <bdi><?= e($row['label']) ?></bdi>
-                                <?php endif ?>
-                            </div>
-                            <div class="hh-occupation-top-chart-track" aria-hidden="true">
-                                <div class="hh-occupation-top-chart-bar" style="width: <?= e((string) $row['percentage']) ?>%;"></div>
-                            </div>
-                            <div class="text-end">
-                                <?= I18N::number($row['count']) ?>
-                            </div>
-                        </div>
-                    <?php endforeach ?>
-                </div>
-            <?php endif ?>
-        </div>
-    </section>
+    <?php foreach ($topOccupationCharts as $chart) : ?>
+        <?php $renderTopOccupationChart($chart) ?>
+    <?php endforeach ?>
 </div>

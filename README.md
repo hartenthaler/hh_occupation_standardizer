@@ -32,7 +32,8 @@ This is a beta version. Do not use it in a productive system without careful tes
 <a name="Purpose"></a>
 ## 🎯 Purpose
 
-Historical church book entries and historical address books often combine occupations, social status, offices, honorary offices, employers, qualifications, and spelling variants in a single phrase.
+Historical church book entries and historical address books often combine occupations, social status, offices, 
+honorary offices, employers, and qualifications in a single phrase.
 For example, `Bürger und Weingärtner` contains both a social status and an occupation, while `Arztwitwe` may point to the former occupation of a deceased husband rather than to the occupation of the recorded woman.
 
 Occupation names are among the most frequent person-specific details in genealogical sources.
@@ -243,10 +244,10 @@ Upper hierarchy levels are prepared for translated labels.
 The module can store and display identifiers for:
 
 * OhdAB
+* HISCO
 * FactGrid
 * GND
 * Wikidata
-* HISCO
 
 <a name="Screenshots"></a>
 ## 🖼 Screenshots

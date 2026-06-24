@@ -367,7 +367,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
                 'listUrl'           => $this->listUrl($tree, ['view' => 'list']),
                 'title'             => $this->listTitle(),
-                'topOccupationChart' => $this->topNormalizedOccupationChart($tree),
+                'topOccupationCharts' => $this->topNormalizedOccupationCharts($tree),
                 'tree'              => $tree,
             ]);
         }
@@ -1486,20 +1486,43 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array{rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int}
+     * @return array<string,array{title:string,rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int}>
      */
-    private function topNormalizedOccupationChart(Tree $tree): array
+    private function topNormalizedOccupationCharts(Tree $tree): array
     {
-        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
-            return ['rows' => [], 'total' => 0];
+        $charts = [
+            'A' => [
+                'title' => I18N::translate('Most common normalized social statuses'),
+                'rows'  => [],
+                'total' => 0,
+            ],
+            'B' => [
+                'title' => I18N::translate('Most common normalized occupations'),
+                'rows'  => [],
+                'total' => 0,
+            ],
+        ];
+
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPTS)) {
+            return $charts;
         }
 
-        $counts = [];
+        $counts = [
+            'A' => [],
+            'B' => [],
+        ];
 
         foreach ($this->activeNormalizedOccupationRows($tree) as $entry_row) {
             $individual = Registry::individualFactory()->make((string) $entry_row->individual_xref, $tree);
 
             if (!$individual instanceof Individual || !$individual->canShow() || !$this->occupationFactCanShow($individual, (string) $entry_row->fact_id)) {
+                continue;
+            }
+
+            $ohdab_class = (string) ($entry_row->ohdab_class ?? '');
+
+            if (!isset($counts[$ohdab_class])) {
                 continue;
             }
 
@@ -1509,36 +1532,38 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 continue;
             }
 
-            $counts[$concept_id] ??= [
+            $counts[$ohdab_class][$concept_id] ??= [
                 'label' => $this->normalizedOccupationChartLabel($entry_row),
                 'count' => 0,
                 'url'   => $this->occupationPortalUrl($tree, $concept_id),
             ];
-            $counts[$concept_id]['count']++;
+            $counts[$ohdab_class][$concept_id]['count']++;
         }
 
-        if ($counts === []) {
-            return ['rows' => [], 'total' => 0];
-        }
+        foreach ($counts as $ohdab_class => $class_counts) {
+            if ($class_counts === []) {
+                continue;
+            }
 
-        $total = array_sum(array_map(static fn (array $row): int => $row['count'], $counts));
+            $total = array_sum(array_map(static fn (array $row): int => $row['count'], $class_counts));
 
-        usort($counts, static function (array $a, array $b): int {
-            return $b['count'] <=> $a['count'] ?: I18N::comparator()($a['label'], $b['label']);
-        });
+            usort($class_counts, static function (array $a, array $b): int {
+                return $b['count'] <=> $a['count'] ?: I18N::comparator()($a['label'], $b['label']);
+            });
 
-        $top_counts = array_slice($counts, 0, 10);
-        $maximum_count = max(array_map(static fn (array $row): int => $row['count'], $top_counts));
+            $top_counts = array_slice($class_counts, 0, 10);
+            $maximum_count = max(array_map(static fn (array $row): int => $row['count'], $top_counts));
 
-        return [
-            'rows'  => array_map(static fn (array $row): array => [
+            $charts[$ohdab_class]['rows'] = array_map(static fn (array $row): array => [
                 'label'      => $row['label'],
                 'count'      => $row['count'],
                 'percentage' => $maximum_count > 0 ? $row['count'] / $maximum_count * 100 : 0.0,
                 'url'        => $row['url'],
-            ], $top_counts),
-            'total' => $total,
-        ];
+            ], $top_counts);
+            $charts[$ohdab_class]['total'] = $total;
+        }
+
+        return $charts;
     }
 
     /**
@@ -1550,6 +1575,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->where('entries.tree_id', '=', $tree->id())
             ->where('entries.is_active', '=', true)
             ->where('entries.norm_concept_id', '>', 0)
+            ->leftJoin(OccupationSchema::TABLE_NORM_CONCEPTS . ' AS concepts', 'concepts.id', '=', 'entries.norm_concept_id')
             ->select([
                 'entries.individual_xref',
                 'entries.fact_id',
@@ -1561,6 +1587,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.occupation_en_female',
                 'entries.occupation_en_neutral',
                 'entries.norm_concept_id',
+                'concepts.ohdab_class',
             ])
             ->get();
     }

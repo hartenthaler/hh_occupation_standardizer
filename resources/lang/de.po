@@ -418,8 +418,27 @@ msgid "Show occupations grouped by HISCO hierarchy."
 msgstr "Berufe nach HISCO-Hierarchie gruppiert anzeigen."
 
 #: resources/views/occupation-landing.phtml:82
+msgid "Most common normalized social statuses"
+msgstr "Häufigste normierte Stände"
+
+#: resources/views/occupation-landing.phtml:82
 msgid "Most common normalized occupations"
 msgstr "Häufigste normierte Berufe"
+
+#: resources/views/occupation-landing.phtml:86
+#, php-format
+msgid ""
+"This top-10 chart shows the most common visible normalized entries in the "
+"active family tree. In total, %s visible normalized entry is counted."
+msgid_plural ""
+"This top-10 chart shows the most common visible normalized entries in the "
+"active family tree. In total, %s visible normalized entries are counted."
+msgstr[0] ""
+"Diese Top-10-Tabelle zeigt die häufigsten sichtbaren normierten Einträge im "
+"aktiven Stammbaum. Insgesamt wird %s sichtbarer normierter Eintrag gezählt."
+msgstr[1] ""
+"Diese Top-10-Tabelle zeigt die häufigsten sichtbaren normierten Einträge im "
+"aktiven Stammbaum. Insgesamt werden %s sichtbare normierte Einträge gezählt."
 
 #: resources/views/occupation-landing.phtml:86
 #, php-format
@@ -439,6 +458,10 @@ msgstr[1] ""
 "Diese Top-10-Tabelle zeigt die häufigsten sichtbaren normierten "
 "Berufsnennungen im aktiven Stammbaum. Insgesamt werden %s sichtbare "
 "normierte Berufsnennungen gezählt."
+
+#: resources/views/occupation-landing.phtml:90
+msgid "No normalized entries are available."
+msgstr "Es sind keine normierten Einträge verfügbar."
 
 #: resources/views/occupation-landing.phtml:90
 msgid "No normalized occupation entries are available."

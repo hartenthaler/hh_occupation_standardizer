@@ -355,8 +355,23 @@ msgid "Show occupations grouped by HISCO hierarchy."
 msgstr ""
 
 #: resources/views/occupation-landing.phtml:82
+msgid "Most common normalized social statuses"
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:82
 msgid "Most common normalized occupations"
 msgstr ""
+
+#: resources/views/occupation-landing.phtml:86
+#, php-format
+msgid ""
+"This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized "
+"entry is counted."
+msgid_plural ""
+"This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized "
+"entries are counted."
+msgstr[0] ""
+msgstr[1] ""
 
 #: resources/views/occupation-landing.phtml:86
 #, php-format
@@ -368,6 +383,10 @@ msgid_plural ""
 "occupation entries are counted."
 msgstr[0] ""
 msgstr[1] ""
+
+#: resources/views/occupation-landing.phtml:90
+msgid "No normalized entries are available."
+msgstr ""
 
 #: resources/views/occupation-landing.phtml:90
 msgid "No normalized occupation entries are available."
