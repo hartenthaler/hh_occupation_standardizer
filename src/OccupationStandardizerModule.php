@@ -37,6 +37,7 @@ use Fisharebest\Webtrees\View;
 use Fisharebest\Webtrees\Webtrees;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\HiscoCatalogService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
@@ -165,6 +166,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     public function boot(): void
     {
         (new OccupationSchema())->ensureSchema();
+        (new HiscoCatalogService())->ensureImported($this->resourcesFolder() . 'data/hisco/');
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
         View::registerCustomView('::fact', $this->name() . '::fact');
@@ -194,6 +196,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'normalizationTerms' => $this->normalizationTermRows(),
             'normalizationTermOptions' => $this->normalizationTermOptions(),
             'normalizationRules' => $this->normalizationRuleRows(),
+            'hiscoStatistics'     => $this->hiscoStatistics(),
             'ohdabCategoryStatistics' => $this->ohdabCategoryStatistics(),
             'ohdabSpecialDatabase' => (new OhdabSpecialDatabaseService())->sourceInfo(),
             'title'              => $this->title(),
@@ -363,7 +366,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'hierarchyUrl' => $this->listUrl($tree, ['view' => 'hierarchy']),
                 'listUrl'      => $this->listUrl($tree, ['view' => 'list']),
                 'title'        => $this->listTitle(),
-                'topOccupations' => $this->topNormalizedOccupationRows($tree),
+                'topOccupationChart' => $this->topNormalizedOccupationChart($tree),
                 'tree'         => $tree,
             ]);
         }
@@ -393,12 +396,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $concept = $this->occupationConcept($concept_id);
             $people = $this->occupationConceptPeople($tree, $concept_id);
             $external_identifiers = $this->occupationPortalExternalIdentifiers($concept, $people);
+            $ohdab_service = new OhdabSpecialDatabaseService();
 
             return $this->viewResponse($this->name() . '::occupation-portal', [
                 'concept'       => $concept,
                 'externalAuthorityRows' => (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag()),
                 'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
-                'hierarchyPath' => $concept !== null ? (new OhdabSpecialDatabaseService())->hierarchyPath($concept_id) : '',
+                'hiscoCatalogRows' => $this->occupationPortalHiscoCatalogRows($external_identifiers),
+                'hierarchyPath' => $concept !== null ? $ohdab_service->hierarchyPath($concept_id) : '',
+                'ohdabHierarchyRows' => $concept !== null ? $ohdab_service->hierarchyRows($concept_id) : [],
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
                 'periodStats'   => $this->occupationPortalPeriodStats($people),
@@ -984,12 +990,33 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{label:string,count:int,percentage:float,url:string}>
+     * @param array<string,list<string>> $identifiers
+     *
+     * @return list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}>
      */
-    private function topNormalizedOccupationRows(Tree $tree): array
+    private function occupationPortalHiscoCatalogRows(array $identifiers): array
+    {
+        $service = new HiscoCatalogService();
+        $rows = [];
+
+        foreach ($identifiers['hisco'] ?? [] as $code) {
+            $row = $service->occupation($code, I18N::languageTag());
+
+            if ($row !== null) {
+                $rows[] = $row;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return array{rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int}
+     */
+    private function topNormalizedOccupationChart(Tree $tree): array
     {
         if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
-            return [];
+            return ['rows' => [], 'total' => 0];
         }
 
         $counts = [];
@@ -1016,8 +1043,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         if ($counts === []) {
-            return [];
+            return ['rows' => [], 'total' => 0];
         }
+
+        $total = array_sum(array_map(static fn (array $row): int => $row['count'], $counts));
 
         usort($counts, static function (array $a, array $b): int {
             return $b['count'] <=> $a['count'] ?: I18N::comparator()($a['label'], $b['label']);
@@ -1026,12 +1055,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $top_counts = array_slice($counts, 0, 10);
         $maximum_count = max(array_map(static fn (array $row): int => $row['count'], $top_counts));
 
-        return array_map(static fn (array $row): array => [
-            'label'      => $row['label'],
-            'count'      => $row['count'],
-            'percentage' => $maximum_count > 0 ? $row['count'] / $maximum_count * 100 : 0.0,
-            'url'        => $row['url'],
-        ], $top_counts);
+        return [
+            'rows'  => array_map(static fn (array $row): array => [
+                'label'      => $row['label'],
+                'count'      => $row['count'],
+                'percentage' => $maximum_count > 0 ? $row['count'] / $maximum_count * 100 : 0.0,
+                'url'        => $row['url'],
+            ], $top_counts),
+            'total' => $total,
+        ];
     }
 
     /**
@@ -2429,6 +2461,91 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'percentage' => $assigned_total > 0 ? (int) $row->category_count / $assigned_total : 0.0,
                 ])
                 ->all(),
+        ];
+    }
+
+    /**
+     * @return array{original_total:int,split_total:int,assigned_total:int,table_counts:list<array{table:string,count:int}>,categories:list<array{category:string,count:int,percentage:float}>}
+     */
+    private function hiscoStatistics(): array
+    {
+        $empty_statistics = [
+            'original_total' => 0,
+            'split_total'    => 0,
+            'assigned_total' => 0,
+            'table_counts'   => [],
+            'categories'     => [],
+        ];
+
+        foreach ([
+            OccupationSchema::TABLE_NORMALIZED_ENTRIES,
+            OccupationSchema::TABLE_HISCO_MAJOR_GROUPS,
+            OccupationSchema::TABLE_HISCO_MINOR_GROUPS,
+            OccupationSchema::TABLE_HISCO_UNIT_GROUPS,
+            OccupationSchema::TABLE_HISCO_OCCUPATIONS,
+        ] as $table) {
+            if (!DBManager::schema()->hasTable($table)) {
+                return $empty_statistics;
+            }
+        }
+
+        $table_counts = [
+            ['table' => 'Major groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->count()],
+            ['table' => 'Minor groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->count()],
+            ['table' => 'Unit groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->count()],
+            ['table' => 'Occupations', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->count()],
+        ];
+
+        $active_entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true);
+        $split_total = (int) $active_entries->count();
+        $original_total = (int) DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->distinct()
+            ->get(['tree_id', 'fact_id'])
+            ->count();
+
+        $service = new HiscoCatalogService();
+        $category_counts = [];
+        $assigned_total = 0;
+
+        foreach (DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->whereNotNull('code_hisco')
+            ->where('code_hisco', '<>', '')
+            ->pluck('code_hisco') as $code) {
+            $row = $service->occupation((string) $code, I18N::languageTag());
+
+            if ($row === null) {
+                continue;
+            }
+
+            $category = trim($row['major']['code'] . ' ' . $row['major']['label']);
+
+            if ($category === '') {
+                continue;
+            }
+
+            $category_counts[$category] = ($category_counts[$category] ?? 0) + 1;
+            $assigned_total++;
+        }
+
+        ksort($category_counts, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return [
+            'original_total' => $original_total,
+            'split_total'    => $split_total,
+            'assigned_total' => $assigned_total,
+            'table_counts'   => $table_counts,
+            'categories'     => array_map(
+                static fn (string $category, int $count): array => [
+                    'category'   => $category,
+                    'count'      => $count,
+                    'percentage' => $assigned_total > 0 ? $count / $assigned_total : 0.0,
+                ],
+                array_keys($category_counts),
+                array_values($category_counts)
+            ),
         ];
     }
 

@@ -31,6 +31,11 @@ final class OccupationLabelService
     /** @var list<string> */
     private array $builtin_rule_order;
     private OhdabSpecialDatabaseService $ohdab_special_database_service;
+    private HiscoCatalogService $hisco_catalog_service;
+    /** @var array<string,string> */
+    private array $hisco_hierarchy_cache = [];
+    /** @var array<int,string> */
+    private array $ohdab_hierarchy_cache = [];
 
     /**
      * @param list<string> $builtin_rule_order
@@ -39,6 +44,7 @@ final class OccupationLabelService
     {
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : $this->configuredBuiltinRuleOrder();
         $this->ohdab_special_database_service = new OhdabSpecialDatabaseService();
+        $this->hisco_catalog_service = new HiscoCatalogService();
     }
 
     /**
@@ -147,16 +153,28 @@ final class OccupationLabelService
                 $title_parts[] = MoreI18N::xlate('Qualification') . ': ' . $entry['qualification'];
             }
 
+            if (($entry['code_ohdab'] ?? '') !== '') {
+                $title_parts[] = $this->identifierTitle('OhdAB', $entry['code_ohdab']);
+            }
+
+            $hierarchy = $this->ohdabHierarchy((int) ($entry['norm_concept_id'] ?? 0));
+
+            if ($hierarchy !== '') {
+                $title_parts[] = I18N::translate('OhdAB hierarchy') . ': ' . $hierarchy;
+            }
+
             if (($entry['code_hisco'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('HISCO', $entry['code_hisco']);
+
+                $hisco_hierarchy = $this->hiscoHierarchy((string) $entry['code_hisco']);
+
+                if ($hisco_hierarchy !== '') {
+                    $title_parts[] = I18N::translate('HISCO hierarchy') . ': ' . $hisco_hierarchy;
+                }
             }
 
             if (($entry['code_gnd'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('GND', $entry['code_gnd']);
-            }
-
-            if (($entry['code_ohdab'] ?? '') !== '') {
-                $title_parts[] = $this->identifierTitle('OhdAB', $entry['code_ohdab']);
             }
 
             if (($entry['code_factgrid'] ?? '') !== '') {
@@ -165,12 +183,6 @@ final class OccupationLabelService
 
             if (($entry['code_wikidata'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('Wikidata', $entry['code_wikidata']);
-            }
-
-            $hierarchy = $this->ohdab_special_database_service->hierarchyPath((int) ($entry['norm_concept_id'] ?? 0));
-
-            if ($hierarchy !== '') {
-                $title_parts[] = I18N::translate('OhdAB hierarchy') . ': ' . $hierarchy;
             }
 
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . I18N::translate($entry['status']);
@@ -190,6 +202,53 @@ final class OccupationLabelService
     private function identifierTitle(string $label, string $code): string
     {
         return $label . ': ' . $code;
+    }
+
+    private function hiscoHierarchy(string $code): string
+    {
+        $code = trim($code);
+
+        if ($code === '') {
+            return '';
+        }
+
+        if (isset($this->hisco_hierarchy_cache[$code])) {
+            return $this->hisco_hierarchy_cache[$code];
+        }
+
+        $row = $this->hisco_catalog_service->occupation($code, I18N::languageTag());
+
+        if ($row === null) {
+            return $this->hisco_hierarchy_cache[$code] = '';
+        }
+
+        $parts = [
+            trim($row['label']),
+            trim($row['unit']['code'] . ' ' . $row['unit']['label']),
+            trim($row['minor']['code'] . ' ' . $row['minor']['label']),
+            trim($row['major']['code'] . ' ' . $row['major']['label']),
+        ];
+
+        return $this->hisco_hierarchy_cache[$code] = implode(' > ', array_values(array_filter($parts)));
+    }
+
+    private function ohdabHierarchy(int $concept_id): string
+    {
+        if ($concept_id <= 0) {
+            return '';
+        }
+
+        if (isset($this->ohdab_hierarchy_cache[$concept_id])) {
+            return $this->ohdab_hierarchy_cache[$concept_id];
+        }
+
+        $parts = [];
+
+        foreach ($this->ohdab_special_database_service->hierarchyRows($concept_id) as $row) {
+            $parts[] = trim($row['code'] . ' ' . $row['label']);
+        }
+
+        return $this->ohdab_hierarchy_cache[$concept_id] = implode(' > ', array_values(array_filter($parts)));
     }
 
     /**

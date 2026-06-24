@@ -92,6 +92,8 @@ Administrators can maintain a site-wide normalization mapping table in the modul
 
 The first M4 prototype can import a tailored German OhdAB Excel extract through the module settings. The uploaded file is used only for this import and is deleted afterwards. The module stores its original spellings, normalized concepts, FactGrid identifiers, and OhdAB hierarchy in module-owned norm tables. The new rule "Normalize with external OhdAB special database" then uses this imported source after the local mapping table and before the fallback rule.
 
+The module also ships a compact normalized English HISCO catalog. It is imported into local module tables on first use and is used to resolve HISCO identifiers on occupation portal pages. The English source labels and descriptions are preserved; the upper hierarchy levels are prepared for translated labels.
+
 Labels are shown next to occupation facts on the standard facts-and-events tab and in supported Vesta fact views. The label text is selected from the normalized occupation term. If available, the module prefers gender-specific or neutral labels and chooses German or English according to the user's language.
 
 The currently implemented normalization rules are documented in [docs/normalization-rules.md](docs/normalization-rules.md).
@@ -116,6 +118,8 @@ When the rule finds a match, the module uses the matched norm concept to add or 
 After a successful import, the uploaded Excel file is no longer needed by webtrees. Re-import is necessary only when the tailored source file has changed.
 
 One open question remains for new occupation terms that are later added to the webtrees family tree and are not yet present in the tailored Excel extract. A later M4 step needs a practical workflow for these individual additions, for example by searching the full OhdAB source on demand or by maintaining a small supplemental local mapping.
+
+The bundled HISCO catalog is independent of this OhdAB workflow. It is small enough to ship with the module and supports local lookup of existing HISCO identifiers without calling an external web service.
 
 <a name="Screenshots"></a>
 ## 🖼 Screenshots

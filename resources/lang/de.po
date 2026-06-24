@@ -46,6 +46,10 @@ msgstr "Englische neutrale Form"
 msgid "OhdAB hierarchy"
 msgstr "OhdAB-Hierarchie"
 
+#: src/Application/Service/OccupationLabelService.php:157
+msgid "HISCO hierarchy"
+msgstr "HISCO-Hierarchie"
+
 #: src/OccupationStandardizerModule.php:106
 msgid "Occupation Standardizer"
 msgstr "Vereinheitlichung von Berufsangaben"
@@ -355,8 +359,22 @@ msgid "Most common normalized occupations"
 msgstr "Häufigste normierte Berufe"
 
 #: resources/views/occupation-landing.phtml:79
-msgid "This chart counts visible normalized occupation entries in the active family tree."
-msgstr "Dieses Diagramm zählt sichtbare normierte Berufsnennungen im aktiven Stammbaum."
+msgid ""
+"This top-10 chart shows the most common visible normalized occupation entries "
+"in the active family tree. In total, %s visible normalized occupation entry is "
+"counted."
+msgid_plural ""
+"This top-10 chart shows the most common visible normalized occupation entries "
+"in the active family tree. In total, %s visible normalized occupation entries "
+"are counted."
+msgstr[0] ""
+"Diese Top-10-Tabelle zeigt die häufigsten sichtbaren normierten "
+"Berufsnennungen im aktiven Stammbaum. Insgesamt wird %s sichtbare normierte "
+"Berufsnennung gezählt."
+msgstr[1] ""
+"Diese Top-10-Tabelle zeigt die häufigsten sichtbaren normierten "
+"Berufsnennungen im aktiven Stammbaum. Insgesamt werden %s sichtbare normierte "
+"Berufsnennungen gezählt."
 
 #: resources/views/occupation-landing.phtml:83
 msgid "No normalized occupation entries are available."
@@ -598,12 +616,24 @@ msgid "The normalized occupation could not be found."
 msgstr "Der normierte Beruf konnte nicht gefunden werden."
 
 #: resources/views/occupation-portal.phtml:76
-msgid "External identifiers"
-msgstr "Externe Kennungen"
+msgid "External identifiers and source data"
+msgstr "Externe Kennungen und Quelldaten"
 
 #: resources/views/occupation-portal.phtml:106
 msgid "No external identifiers are available."
 msgstr "Es sind keine externen Kennungen verfügbar."
+
+#: resources/views/occupation-portal.phtml:144
+msgid "Unit group"
+msgstr "Berufsgruppe"
+
+#: resources/views/occupation-portal.phtml:148
+msgid "Minor group"
+msgstr "Untergruppe"
+
+#: resources/views/occupation-portal.phtml:152
+msgid "Major group"
+msgstr "Hauptgruppe"
 
 #: src/OccupationStandardizerModule.php:905
 msgid "GND Explorer"
@@ -620,6 +650,66 @@ msgstr "Es sind keine externen Quelldaten verfügbar."
 #: resources/views/occupation-portal.phtml:120
 msgid "No OhdAB hierarchy is available for this occupation."
 msgstr "Für diesen Beruf ist keine OhdAB-Hierarchie verfügbar."
+
+#: resources/views/occupation-portal.phtml:126
+msgid "Level"
+msgstr "Ebene"
+
+#: resources/views/settings.phtml
+msgid "HISCO catalog"
+msgstr "HISCO-Katalog"
+
+#: resources/views/settings.phtml
+msgid ""
+"The bundled HISCO catalog is imported into module-owned database tables and "
+"used to show hierarchy details for HISCO identifiers."
+msgstr ""
+"Der mitgelieferte HISCO-Katalog wird in modulseigene Datenbanktabellen "
+"importiert und verwendet, um Hierarchiedetails zu HISCO-Kennungen anzuzeigen."
+
+#: resources/views/settings.phtml
+msgid "HISCO database tables"
+msgstr "HISCO-Datenbanktabellen"
+
+#: resources/views/settings.phtml
+msgid "No HISCO catalog tables are available yet."
+msgstr "Es sind noch keine HISCO-Katalogtabellen verfügbar."
+
+#: resources/views/settings.phtml
+msgid "Database table"
+msgstr "Datenbanktabelle"
+
+#: resources/views/settings.phtml
+msgid "Rows"
+msgstr "Zeilen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Major groups"
+msgstr "Hauptgruppen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Minor groups"
+msgstr "Untergruppen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Unit groups"
+msgstr "Einheitsgruppen"
+
+#: src/OccupationStandardizerModule.php
+msgid "Occupations"
+msgstr "Berufe"
+
+#: resources/views/settings.phtml
+msgid "HISCO category statistics"
+msgstr "HISCO-Kategoriestatistik"
+
+#: resources/views/settings.phtml
+msgid "No assigned HISCO categories are available yet."
+msgstr "Es sind noch keine zugeordneten HISCO-Kategorien verfügbar."
+
+#: resources/views/settings.phtml
+msgid "HISCO major group"
+msgstr "HISCO-Hauptgruppe"
 
 #: resources/views/occupation-portal.phtml:136
 msgid "No visible individuals were found for this occupation."

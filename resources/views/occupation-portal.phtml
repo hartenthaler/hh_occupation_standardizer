@@ -10,12 +10,25 @@ use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
+$ohdabHierarchyRows ??= [];
+$externalAuthorityRowsBySourceAndCode = [];
+$externalIdentifierSourceCodes = [];
+
+foreach ($externalAuthorityRows as $row) {
+    $externalAuthorityRowsBySourceAndCode[$row['source']][$row['code']][] = $row;
+}
+
+$hiscoCatalogRows ??= [];
+$hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): string => $row['hisco_pretty'], $hiscoCatalogRows)));
+$hierarchyColumnClass = $hiscoCatalogRows !== [] ? 'col-12 col-xl-6' : 'col-12';
 $periodStats ??= [];
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
- * @var list<array{source:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
+ * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
+ * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
+ * @var list<array{code:string,label:string}> $ohdabHierarchyRows
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
@@ -99,15 +112,16 @@ $periodStats ??= [];
             <div class="col-12 col-xl-6">
                 <section class="card">
                     <div class="card-header">
-                        <?= I18N::translate('External identifiers') ?>
+                        <?= I18N::translate('External identifiers and source data') ?>
                     </div>
                     <div class="card-body p-2">
-                        <?php if ($externalIdentifierRows === []) : ?>
+                        <?php if ($externalIdentifierRows === [] && $externalAuthorityRows === []) : ?>
                             <p class="mb-0 text-muted"><?= I18N::translate('No external identifiers are available.') ?></p>
                         <?php else : ?>
                             <table class="table table-sm mb-0">
                                 <tbody>
                                     <?php foreach ($externalIdentifierRows as $row) : ?>
+                                        <?php $externalIdentifierSourceCodes[$row['source'] . "\n" . $row['code']] = true ?>
                                         <tr>
                                             <th class="text-muted w-25" scope="row"><?= e($row['source']) ?></th>
                                             <td>
@@ -124,45 +138,58 @@ $periodStats ??= [];
                                                         <span class="visually-hidden"><?= e($link['label']) ?></span>
                                                     </a>
                                                 <?php endforeach ?>
+                                                <?php foreach ($externalAuthorityRowsBySourceAndCode[$row['source']][$row['code']] ?? [] as $authority_row) : ?>
+                                                    <?php if ($authority_row['label'] !== '') : ?>
+                                                        <div class="small mt-1">
+                                                            <span class="text-muted"><?= MoreI18N::xlate('Label') ?>:</span>
+                                                            <bdi><?= e($authority_row['label']) ?></bdi>
+                                                        </div>
+                                                    <?php endif ?>
+                                                    <?php if ($authority_row['description'] !== '') : ?>
+                                                        <div class="small">
+                                                            <span class="text-muted"><?= MoreI18N::xlate('Description') ?>:</span>
+                                                            <bdi><?= e($authority_row['description']) ?></bdi>
+                                                        </div>
+                                                    <?php endif ?>
+                                                    <?php if ($authority_row['wikipedia_url'] !== '') : ?>
+                                                        <div class="small">
+                                                            <span class="text-muted">Wikipedia:</span>
+                                                            <a href="<?= e($authority_row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                        </div>
+                                                    <?php endif ?>
+                                                <?php endforeach ?>
                                             </td>
                                         </tr>
                                     <?php endforeach ?>
-                                </tbody>
-                            </table>
-                        <?php endif ?>
-                    </div>
-                </section>
-            </div>
-
-            <div class="col-12">
-                <section class="card">
-                    <div class="card-header">
-                        <?= I18N::translate('External source data') ?>
-                    </div>
-                    <div class="card-body">
-                        <?php if ($externalAuthorityRows === []) : ?>
-                            <p class="mb-0 text-muted"><?= I18N::translate('No external source data is available.') ?></p>
-                        <?php else : ?>
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th><?= MoreI18N::xlate('Source') ?></th>
-                                        <th><?= MoreI18N::xlate('Label') ?></th>
-                                        <th><?= MoreI18N::xlate('Description') ?></th>
-                                        <th>Wikipedia</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($externalAuthorityRows as $row) : ?>
+                                    <?php foreach ($externalAuthorityRows as $authority_row) : ?>
+                                        <?php if (isset($externalIdentifierSourceCodes[$authority_row['source'] . "\n" . $authority_row['code']])) : ?>
+                                            <?php continue ?>
+                                        <?php endif ?>
                                         <tr>
+                                            <th class="text-muted w-25" scope="row"><?= e($authority_row['source']) ?></th>
                                             <td>
-                                                <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($row['source']) ?></a>
-                                            </td>
-                                            <td><bdi><?= e($row['label']) ?></bdi></td>
-                                            <td><bdi><?= e($row['description']) ?></bdi></td>
-                                            <td>
-                                                <?php if ($row['wikipedia_url'] !== '') : ?>
-                                                    <a href="<?= e($row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                <bdi><?= e($authority_row['code']) ?></bdi>
+                                                <a class="btn btn-link btn-sm p-0 align-baseline" href="<?= e($authority_row['url']) ?>" target="_blank" rel="noopener noreferrer" title="<?= e($authority_row['source']) ?>">
+                                                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                                    <span class="visually-hidden"><?= e($authority_row['source']) ?></span>
+                                                </a>
+                                                <?php if ($authority_row['label'] !== '') : ?>
+                                                    <div class="small mt-1">
+                                                        <span class="text-muted"><?= MoreI18N::xlate('Label') ?>:</span>
+                                                        <bdi><?= e($authority_row['label']) ?></bdi>
+                                                    </div>
+                                                <?php endif ?>
+                                                <?php if ($authority_row['description'] !== '') : ?>
+                                                    <div class="small">
+                                                        <span class="text-muted"><?= MoreI18N::xlate('Description') ?>:</span>
+                                                        <bdi><?= e($authority_row['description']) ?></bdi>
+                                                    </div>
+                                                <?php endif ?>
+                                                <?php if ($authority_row['wikipedia_url'] !== '') : ?>
+                                                    <div class="small">
+                                                        <span class="text-muted">Wikipedia:</span>
+                                                        <a href="<?= e($authority_row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+                                                    </div>
                                                 <?php endif ?>
                                             </td>
                                         </tr>
@@ -174,20 +201,87 @@ $periodStats ??= [];
                 </section>
             </div>
 
-            <div class="col-12">
+            <div class="<?= e($hierarchyColumnClass) ?>">
                 <section class="card">
                     <div class="card-header">
                         <?= I18N::translate('OhdAB hierarchy') ?>
+                        <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                            <span class="text-muted">(<?= e($concept['ohdab_full_id']) ?>)</span>
+                        <?php endif ?>
                     </div>
-                    <div class="card-body">
-                        <?php if ($hierarchyPath === '') : ?>
+                    <div class="card-body p-2">
+                        <?php if ($ohdabHierarchyRows === [] && $concept['preferred_label'] === '') : ?>
                             <p class="mb-0 text-muted"><?= I18N::translate('No OhdAB hierarchy is available for this occupation.') ?></p>
                         <?php else : ?>
-                            <p class="mb-0"><bdi><?= e($hierarchyPath) ?></bdi></p>
+                            <table class="table table-sm mb-0">
+                                <tbody>
+                                    <?php if ($concept['preferred_label'] !== '') : ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Occupation') ?></th>
+                                            <td>
+                                                <bdi>
+                                                    <?php if ($concept['ohdab_full_id'] !== '') : ?>
+                                                        <?= e($concept['ohdab_full_id']) ?>
+                                                    <?php endif ?>
+                                                    <?= e($concept['preferred_label']) ?>
+                                                </bdi>
+                                            </td>
+                                        </tr>
+                                    <?php endif ?>
+                                    <?php foreach ($ohdabHierarchyRows as $index => $label) : ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Level') ?> <?= I18N::number($index + 1) ?></th>
+                                            <td><bdi><?= e(trim($label['code'] . ' ' . $label['label'])) ?></bdi></td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
                         <?php endif ?>
                     </div>
                 </section>
             </div>
+
+            <?php if ($hiscoCatalogRows !== []) : ?>
+                <div class="col-12 col-xl-6">
+                    <section class="card">
+                        <div class="card-header">
+                            <?= I18N::translate('HISCO hierarchy') ?>
+                            <?php if ($hiscoCatalogIds !== []) : ?>
+                                <span class="text-muted">(<?= e(implode(', ', $hiscoCatalogIds)) ?>)</span>
+                            <?php endif ?>
+                        </div>
+                        <div class="card-body p-2">
+                            <?php foreach ($hiscoCatalogRows as $row) : ?>
+                                <table class="table table-sm mb-3">
+                                    <tbody>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= MoreI18N::xlate('Occupation') ?></th>
+                                            <td>
+                                                <bdi><?= e($row['label']) ?></bdi>
+                                                <?php if ($row['description'] !== '') : ?>
+                                                    <div class="small text-muted"><bdi><?= e($row['description']) ?></bdi></div>
+                                                <?php endif ?>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Unit group') ?></th>
+                                            <td><bdi><?= e($row['unit']['code']) ?> <?= e($row['unit']['label']) ?></bdi></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Minor group') ?></th>
+                                            <td><bdi><?= e($row['minor']['code']) ?> <?= e($row['minor']['label']) ?></bdi></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row"><?= I18N::translate('Major group') ?></th>
+                                            <td><bdi><?= e($row['major']['code']) ?> <?= e($row['major']['label']) ?></bdi></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            <?php endforeach ?>
+                        </div>
+                    </section>
+                </div>
+            <?php endif ?>
 
             <div class="col-12">
                 <section class="card">
@@ -221,7 +315,7 @@ $periodStats ??= [];
                                                 <a href="<?= e($person['individual']->url()) ?>"><?= $person['individual']->fullName() ?></a>
                                             </td>
                                             <td data-sort="<?= e($person['label']) ?>">
-                                                <span class="badge bg-secondary" title="<?= e($person['label_title']) ?>">
+                                                <span class="badge text-bg-light border" title="<?= e($person['label_title']) ?>">
                                                     <bdi><?= e($person['label']) ?></bdi>
                                                 </span>
                                             </td>

@@ -31,6 +31,7 @@ $ohdabCategoryChartColors = [
  * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
  * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,enabled:bool}> $normalizationRules
+ * @var array{original_total:int,split_total:int,assigned_total:int,table_counts:list<array{table:string,count:int}>,categories:list<array{category:string,count:int,percentage:float}>} $hiscoStatistics
  * @var array{original_total:int,split_total:int,assigned_total:int,categories:list<array{category:string,count:int,percentage:float}>} $ohdabCategoryStatistics
  * @var array{exists:bool,file_name:string,row_count:int,imported_at:string} $ohdabSpecialDatabase
  * @var list<array{tree_id:int,tree_name:string,tree_title:string,tree_language:string}> $treeLanguages
@@ -212,6 +213,99 @@ $ohdabCategoryChartColors = [
                         </thead>
                         <tbody>
                             <?php foreach ($ohdabCategoryStatistics['categories'] as $categoryIndex => $categoryStatistics) : ?>
+                                <tr>
+                                    <td>
+                                        <span class="hh-occupation-ohdab-legend-color" style="background-color: <?= e($ohdabCategoryChartColors[$categoryIndex % count($ohdabCategoryChartColors)]) ?>;"></span>
+                                        <?= e($categoryStatistics['category']) ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <?= I18N::number($categoryStatistics['count']) ?>
+                                        <span class="text-muted">(<?= I18N::percentage($categoryStatistics['percentage'], 1) ?>)</span>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif ?>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h2 class="h4"><?= I18N::translate('HISCO catalog') ?></h2>
+        <p>
+            <?= I18N::translate('The bundled HISCO catalog is imported into module-owned database tables and used to show hierarchy details for HISCO identifiers.') ?>
+        </p>
+
+        <h3 class="h5 mt-4"><?= I18N::translate('HISCO database tables') ?></h3>
+        <?php if ($hiscoStatistics['table_counts'] === []) : ?>
+            <p class="alert alert-info">
+                <?= I18N::translate('No HISCO catalog tables are available yet.') ?>
+            </p>
+        <?php else : ?>
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th><?= I18N::translate('Database table') ?></th>
+                        <th class="text-end"><?= I18N::translate('Rows') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($hiscoStatistics['table_counts'] as $tableStatistics) : ?>
+                        <tr>
+                            <td><?= I18N::translate($tableStatistics['table']) ?></td>
+                            <td class="text-end"><?= I18N::number($tableStatistics['count']) ?></td>
+                        </tr>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
+        <?php endif ?>
+
+        <h3 class="h5 mt-4"><?= I18N::translate('HISCO category statistics') ?></h3>
+        <p class="small text-muted">
+            <?= I18N::translate('Original occupation facts') ?>:
+            <?= I18N::number($hiscoStatistics['original_total']) ?>,
+            <?= I18N::translate('split occupation entries') ?>:
+            <?= I18N::number($hiscoStatistics['split_total']) ?>,
+            <?= I18N::translate('assigned occupation entries') ?>:
+            <?= I18N::number($hiscoStatistics['assigned_total']) ?>
+        </p>
+        <p class="small text-muted">
+            <?= I18N::translate('This statistic is calculated across all family trees from active module-owned occupation entries.') ?>
+        </p>
+
+        <?php if ($hiscoStatistics['categories'] === []) : ?>
+            <p class="alert alert-info">
+                <?= I18N::translate('No assigned HISCO categories are available yet.') ?>
+            </p>
+        <?php else : ?>
+            <?php
+            $chartSegments = [];
+            $segmentStart = 0.0;
+            $lastCategoryIndex = count($hiscoStatistics['categories']) - 1;
+
+            foreach ($hiscoStatistics['categories'] as $categoryIndex => $categoryStatistics) {
+                $segmentEnd = $categoryIndex === $lastCategoryIndex ? 100.0 : $segmentStart + $categoryStatistics['percentage'] * 100;
+                $chartSegments[] = $ohdabCategoryChartColors[$categoryIndex % count($ohdabCategoryChartColors)] . ' ' . round($segmentStart, 3) . '% ' . round($segmentEnd, 3) . '%';
+                $segmentStart = $segmentEnd;
+            }
+            ?>
+            <div class="row g-3 align-items-start">
+                <div class="col-md-4 col-xl-3">
+                    <div class="hh-occupation-ohdab-chart mx-auto" role="img" aria-label="<?= e(I18N::translate('HISCO category statistics')) ?>" style="background: conic-gradient(<?= e(implode(', ', $chartSegments)) ?>);"></div>
+                </div>
+                <div class="col-md-8 col-xl-9">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th><?= I18N::translate('HISCO major group') ?></th>
+                                <th class="text-end"><?= I18N::translate('Occupation entries') ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($hiscoStatistics['categories'] as $categoryIndex => $categoryStatistics) : ?>
                                 <tr>
                                     <td>
                                         <span class="hh-occupation-ohdab-legend-color" style="background-color: <?= e($ohdabCategoryChartColors[$categoryIndex % count($ohdabCategoryChartColors)]) ?>;"></span>

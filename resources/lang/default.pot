@@ -47,6 +47,10 @@ msgstr ""
 msgid "OhdAB hierarchy"
 msgstr ""
 
+#: src/Application/Service/OccupationLabelService.php:157
+msgid "HISCO hierarchy"
+msgstr ""
+
 #: src/OccupationStandardizerModule.php:106
 msgid "Occupation Standardizer"
 msgstr ""
@@ -296,8 +300,16 @@ msgid "Most common normalized occupations"
 msgstr ""
 
 #: resources/views/occupation-landing.phtml:79
-msgid "This chart counts visible normalized occupation entries in the active family tree."
-msgstr ""
+msgid ""
+"This top-10 chart shows the most common visible normalized occupation entries "
+"in the active family tree. In total, %s visible normalized occupation entry is "
+"counted."
+msgid_plural ""
+"This top-10 chart shows the most common visible normalized occupation entries "
+"in the active family tree. In total, %s visible normalized occupation entries "
+"are counted."
+msgstr[0] ""
+msgstr[1] ""
 
 #: resources/views/occupation-landing.phtml:83
 msgid "No normalized occupation entries are available."
@@ -490,11 +502,23 @@ msgid "The normalized occupation could not be found."
 msgstr ""
 
 #: resources/views/occupation-portal.phtml:76
-msgid "External identifiers"
+msgid "External identifiers and source data"
 msgstr ""
 
 #: resources/views/occupation-portal.phtml:106
 msgid "No external identifiers are available."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:144
+msgid "Unit group"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:148
+msgid "Minor group"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:152
+msgid "Major group"
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:905
@@ -511,6 +535,62 @@ msgstr ""
 
 #: resources/views/occupation-portal.phtml:120
 msgid "No OhdAB hierarchy is available for this occupation."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:126
+msgid "Level"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO catalog"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "The bundled HISCO catalog is imported into module-owned database tables and used to show hierarchy details for HISCO identifiers."
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO database tables"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "No HISCO catalog tables are available yet."
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "Database table"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "Rows"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Major groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Minor groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Unit groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+msgid "Occupations"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO category statistics"
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "No assigned HISCO categories are available yet."
+msgstr ""
+
+#: resources/views/settings.phtml
+msgid "HISCO major group"
 msgstr ""
 
 #: resources/views/occupation-portal.phtml:136

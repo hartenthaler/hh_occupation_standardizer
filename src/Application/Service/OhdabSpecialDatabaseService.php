@@ -258,6 +258,34 @@ final class OhdabSpecialDatabaseService
     }
 
     /**
+     * @return list<array{code:string,label:string}>
+     */
+    public function hierarchyRows(int $concept_id): array
+    {
+        if (
+            $concept_id <= 0
+            || !DB::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY)
+            || !DB::schema()->hasTable(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)
+        ) {
+            return [];
+        }
+
+        return DB::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
+            ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
+            ->where('links.concept_id', '=', $concept_id)
+            ->orderByDesc('links.position')
+            ->select(['nodes.code', 'nodes.label'])
+            ->get()
+            ->map(static fn (object $row): array => [
+                'code'  => (string) $row->code,
+                'label' => (string) $row->label,
+            ])
+            ->filter(static fn (array $row): bool => trim($row['code'] . $row['label']) !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return list<array<string,string>>
      */
     private function xlsxRows(string $file): array

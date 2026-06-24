@@ -73,9 +73,9 @@ $externalIdentifierService = new ExternalIdentifierService();
                             <?php foreach ($row['normalizations'] as $normalization) : ?>
                                 <?php if ($normalization['label'] !== '') : ?>
                                     <?php $portal_url = $portalUrl((int) ($normalization['norm_concept_id'] ?? 0)) ?>
-                                    <span class="badge bg-secondary ms-1" title="<?= e($normalization['title']) ?>">
+                                    <span class="badge text-bg-light border ms-1" title="<?= e($normalization['title']) ?>">
                                         <?php if ($portal_url !== '') : ?>
-                                            <a class="link-light text-decoration-none" href="<?= e($portal_url) ?>">
+                                            <a class="link-dark text-decoration-none" href="<?= e($portal_url) ?>">
                                                 <?= e($normalization['label']) ?>
                                             </a>
                                         <?php else : ?>
