@@ -59,6 +59,7 @@ use function array_column;
 use function array_slice;
 use function array_values;
 use function array_filter;
+use function array_merge;
 use function array_count_values;
 use function array_sum;
 use function array_unique;
@@ -1617,24 +1618,47 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
      */
     private function activeNormalizedOccupationRows(Tree $tree): Collection
     {
-        return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+        $query = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
             ->where('entries.tree_id', '=', $tree->id())
             ->where('entries.is_active', '=', true)
             ->where('entries.norm_concept_id', '>', 0)
-            ->leftJoin(OccupationSchema::TABLE_NORM_CONCEPTS . ' AS concepts', 'concepts.id', '=', 'entries.norm_concept_id')
-            ->select([
-                'entries.individual_xref',
-                'entries.fact_id',
-                'entries.occupation_normalized',
-                'entries.occupation_de_male',
-                'entries.occupation_de_female',
-                'entries.occupation_de_neutral',
-                'entries.occupation_en_male',
-                'entries.occupation_en_female',
-                'entries.occupation_en_neutral',
-                'entries.norm_concept_id',
-                'concepts.ohdab_class',
-            ])
+            ->leftJoin(OccupationSchema::TABLE_NORM_CONCEPTS . ' AS concepts', 'concepts.id', '=', 'entries.norm_concept_id');
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $query->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', function ($join): void {
+                $join
+                    ->on('terms.language', '=', 'entries.language')
+                    ->on('terms.occupation_de_male', '=', 'entries.occupation_de_male');
+            });
+        }
+
+        $select = [
+            'entries.individual_xref',
+            'entries.fact_id',
+            'entries.occupation_normalized',
+            'entries.occupation_de_male',
+            'entries.occupation_de_female',
+            'entries.occupation_de_neutral',
+            'entries.occupation_en_male',
+            'entries.occupation_en_female',
+            'entries.occupation_en_neutral',
+            'entries.norm_concept_id',
+            'concepts.ohdab_class',
+        ];
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $select = array_merge($select, [
+                'terms.occupation_de_male AS term_occupation_de_male',
+                'terms.occupation_de_female AS term_occupation_de_female',
+                'terms.occupation_de_neutral AS term_occupation_de_neutral',
+                'terms.occupation_en_male AS term_occupation_en_male',
+                'terms.occupation_en_female AS term_occupation_en_female',
+                'terms.occupation_en_neutral AS term_occupation_en_neutral',
+            ]);
+        }
+
+        return $query
+            ->select($select)
             ->get();
     }
 
@@ -1644,20 +1668,32 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $candidates = $user_language === 'de'
             ? [
                 (string) ($entry_row->occupation_de_neutral ?? ''),
+                (string) ($entry_row->term_occupation_de_neutral ?? ''),
                 (string) ($entry_row->occupation_de_male ?? ''),
+                (string) ($entry_row->term_occupation_de_male ?? ''),
                 (string) ($entry_row->occupation_de_female ?? ''),
+                (string) ($entry_row->term_occupation_de_female ?? ''),
                 (string) ($entry_row->occupation_normalized ?? ''),
                 (string) ($entry_row->occupation_en_neutral ?? ''),
+                (string) ($entry_row->term_occupation_en_neutral ?? ''),
                 (string) ($entry_row->occupation_en_male ?? ''),
+                (string) ($entry_row->term_occupation_en_male ?? ''),
                 (string) ($entry_row->occupation_en_female ?? ''),
+                (string) ($entry_row->term_occupation_en_female ?? ''),
             ]
             : [
                 (string) ($entry_row->occupation_en_neutral ?? ''),
+                (string) ($entry_row->term_occupation_en_neutral ?? ''),
                 (string) ($entry_row->occupation_en_male ?? ''),
+                (string) ($entry_row->term_occupation_en_male ?? ''),
                 (string) ($entry_row->occupation_en_female ?? ''),
+                (string) ($entry_row->term_occupation_en_female ?? ''),
                 (string) ($entry_row->occupation_de_neutral ?? ''),
+                (string) ($entry_row->term_occupation_de_neutral ?? ''),
                 (string) ($entry_row->occupation_de_male ?? ''),
+                (string) ($entry_row->term_occupation_de_male ?? ''),
                 (string) ($entry_row->occupation_de_female ?? ''),
+                (string) ($entry_row->term_occupation_de_female ?? ''),
                 (string) ($entry_row->occupation_normalized ?? ''),
             ];
 

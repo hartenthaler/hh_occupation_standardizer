@@ -28,6 +28,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Count HISCO settings statistics from normalized term HISCO codes when copied entry rows do not carry their own code.
 - Detect OhdAB top-level category labels more robustly for English settings statistics.
 - Prefix OhdAB hierarchy labels with their A/B code and avoid overly broad English fallback labels for A subcategories.
+- Use localized normalized term labels in the landing-page top-10 occupation charts.
 
 ## 2.2.6.2 - 2026-06-24
 
