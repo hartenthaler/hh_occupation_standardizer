@@ -117,6 +117,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         OccupationNormalizationService::STATUS_IGNORED,
     ];
 
+    private OhdabSpecialDatabaseService|null $ohdab_special_database_service = null;
+
     public function title(): string
     {
         return I18N::translate('Occupation Standardizer');
@@ -1801,9 +1803,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'id'        => (int) $node->id,
             'level'     => (int) $node->level,
             'code'      => (string) $node->code,
-            'label'     => OhdabSpecialDatabaseService::translatedHierarchyLabel((string) $node->code, (string) $node->label, I18N::languageTag()),
+            'label'     => $this->ohdabSpecialDatabaseService()->hierarchyLabel((int) $node->id, (string) $node->code, (string) $node->label, I18N::languageTag()),
             'parent_id' => $node->parent_id !== null ? (int) $node->parent_id : null,
         ];
+    }
+
+    private function ohdabSpecialDatabaseService(): OhdabSpecialDatabaseService
+    {
+        return $this->ohdab_special_database_service ??= new OhdabSpecialDatabaseService();
     }
 
     private function ohdabHierarchySourceId(): int
@@ -2986,10 +2993,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
             ->where('entries.is_active', '=', true)
             ->where('entries.norm_concept_id', '>', 0)
-            ->groupBy(['nodes.code', 'nodes.label'])
+            ->groupBy(['nodes.id', 'nodes.code', 'nodes.label'])
             ->orderBy('nodes.code')
             ->orderBy('nodes.label')
             ->select([
+                'nodes.id AS category_node_id',
                 'nodes.code AS category_code',
                 'nodes.label AS category',
                 DB::raw('COUNT(*) AS category_count'),
@@ -3003,8 +3011,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'split_total'    => $split_total,
             'assigned_total' => $assigned_total,
             'categories'     => $category_rows
-                ->map(static fn (object $row): array => [
-                    'category'   => OhdabSpecialDatabaseService::translatedHierarchyLabel((string) $row->category_code, (string) $row->category, I18N::languageTag()),
+                ->map(fn (object $row): array => [
+                    'category'   => $this->ohdabSpecialDatabaseService()->hierarchyLabel((int) $row->category_node_id, (string) $row->category_code, (string) $row->category, I18N::languageTag()),
                     'count'      => (int) $row->category_count,
                     'percentage' => $assigned_total > 0 ? (int) $row->category_count / $assigned_total : 0.0,
                 ])

@@ -10,15 +10,22 @@ use Illuminate\Database\Capsule\Manager as DB;
 use SimpleXMLElement;
 use ZipArchive;
 
+use function array_filter;
 use function array_key_exists;
+use function array_unique;
+use function array_values;
 use function basename;
 use function class_exists;
 use function date;
+use function explode;
 use function is_file;
+use function is_array;
+use function is_string;
 use function mb_strtolower;
 use function pathinfo;
 use function preg_match;
 use function preg_replace;
+use function rawurlencode;
 use function sha1_file;
 use function str_replace;
 use function strlen;
@@ -48,6 +55,19 @@ final class OhdabSpecialDatabaseService
         'B 8' => 'Health, social affairs, teaching, and education',
         'B 9' => 'Language, literature, humanities, social sciences and economics, media, art, culture, and design',
     ];
+
+    private ExternalAuthorityHttpClient $http_client;
+
+    /** @var array<string,array<string,mixed>|null> */
+    private array $factgrid_entity_cache = [];
+
+    /** @var array<string,string> */
+    private array $hierarchy_label_cache = [];
+
+    public function __construct(ExternalAuthorityHttpClient|null $http_client = null)
+    {
+        $this->http_client = $http_client ?? new ExternalAuthorityHttpClient();
+    }
 
     /**
      * @return array{imported:bool,row_count:int,message:string}
@@ -270,9 +290,9 @@ final class OhdabSpecialDatabaseService
             ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
             ->where('links.concept_id', '=', $concept_id)
             ->orderBy('links.position')
-            ->select(['nodes.code', 'nodes.label'])
+            ->select(['nodes.id', 'nodes.code', 'nodes.label'])
             ->get()
-            ->map(static fn (object $row): string => self::translatedHierarchyLabel((string) $row->code, (string) $row->label, I18N::languageTag()))
+            ->map(fn (object $row): string => $this->hierarchyLabel((int) $row->id, (string) $row->code, (string) $row->label, I18N::languageTag()))
             ->filter(static fn (string $label): bool => trim($label) !== '')
             ->implode(' > ');
     }
@@ -294,15 +314,192 @@ final class OhdabSpecialDatabaseService
             ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
             ->where('links.concept_id', '=', $concept_id)
             ->orderByDesc('links.position')
-            ->select(['nodes.code', 'nodes.label'])
+            ->select(['nodes.id', 'nodes.code', 'nodes.label'])
             ->get()
-            ->map(static fn (object $row): array => [
+            ->map(fn (object $row): array => [
                 'code'  => (string) $row->code,
-                'label' => self::translatedHierarchyLabel((string) $row->code, (string) $row->label, I18N::languageTag()),
+                'label' => $this->hierarchyLabel((int) $row->id, (string) $row->code, (string) $row->label, I18N::languageTag()),
             ])
             ->filter(static fn (array $row): bool => trim($row['code'] . $row['label']) !== '')
             ->values()
             ->all();
+    }
+
+    public function hierarchyLabel(int $node_id, string $code, string $label, string $language_tag): string
+    {
+        $fallback = self::translatedHierarchyLabel($code, $label, $language_tag);
+
+        if ($node_id <= 0) {
+            return $fallback;
+        }
+
+        $cache_key = $node_id . "\n" . $language_tag;
+
+        if (array_key_exists($cache_key, $this->hierarchy_label_cache)) {
+            return $this->hierarchy_label_cache[$cache_key];
+        }
+
+        $factgrid_label = $this->factGridHierarchyLabel($node_id, $code, $language_tag);
+
+        return $this->hierarchy_label_cache[$cache_key] = $factgrid_label !== '' ? $factgrid_label : $fallback;
+    }
+
+    private function factGridHierarchyLabel(int $node_id, string $code, string $language_tag): string
+    {
+        if (
+            !DB::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY)
+            || !DB::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPTS)
+        ) {
+            return '';
+        }
+
+        $concept_ids = DB::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
+            ->join(OccupationSchema::TABLE_NORM_CONCEPTS . ' AS concepts', 'concepts.id', '=', 'links.concept_id')
+            ->where('links.node_id', '=', $node_id)
+            ->whereNotNull('concepts.factgrid_id')
+            ->where('concepts.factgrid_id', '<>', '')
+            ->orderBy('concepts.ohdab_full_id')
+            ->limit(12)
+            ->pluck('concepts.factgrid_id')
+            ->all();
+
+        foreach ($concept_ids as $concept_id) {
+            $label = $this->factGridHierarchyLabelFromConcept((string) $concept_id, $code, $language_tag);
+
+            if ($label !== '') {
+                return $label;
+            }
+        }
+
+        return '';
+    }
+
+    private function factGridHierarchyLabelFromConcept(string $factgrid_id, string $code, string $language_tag): string
+    {
+        $current_ids = [$factgrid_id];
+        $visited = [];
+
+        for ($depth = 0; $depth < 8 && $current_ids !== []; $depth++) {
+            $next_ids = [];
+
+            foreach ($current_ids as $current_id) {
+                if (isset($visited[$current_id])) {
+                    continue;
+                }
+
+                $visited[$current_id] = true;
+                $entity = $this->factGridEntity($current_id);
+
+                if ($entity === null) {
+                    continue;
+                }
+
+                $label = $this->languageValue($entity['labels'] ?? [], $language_tag);
+
+                if ($this->factGridLabelMatchesCode($label, $code)) {
+                    return $label;
+                }
+
+                foreach ($this->claimItemValues($entity, 'P1007') as $parent_id) {
+                    $next_ids[] = $parent_id;
+                }
+            }
+
+            $current_ids = array_values(array_unique($next_ids));
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string,mixed>|null
+     */
+    private function factGridEntity(string $id): array|null
+    {
+        if ($id === '') {
+            return null;
+        }
+
+        if (array_key_exists($id, $this->factgrid_entity_cache)) {
+            return $this->factgrid_entity_cache[$id];
+        }
+
+        $url = 'https://database.factgrid.de/wiki/Special:EntityData/' . rawurlencode($id) . '.json';
+        $data = $this->http_client->getJson('factgrid', $url);
+
+        if (!is_array($data)) {
+            return $this->factgrid_entity_cache[$id] = null;
+        }
+
+        $entity = is_array($data['entities'][$id] ?? null) ? $data['entities'][$id] : null;
+
+        return $this->factgrid_entity_cache[$id] = $entity;
+    }
+
+    /**
+     * @param array<string,mixed> $entity
+     *
+     * @return list<string>
+     */
+    private function claimItemValues(array $entity, string $property): array
+    {
+        $claims = $entity['claims'][$property] ?? [];
+
+        if (!is_array($claims)) {
+            return [];
+        }
+
+        $values = [];
+
+        foreach ($claims as $claim) {
+            $id = $claim['mainsnak']['datavalue']['value']['id'] ?? null;
+
+            if (is_string($id) && trim($id) !== '') {
+                $values[] = trim($id);
+            }
+        }
+
+        return array_values(array_unique($values));
+    }
+
+    /**
+     * @param mixed $values
+     */
+    private function languageValue(mixed $values, string $language_tag): string
+    {
+        if (!is_array($values)) {
+            return '';
+        }
+
+        foreach ($this->languageCandidates($language_tag) as $language) {
+            $value = $values[$language]['value'] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function languageCandidates(string $language_tag): array
+    {
+        $primary_language = trim(explode('-', str_replace('_', '-', $language_tag))[0] ?? '');
+        $candidates = [$primary_language, 'en', 'de'];
+
+        return array_values(array_filter(array_unique($candidates), static fn (string $language): bool => $language !== ''));
+    }
+
+    private function factGridLabelMatchesCode(string $label, string $code): bool
+    {
+        if ($label === '') {
+            return false;
+        }
+
+        return self::normalizedDisplayCode($label) === self::normalizedDisplayCode($code);
     }
 
     public static function translatedHierarchyLabel(string $code, string $label, string $language_tag): string
@@ -355,6 +552,10 @@ final class OhdabSpecialDatabaseService
     private static function normalizedDisplayCode(string $code): string
     {
         $normalized_code = trim(preg_replace('/\s+/', ' ', strtoupper($code)) ?? $code);
+
+        if (preg_match('/^([AB])\s*([0-9]+)(?:\s*[:\\-].*)?$/', $normalized_code, $match) === 1) {
+            return $match[1] . ' ' . $match[2];
+        }
 
         if (preg_match('/^([AB])\s*([0-9])$/', $normalized_code, $match) === 1) {
             return $match[1] . ' ' . $match[2];

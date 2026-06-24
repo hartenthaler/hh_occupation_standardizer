@@ -63,6 +63,8 @@ This is exposed as an external link, not embedded into the page.
 
 HISCO hierarchy details are resolved locally from the bundled HISCO catalog tables.
 OhdAB hierarchy details are resolved locally from the imported tailored OhdAB extract.
+Where an imported OhdAB concept links to a FactGrid item, hierarchy labels may be resolved from the official FactGrid hierarchy items and cached with the same external authority cache.
+If FactGrid cannot be reached or no matching hierarchy item is found, the module falls back to the imported OhdAB label.
 
 ## Cache Strategy
 
