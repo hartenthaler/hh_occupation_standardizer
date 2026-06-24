@@ -46,6 +46,10 @@ msgstr "Englische neutrale Form"
 msgid "OhdAB hierarchy"
 msgstr "OhdAB-Hierarchie"
 
+#: src/Application/Service/OccupationLabelService.php:157
+msgid "HISCO hierarchy"
+msgstr "HISCO-Hierarchie"
+
 #: src/OccupationStandardizerModule.php:106
 msgid "Occupation Standardizer"
 msgstr "Vereinheitlichung von Berufsangaben"

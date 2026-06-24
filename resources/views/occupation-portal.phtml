@@ -19,6 +19,7 @@ foreach ($externalAuthorityRows as $row) {
 
 $hiscoCatalogRows ??= [];
 $hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): string => $row['hisco_pretty'], $hiscoCatalogRows)));
+$hierarchyColumnClass = $hiscoCatalogRows !== [] ? 'col-12 col-xl-6' : 'col-12';
 $ohdabHierarchyRows = $hierarchyPath !== '' ? array_reverse(explode(' > ', $hierarchyPath)) : [];
 $periodStats ??= [];
 
@@ -199,7 +200,7 @@ $periodStats ??= [];
                 </section>
             </div>
 
-            <div class="col-12">
+            <div class="<?= e($hierarchyColumnClass) ?>">
                 <section class="card">
                     <div class="card-header">
                         <?= I18N::translate('OhdAB hierarchy') ?>
@@ -227,7 +228,7 @@ $periodStats ??= [];
             </div>
 
             <?php if ($hiscoCatalogRows !== []) : ?>
-                <div class="col-12">
+                <div class="col-12 col-xl-6">
                     <section class="card">
                         <div class="card-header">
                             HISCO

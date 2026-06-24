@@ -31,6 +31,9 @@ final class OccupationLabelService
     /** @var list<string> */
     private array $builtin_rule_order;
     private OhdabSpecialDatabaseService $ohdab_special_database_service;
+    private HiscoCatalogService $hisco_catalog_service;
+    /** @var array<string,string> */
+    private array $hisco_hierarchy_cache = [];
 
     /**
      * @param list<string> $builtin_rule_order
@@ -39,6 +42,7 @@ final class OccupationLabelService
     {
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : $this->configuredBuiltinRuleOrder();
         $this->ohdab_special_database_service = new OhdabSpecialDatabaseService();
+        $this->hisco_catalog_service = new HiscoCatalogService();
     }
 
     /**
@@ -149,6 +153,12 @@ final class OccupationLabelService
 
             if (($entry['code_hisco'] ?? '') !== '') {
                 $title_parts[] = $this->identifierTitle('HISCO', $entry['code_hisco']);
+
+                $hisco_hierarchy = $this->hiscoHierarchy((string) $entry['code_hisco']);
+
+                if ($hisco_hierarchy !== '') {
+                    $title_parts[] = I18N::translate('HISCO hierarchy') . ': ' . $hisco_hierarchy;
+                }
             }
 
             if (($entry['code_gnd'] ?? '') !== '') {
@@ -190,6 +200,34 @@ final class OccupationLabelService
     private function identifierTitle(string $label, string $code): string
     {
         return $label . ': ' . $code;
+    }
+
+    private function hiscoHierarchy(string $code): string
+    {
+        $code = trim($code);
+
+        if ($code === '') {
+            return '';
+        }
+
+        if (isset($this->hisco_hierarchy_cache[$code])) {
+            return $this->hisco_hierarchy_cache[$code];
+        }
+
+        $row = $this->hisco_catalog_service->occupation($code, I18N::languageTag());
+
+        if ($row === null) {
+            return $this->hisco_hierarchy_cache[$code] = '';
+        }
+
+        $parts = [
+            trim($row['label']),
+            trim($row['unit']['code'] . ' ' . $row['unit']['label']),
+            trim($row['minor']['code'] . ' ' . $row['minor']['label']),
+            trim($row['major']['code'] . ' ' . $row['major']['label']),
+        ];
+
+        return $this->hisco_hierarchy_cache[$code] = implode(' > ', array_values(array_filter($parts)));
     }
 
     /**
