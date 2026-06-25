@@ -54,6 +54,12 @@ $periodStats ??= [];
         <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'hisco-hierarchy'])) ?>">
             <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
         </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'frequencies'])) ?>">
+            <?= I18N::translate('Frequency analysis') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'inheritance'])) ?>">
+            <?= I18N::translate('Inheritance analysis') ?>
+        </a>
     </p>
 
     <?php if ($concept === null) : ?>

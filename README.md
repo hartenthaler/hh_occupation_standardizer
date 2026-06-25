@@ -55,7 +55,7 @@ A later transfer of selected module-owned information back into GEDCOM is intend
 The module currently provides:
 
 * a new webtrees list-menu entry for occupations
-* a landing page with entry points for occupation facts, OhdAB hierarchy, HISCO hierarchy, inheritance analysis, and top-10 charts
+* a landing page with entry points for occupation facts, OhdAB hierarchy, HISCO hierarchy, frequency analysis, and inheritance analysis
 * a read-only occupation overview for visitors and members
 * editable normalization rows for managers and administrators
 * occupation labels next to `INDI:OCCU` facts
@@ -63,6 +63,7 @@ The module currently provides:
 * OhdAB hierarchy browsing based on an imported tailored OhdAB extract
 * bundled HISCO catalog tables for local HISCO lookups
 * HISCO hierarchy browsing based on stored HISCO identifiers
+* top-10 frequency charts for normalized occupation and social-status entries
 * a tabular inheritance analysis for normalized occupation and social-status entries between parents and children
 * links to external identifiers such as OhdAB, FactGrid, GND, Wikidata, and HISCO
 * module settings for rules, tree languages, normalization mappings, norm-data import, and maintenance
@@ -94,14 +95,15 @@ They can maintain built-in rule order and activation, tree language defaults, lo
 ## 🧭 Occupation Landing Page
 
 The list-menu entry opens a landing page for the active family tree.
-It provides four main action tiles:
+It provides five main action tiles:
 
 * **Occupations** - opens the list of original occupation facts.
 * **Occupation hierarchy (OhdAB)** - opens the hierarchy from imported OhdAB norm data.
 * **Occupation hierarchy (HISCO)** - opens the hierarchy from the bundled HISCO catalog.
+* **Frequency analysis** - shows top-10 charts for normalized occupations and social statuses.
 * **Inheritance analysis** - compares normalized occupation or social-status entries between parents and children.
 
-The landing page also shows top-10 charts of the most common visible normalized occupation and social-status entries in the active family tree.
+The frequency analysis shows top-10 charts of the most common visible normalized occupation and social-status entries in the active family tree.
 These charts are based on active module-owned normalization rows for the selected tree.
 
 The inheritance analysis is currently a data table.

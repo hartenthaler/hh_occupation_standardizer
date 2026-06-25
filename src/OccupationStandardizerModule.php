@@ -367,12 +367,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ($view === '') {
             return $this->viewResponse($this->name() . '::occupation-landing', [
+                'frequencyUrl'      => $this->listUrl($tree, ['view' => 'frequencies']),
                 'hiscoHierarchyUrl' => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
                 'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
                 'inheritanceUrl'    => $this->listUrl($tree, ['view' => 'inheritance']),
                 'listUrl'           => $this->listUrl($tree, ['view' => 'list']),
                 'title'             => $this->listTitle(),
-                'topOccupationCharts' => $this->topNormalizedOccupationCharts($tree),
                 'tree'              => $tree,
             ]);
         }
@@ -410,6 +410,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'persons'     => $this->hiscoHierarchyPersons($tree, $level, $code),
                 'title'       => I18N::translate('Occupation hierarchy (HISCO)'),
                 'tree'        => $tree,
+            ]);
+        }
+
+        if ($view === 'frequencies') {
+            return $this->viewResponse($this->name() . '::occupation-frequencies', [
+                'listUrl'             => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'title'               => I18N::translate('Frequency analysis'),
+                'topOccupationCharts' => $this->topNormalizedOccupationCharts($tree),
+                'tree'                => $tree,
             ]);
         }
 
@@ -455,8 +464,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         return $this->viewResponse($this->name() . '::occupation-list', [
             'canManageNormalization' => $can_manage_normalization,
+            'frequencyUrl'           => $this->listUrl($tree, ['view' => 'frequencies']),
             'hiscoHierarchyUrl'      => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
             'hierarchyUrl'            => $this->listUrl($tree, ['view' => 'hierarchy']),
+            'inheritanceUrl'         => $this->listUrl($tree, ['view' => 'inheritance']),
             'languageOptions'        => $this->languageOptions(),
             'portalUrl'              => fn (int $concept_id): string => $this->occupationPortalUrl($tree, $concept_id),
             'rows'                   => $this->occupationRows($tree, $can_manage_normalization),

@@ -14,8 +14,10 @@ $externalIdentifierService = new ExternalIdentifierService();
 
 /**
  * @var bool $canManageNormalization
+ * @var string $frequencyUrl
  * @var string $hiscoHierarchyUrl
  * @var string $hierarchyUrl
+ * @var string $inheritanceUrl
  * @var array<string,string> $languageOptions
  * @var callable(int):string $portalUrl
  * @var Collection<int,array{occupation:string,individual:Individual,date:string,place:string,place_sort:string,employer:string,type:string,note:string,sources:list<string>,normalizations:list<array{label:string,title:string,status:string,norm_concept_id:int}>,normalizationEntries:list<array{entry_key:string,part_index:int,original_part_text:string,date:string,place:string,location_xref:string,location_hierarchy:string,employer:string,type:string,note:string,source_xrefs:string,source_names:string,language:string,social_status:string,occupation_normalized:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,status:string,reviewed:bool,rule_numbers:string}>}> $rows
@@ -34,6 +36,12 @@ $externalIdentifierService = new ExternalIdentifierService();
         </a>
         <a class="btn btn-secondary btn-sm" href="<?= e($hiscoHierarchyUrl) ?>">
             <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($frequencyUrl) ?>">
+            <?= I18N::translate('Frequency analysis') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($inheritanceUrl) ?>">
+            <?= I18N::translate('Inheritance analysis') ?>
         </a>
     </p>
 

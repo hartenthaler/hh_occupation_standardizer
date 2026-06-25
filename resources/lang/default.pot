@@ -666,6 +666,16 @@ msgstr ""
 msgid "Inheritance analysis"
 msgstr ""
 
+#: src/OccupationStandardizerModule.php:417
+#: resources/views/occupation-landing.phtml:130
+#: resources/views/occupation-frequencies.phtml:101
+msgid "Frequency analysis"
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:131
+msgid "Show top-10 charts for normalized occupations and social statuses."
+msgstr ""
+
 #: resources/views/occupation-landing.phtml:138
 msgid "Compare occupation or social-status entries between parents and children."
 msgstr ""

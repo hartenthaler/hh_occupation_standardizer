@@ -795,6 +795,16 @@ msgstr "Vererbung von Beruf und Stand"
 msgid "Inheritance analysis"
 msgstr "Vererbungsanalyse"
 
+#: src/OccupationStandardizerModule.php:417
+#: resources/views/occupation-landing.phtml:130
+#: resources/views/occupation-frequencies.phtml:101
+msgid "Frequency analysis"
+msgstr "Häufigkeitsanalyse"
+
+#: resources/views/occupation-landing.phtml:131
+msgid "Show top-10 charts for normalized occupations and social statuses."
+msgstr "Zeigt Top-10-Grafiken für normierte Berufe und Stände."
+
 #: resources/views/occupation-landing.phtml:138
 msgid "Compare occupation or social-status entries between parents and children."
 msgstr "Vergleicht Berufs- oder Standeseinträge zwischen Eltern und Kindern."
