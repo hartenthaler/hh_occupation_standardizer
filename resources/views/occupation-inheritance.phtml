@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Tree;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+
+/**
+ * @var string $hiscoHierarchyUrl
+ * @var string $hierarchyUrl
+ * @var string $inheritanceType
+ * @var callable(array):string $listUrl
+ * @var list<array{parent_label:string,child_label:string,count:int,parent_count:int,child_count:int}> $rows
+ * @var string $title
+ * @var Tree $tree
+ */
+
+$occupation_url = $listUrl(['view' => 'inheritance', 'type' => 'occupation']);
+$status_url = $listUrl(['view' => 'inheritance', 'type' => 'status']);
+?>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <p class="d-flex flex-wrap gap-2 align-items-center p-2 mb-3 rounded border" style="background: var(--bs-tertiary-bg, rgba(0, 0, 0, .03));">
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'list'])) ?>">
+            <?= MoreI18N::xlate('Occupations') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($hierarchyUrl) ?>">
+            <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($hiscoHierarchyUrl) ?>">
+            <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
+        </a>
+    </p>
+
+    <div class="btn-group mb-3" role="group" aria-label="<?= e(I18N::translate('Analysis type')) ?>">
+        <a class="btn <?= $inheritanceType === 'occupation' ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($occupation_url) ?>">
+            <?= MoreI18N::xlate('Occupation') ?>
+        </a>
+        <a class="btn <?= $inheritanceType === 'status' ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($status_url) ?>">
+            <?= MoreI18N::xlate('Social status') ?>
+        </a>
+    </div>
+
+    <p>
+        <?= I18N::translate('This table compares normalized entries for parents and children in the active family tree.') ?>
+        <?= I18N::translate('It is intended as the tabular basis for a later chart.') ?>
+    </p>
+
+    <?php if ($rows === []) : ?>
+        <p class="alert alert-info">
+            <?= I18N::translate('No parent-child pairs with matching entries were found in this family tree.') ?>
+        </p>
+    <?php else : ?>
+        <table class="table table-bordered table-sm wt-table datatables"
+            <?= view('lists/datatables-attributes') ?>
+        >
+            <thead>
+                <tr>
+                    <th><?= I18N::translate('Parent entry') ?></th>
+                    <th><?= I18N::translate('Child entry') ?></th>
+                    <th><?= I18N::translate('Parent-child pairs') ?></th>
+                    <th><?= I18N::translate('Parents') ?></th>
+                    <th><?= MoreI18N::xlate('Children') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $row) : ?>
+                    <tr>
+                        <td><bdi><?= e($row['parent_label']) ?></bdi></td>
+                        <td><bdi><?= e($row['child_label']) ?></bdi></td>
+                        <td data-sort="<?= e((string) $row['count']) ?>"><?= I18N::number($row['count']) ?></td>
+                        <td data-sort="<?= e((string) $row['parent_count']) ?>"><?= I18N::number($row['parent_count']) ?></td>
+                        <td data-sort="<?= e((string) $row['child_count']) ?>"><?= I18N::number($row['child_count']) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+</div>

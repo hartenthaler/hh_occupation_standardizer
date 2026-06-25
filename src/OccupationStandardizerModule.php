@@ -74,6 +74,7 @@ use function in_array;
 use function is_array;
 use function method_exists;
 use function max;
+use function mb_strtolower;
 use function min;
 use function preg_match_all;
 use function preg_match;
@@ -368,6 +369,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return $this->viewResponse($this->name() . '::occupation-landing', [
                 'hiscoHierarchyUrl' => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
                 'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
+                'inheritanceUrl'    => $this->listUrl($tree, ['view' => 'inheritance']),
                 'listUrl'           => $this->listUrl($tree, ['view' => 'list']),
                 'title'             => $this->listTitle(),
                 'topOccupationCharts' => $this->topNormalizedOccupationCharts($tree),
@@ -411,6 +413,21 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ]);
         }
 
+        if ($view === 'inheritance') {
+            $inheritance_type = (string) ($query_params['type'] ?? 'occupation');
+            $inheritance_type = in_array($inheritance_type, ['occupation', 'status'], true) ? $inheritance_type : 'occupation';
+
+            return $this->viewResponse($this->name() . '::occupation-inheritance', [
+                'hiscoHierarchyUrl' => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
+                'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
+                'inheritanceType'   => $inheritance_type,
+                'listUrl'           => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'rows'              => $this->occupationInheritanceRows($tree, $inheritance_type),
+                'title'             => I18N::translate('Occupation and social-status inheritance'),
+                'tree'              => $tree,
+            ]);
+        }
+
         if ($view === 'occupation') {
             $concept_id = (int) ($query_params['concept_id'] ?? 0);
             $concept = $this->occupationConcept($concept_id);
@@ -447,6 +464,217 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'title'                  => $this->listTitle(),
             'tree'                   => $tree,
         ]);
+    }
+
+    /**
+     * @return list<array{parent_label:string,child_label:string,count:int,parent_count:int,child_count:int}>
+     */
+    private function occupationInheritanceRows(Tree $tree, string $type): array
+    {
+        $values_by_individual = $this->inheritanceValuesByIndividual($tree, $type);
+        $parent_map = $this->parentMap($tree);
+        $flows = [];
+
+        foreach ($parent_map as $child_xref => $parent_xrefs) {
+            $child_values = $values_by_individual[$child_xref] ?? [];
+
+            if ($child_values === []) {
+                continue;
+            }
+
+            foreach ($parent_xrefs as $parent_xref) {
+                if ($parent_xref === null) {
+                    continue;
+                }
+
+                $parent_values = $values_by_individual[$parent_xref] ?? [];
+
+                if ($parent_values === []) {
+                    continue;
+                }
+
+                foreach ($parent_values as $parent_key => $parent_label) {
+                    foreach ($child_values as $child_key => $child_label) {
+                        $flow_key = $parent_key . "\0" . $child_key;
+
+                        $flows[$flow_key] ??= [
+                            'parent_label' => $parent_label,
+                            'child_label'  => $child_label,
+                            'count'        => 0,
+                            'parents'      => [],
+                            'children'     => [],
+                        ];
+
+                        $flows[$flow_key]['count']++;
+                        $flows[$flow_key]['parents'][$parent_xref] = true;
+                        $flows[$flow_key]['children'][$child_xref] = true;
+                    }
+                }
+            }
+        }
+
+        $rows = array_map(static fn (array $flow): array => [
+            'parent_label' => $flow['parent_label'],
+            'child_label'  => $flow['child_label'],
+            'count'        => $flow['count'],
+            'parent_count' => count($flow['parents']),
+            'child_count'  => count($flow['children']),
+        ], array_values($flows));
+
+        usort($rows, static function (array $a, array $b): int {
+            return $b['count'] <=> $a['count']
+                ?: I18N::comparator()($a['parent_label'], $b['parent_label'])
+                ?: I18N::comparator()($a['child_label'], $b['child_label']);
+        });
+
+        return $rows;
+    }
+
+    /**
+     * @return array<string,array<string,string>>
+     */
+    private function inheritanceValuesByIndividual(Tree $tree, string $type): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return [];
+        }
+
+        $values_by_individual = [];
+        $individual_cache = [];
+
+        foreach ($this->activeInheritanceEntryRows($tree) as $entry_row) {
+            $xref = (string) $entry_row->individual_xref;
+            $individual_cache[$xref] ??= Registry::individualFactory()->make($xref, $tree);
+            $individual = $individual_cache[$xref];
+
+            if (!$individual instanceof Individual || !$individual->canShow() || !$this->occupationFactCanShow($individual, (string) $entry_row->fact_id)) {
+                continue;
+            }
+
+            $value = $this->inheritanceValue($entry_row, $type);
+
+            if ($value === null) {
+                continue;
+            }
+
+            $values_by_individual[$xref][$value['key']] = $value['label'];
+        }
+
+        return $values_by_individual;
+    }
+
+    /**
+     * @return Collection<int,object>
+     */
+    private function activeInheritanceEntryRows(Tree $tree): Collection
+    {
+        $query = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true)
+            ->leftJoin(OccupationSchema::TABLE_NORM_CONCEPTS . ' AS concepts', 'concepts.id', '=', 'entries.norm_concept_id');
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $query->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', function ($join): void {
+                $join
+                    ->on('terms.language', '=', 'entries.language')
+                    ->on('terms.occupation_de_male', '=', 'entries.occupation_de_male');
+            });
+        }
+
+        $select = [
+            'entries.individual_xref',
+            'entries.fact_id',
+            'entries.social_status',
+            'entries.occupation_normalized',
+            'entries.occupation_de_male',
+            'entries.occupation_de_female',
+            'entries.occupation_de_neutral',
+            'entries.occupation_en_male',
+            'entries.occupation_en_female',
+            'entries.occupation_en_neutral',
+            'entries.norm_concept_id',
+            'concepts.ohdab_class',
+        ];
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $select = array_merge($select, [
+                'terms.occupation_de_male AS term_occupation_de_male',
+                'terms.occupation_de_female AS term_occupation_de_female',
+                'terms.occupation_de_neutral AS term_occupation_de_neutral',
+                'terms.occupation_en_male AS term_occupation_en_male',
+                'terms.occupation_en_female AS term_occupation_en_female',
+                'terms.occupation_en_neutral AS term_occupation_en_neutral',
+            ]);
+        }
+
+        return $query
+            ->select($select)
+            ->get();
+    }
+
+    /**
+     * @return array{key:string,label:string}|null
+     */
+    private function inheritanceValue(object $entry_row, string $type): array|null
+    {
+        $ohdab_class = (string) ($entry_row->ohdab_class ?? '');
+        $concept_id = (int) ($entry_row->norm_concept_id ?? 0);
+
+        if ($type === 'status') {
+            if ($concept_id > 0 && $ohdab_class === 'A') {
+                $label = $this->normalizedOccupationChartLabel($entry_row);
+
+                return ['key' => 'concept:' . $concept_id, 'label' => $label];
+            }
+
+            $label = trim((string) ($entry_row->social_status ?? ''));
+
+            return $label !== '' ? ['key' => 'status:' . mb_strtolower($label), 'label' => $label] : null;
+        }
+
+        if ($ohdab_class === 'A') {
+            return null;
+        }
+
+        $label = $this->normalizedOccupationChartLabel($entry_row);
+
+        if ($label === '' || $label === I18N::translate('Unknown occupation')) {
+            return null;
+        }
+
+        $key = $concept_id > 0
+            ? 'concept:' . $concept_id
+            : 'occupation:' . mb_strtolower((string) ($entry_row->occupation_normalized ?? $label));
+
+        return ['key' => $key, 'label' => $label];
+    }
+
+    /**
+     * @return array<string,array{0:string|null,1:string|null}>
+     */
+    private function parentMap(Tree $tree): array
+    {
+        $family_parents = [];
+
+        foreach (DBManager::table('families')->where('f_file', '=', $tree->id())->select(['f_id', 'f_husb', 'f_wife'])->get() as $row) {
+            $family_parents[(string) $row->f_id] = [
+                (string) ($row->f_husb ?? '') !== '' ? (string) $row->f_husb : null,
+                (string) ($row->f_wife ?? '') !== '' ? (string) $row->f_wife : null,
+            ];
+        }
+
+        $parent_of = [];
+
+        foreach (DBManager::table('link')->where('l_file', '=', $tree->id())->where('l_type', '=', 'FAMC')->select(['l_from', 'l_to'])->get() as $row) {
+            $child = (string) $row->l_from;
+            $family = (string) $row->l_to;
+
+            if ($child !== '' && isset($family_parents[$family])) {
+                $parent_of[$child] = $family_parents[$family];
+            }
+        }
+
+        return $parent_of;
     }
 
     /**

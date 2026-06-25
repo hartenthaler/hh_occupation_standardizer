@@ -12,6 +12,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Added curated German labels and descriptions for HISCO major, minor, and unit groups with checksum-based import.
 - Added a HISCO hierarchy tile to the occupation landing page.
 - Added a HISCO hierarchy browser with major groups, minor groups, unit groups, occupations, counts, and matching visible individuals in the active family tree.
+- Added a tabular inheritance analysis for normalized occupation and social-status entries between parents and children.
 
 ### Changed
 
