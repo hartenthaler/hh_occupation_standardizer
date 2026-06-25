@@ -1,0 +1,124 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Tree;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+
+$topOccupationCharts ??= [];
+
+/**
+ * @var callable(array):string $listUrl
+ * @var array<string,array{title:string,rows:list<array{label:string,count:int,percentage:float,url:string}>,total:int}> $topOccupationCharts
+ * @var string $title
+ * @var Tree $tree
+ */
+?>
+
+<?php
+$renderTopOccupationChart = static function (array $chart): void {
+    $rows = $chart['rows'] ?? [];
+    $total = (int) ($chart['total'] ?? 0);
+    ?>
+    <section class="card mt-3">
+        <div class="card-header">
+            <?= e((string) ($chart['title'] ?? '')) ?>
+        </div>
+        <div class="card-body">
+            <p class="small text-muted">
+                <?= I18N::plural('This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized entry is counted.', 'This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized entries are counted.', $total, I18N::number($total)) ?>
+            </p>
+
+            <?php if ($rows === []) : ?>
+                <p class="mb-0 text-muted"><?= I18N::translate('No normalized entries are available.') ?></p>
+            <?php else : ?>
+                <div class="hh-occupation-top-chart d-grid gap-2">
+                    <?php foreach ($rows as $row) : ?>
+                        <div class="hh-occupation-top-chart-row">
+                            <div class="hh-occupation-top-chart-label text-truncate">
+                                <?php if ($row['url'] !== '') : ?>
+                                    <a href="<?= e($row['url']) ?>"><bdi><?= e($row['label']) ?></bdi></a>
+                                <?php else : ?>
+                                    <bdi><?= e($row['label']) ?></bdi>
+                                <?php endif ?>
+                            </div>
+                            <div class="hh-occupation-top-chart-track" aria-hidden="true">
+                                <div class="hh-occupation-top-chart-bar" style="width: <?= e((string) $row['percentage']) ?>%;"></div>
+                            </div>
+                            <div class="text-end">
+                                <?= I18N::number($row['count']) ?>
+                            </div>
+                        </div>
+                    <?php endforeach ?>
+                </div>
+            <?php endif ?>
+        </div>
+    </section>
+    <?php
+};
+?>
+
+<style>
+    .hh-occupation-top-chart {
+        --hh-occupation-bar-color: #4f6f52;
+    }
+
+    .hh-occupation-top-chart-row {
+        display: grid;
+        grid-template-columns: minmax(9rem, 16rem) 1fr 4rem;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .hh-occupation-top-chart-label {
+        min-width: 0;
+    }
+
+    .hh-occupation-top-chart-track {
+        height: 0.75rem;
+        overflow: hidden;
+        background: var(--bs-secondary-bg, #e9ecef);
+        border-radius: 0.25rem;
+    }
+
+    .hh-occupation-top-chart-bar {
+        height: 100%;
+        min-width: 0.25rem;
+        background: var(--hh-occupation-bar-color);
+    }
+
+    @media (max-width: 575.98px) {
+        .hh-occupation-top-chart-row {
+            grid-template-columns: 1fr 3.5rem;
+        }
+
+        .hh-occupation-top-chart-track {
+            grid-column: 1 / -1;
+            grid-row: 2;
+        }
+    }
+</style>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <p class="d-flex flex-wrap gap-2 align-items-center p-2 mb-3 rounded border" style="background: var(--bs-tertiary-bg, rgba(0, 0, 0, .03));">
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'list'])) ?>">
+            <?= MoreI18N::xlate('Occupations') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'hierarchy'])) ?>">
+            <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'hisco-hierarchy'])) ?>">
+            <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'inheritance'])) ?>">
+            <?= I18N::translate('Inheritance analysis') ?>
+        </a>
+    </p>
+
+    <?php foreach ($topOccupationCharts as $chart) : ?>
+        <?php $renderTopOccupationChart($chart) ?>
+    <?php endforeach ?>
+</div>

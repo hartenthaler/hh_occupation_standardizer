@@ -787,6 +787,97 @@ msgstr ""
 msgid "Delete table data"
 msgstr "Tabellendaten löschen"
 
+#: src/OccupationStandardizerModule.php:410
+msgid "Occupation and social-status inheritance"
+msgstr "Vererbung von Beruf und Stand"
+
+#: resources/views/occupation-landing.phtml:137
+msgid "Inheritance analysis"
+msgstr "Vererbungsanalyse"
+
+#: src/OccupationStandardizerModule.php:417
+#: resources/views/occupation-landing.phtml:130
+#: resources/views/occupation-frequencies.phtml:101
+msgid "Frequency analysis"
+msgstr "Häufigkeitsanalyse"
+
+#: resources/views/occupation-landing.phtml:131
+msgid "Show top-10 charts for normalized occupations and social statuses."
+msgstr "Zeigt Top-10-Grafiken für normierte Berufe und Stände."
+
+#: resources/views/occupation-landing.phtml:138
+msgid "Compare occupation or social-status entries between parents and children."
+msgstr "Vergleicht Berufs- oder Standeseinträge zwischen Eltern und Kindern."
+
+#: resources/views/occupation-inheritance.phtml:38
+msgid "Analysis type"
+msgstr "Art der Analyse"
+
+#: src/OccupationStandardizerModule.php:743
+#: resources/views/occupation-inheritance.phtml:52
+msgid "Analysis level"
+msgstr "Analyseebene"
+
+#: src/OccupationStandardizerModule.php:731
+msgid "Normalized entry"
+msgstr "Normierter Eintrag"
+
+#: src/OccupationStandardizerModule.php:732
+msgid "OhdAB level 1"
+msgstr "OhdAB-Ebene 1"
+
+#: src/OccupationStandardizerModule.php:733
+msgid "OhdAB level 2"
+msgstr "OhdAB-Ebene 2"
+
+#: src/OccupationStandardizerModule.php:734
+msgid "OhdAB level 3"
+msgstr "OhdAB-Ebene 3"
+
+#: src/OccupationStandardizerModule.php:735
+msgid "OhdAB level 4"
+msgstr "OhdAB-Ebene 4"
+
+#: src/OccupationStandardizerModule.php:736
+msgid "OhdAB level 5"
+msgstr "OhdAB-Ebene 5"
+
+#: resources/views/occupation-inheritance.phtml:50
+msgid "This table compares normalized entries for parents and children in the active family tree."
+msgstr "Diese Tabelle vergleicht normierte Einträge für Eltern und Kinder im aktiven Stammbaum."
+
+#: resources/views/occupation-inheritance.phtml:51
+msgid "It is intended as the tabular basis for a later chart."
+msgstr "Sie ist als tabellarische Grundlage für eine spätere Grafik gedacht."
+
+#: resources/views/occupation-inheritance.phtml:56
+msgid "No parent-child pairs with matching entries were found in this family tree."
+msgstr "In diesem Stammbaum wurden keine Eltern-Kind-Paare mit passenden Einträgen gefunden."
+
+#: resources/views/occupation-inheritance.phtml:65
+msgid "Parent entry"
+msgstr "Eintrag des Elternteils"
+
+#: resources/views/occupation-inheritance.phtml:66
+msgid "Child entry"
+msgstr "Eintrag des Kindes"
+
+#: resources/views/occupation-inheritance.phtml:67
+msgid "Parent-child pairs"
+msgstr "Eltern-Kind-Paare"
+
+#: resources/views/occupation-inheritance.phtml:68
+msgid "Parents"
+msgstr "Eltern"
+
+#: resources/views/occupation-inheritance.phtml:91
+msgid "Top-10 inheritance flows"
+msgstr "Top-10-Vererbungsflüsse"
+
+#: resources/views/occupation-inheritance.phtml:96
+msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
+msgstr "Die Grafik zeigt die zehn stärksten Eltern-Kind-Flüsse für die gewählte Analyseart und -ebene."
+
 #~ msgid "External source data"
 #~ msgstr "Externe Quelldaten"
 

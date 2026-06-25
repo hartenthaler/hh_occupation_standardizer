@@ -1,0 +1,188 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Tree;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+
+/**
+ * @var string $hiscoHierarchyUrl
+ * @var string $hierarchyUrl
+ * @var string $inheritanceLevel
+ * @var array<string,string> $inheritanceLevelOptions
+ * @var string $inheritanceType
+ * @var callable(array):string $listUrl
+ * @var list<array{parent_label:string,child_label:string,count:int,parent_count:int,child_count:int}> $rows
+ * @var string $title
+ * @var Tree $tree
+ */
+
+$occupation_url = $listUrl(['view' => 'inheritance', 'type' => 'occupation', 'level' => $inheritanceLevel]);
+$status_url = $listUrl(['view' => 'inheritance', 'type' => 'status', 'level' => $inheritanceLevel]);
+$chart_rows = array_slice($rows, 0, 10);
+$parent_nodes = [];
+$child_nodes = [];
+
+foreach ($chart_rows as $row) {
+    $parent_nodes[$row['parent_label']] ??= count($parent_nodes);
+    $child_nodes[$row['child_label']] ??= count($child_nodes);
+}
+
+$node_count = max(count($parent_nodes), count($child_nodes), 1);
+$chart_height = max(240, 56 + ($node_count * 44));
+$maximum_count = $chart_rows !== [] ? max(array_map(static fn (array $row): int => $row['count'], $chart_rows)) : 0;
+
+$node_y = static fn (int $index): int => 36 + ($index * 44);
+$short_label = static function (string $label): string {
+    return mb_strlen($label) > 34 ? mb_substr($label, 0, 31) . '...' : $label;
+};
+?>
+
+<style>
+    .hh-occupation-flow-chart {
+        overflow-x: auto;
+    }
+
+    .hh-occupation-flow-chart svg {
+        min-width: 800px;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .hh-occupation-flow-chart text {
+        fill: var(--bs-body-color, #212529);
+        font-size: 13px;
+    }
+
+    .hh-occupation-flow-chart .hh-flow-label-muted {
+        fill: var(--bs-secondary-color, #6c757d);
+        font-size: 12px;
+    }
+</style>
+
+<h2 class="wt-page-title"><?= e($title) ?></h2>
+
+<div class="wt-page-content">
+    <p class="d-flex flex-wrap gap-2 align-items-center p-2 mb-3 rounded border" style="background: var(--bs-tertiary-bg, rgba(0, 0, 0, .03));">
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'list'])) ?>">
+            <?= MoreI18N::xlate('Occupations') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($hierarchyUrl) ?>">
+            <?= I18N::translate('Occupation hierarchy (OhdAB)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($hiscoHierarchyUrl) ?>">
+            <?= I18N::translate('Occupation hierarchy (HISCO)') ?>
+        </a>
+        <a class="btn btn-secondary btn-sm" href="<?= e($listUrl(['view' => 'frequencies'])) ?>">
+            <?= I18N::translate('Frequency analysis') ?>
+        </a>
+    </p>
+
+    <div class="btn-group mb-3" role="group" aria-label="<?= e(I18N::translate('Analysis type')) ?>">
+        <a class="btn <?= $inheritanceType === 'occupation' ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($occupation_url) ?>">
+            <?= MoreI18N::xlate('Occupation') ?>
+        </a>
+        <a class="btn <?= $inheritanceType === 'status' ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($status_url) ?>">
+            <?= MoreI18N::xlate('Social status') ?>
+        </a>
+    </div>
+
+    <div class="mb-3">
+        <div class="small text-muted mb-1"><?= I18N::translate('Analysis level') ?></div>
+        <div class="btn-group flex-wrap" role="group" aria-label="<?= e(I18N::translate('Analysis level')) ?>">
+            <?php foreach ($inheritanceLevelOptions as $level => $label) : ?>
+                <a class="btn <?= $inheritanceLevel === $level ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($listUrl(['view' => 'inheritance', 'type' => $inheritanceType, 'level' => $level])) ?>">
+                    <?= e($label) ?>
+                </a>
+            <?php endforeach ?>
+        </div>
+    </div>
+
+    <p>
+        <?= I18N::translate('This table compares normalized entries for parents and children in the active family tree.') ?>
+        <?= I18N::translate('It is intended as the tabular basis for a later chart.') ?>
+    </p>
+
+    <?php if ($rows === []) : ?>
+        <p class="alert alert-info">
+            <?= I18N::translate('No parent-child pairs with matching entries were found in this family tree.') ?>
+        </p>
+    <?php else : ?>
+        <section class="card mb-3">
+            <div class="card-header">
+                <?= I18N::translate('Top-10 inheritance flows') ?>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    <?= I18N::translate('The graphic shows the ten strongest parent-child flows for the selected analysis type and level.') ?>
+                </p>
+
+                <div class="hh-occupation-flow-chart">
+                    <svg viewBox="0 0 800 <?= e((string) $chart_height) ?>" role="img" aria-label="<?= e(I18N::translate('Top-10 inheritance flows')) ?>">
+                        <text x="24" y="18" class="hh-flow-label-muted"><?= I18N::translate('Parent entry') ?></text>
+                        <text x="560" y="18" class="hh-flow-label-muted"><?= I18N::translate('Child entry') ?></text>
+
+                        <?php foreach ($chart_rows as $row) : ?>
+                            <?php
+                            $parent_y = $node_y($parent_nodes[$row['parent_label']]);
+                            $child_y = $node_y($child_nodes[$row['child_label']]);
+                            $stroke_width = $maximum_count > 0 ? 2 + (12 * $row['count'] / $maximum_count) : 2;
+                            ?>
+                            <path d="M 252 <?= e((string) $parent_y) ?> C 360 <?= e((string) $parent_y) ?>, 440 <?= e((string) $child_y) ?>, 548 <?= e((string) $child_y) ?>"
+                                  fill="none"
+                                  stroke="#4f6f52"
+                                  stroke-width="<?= e((string) $stroke_width) ?>"
+                                  stroke-opacity="0.38">
+                                <title><?= e($row['parent_label'] . ' -> ' . $row['child_label'] . ': ' . I18N::number($row['count'])) ?></title>
+                            </path>
+                        <?php endforeach ?>
+
+                        <?php foreach ($parent_nodes as $label => $index) : ?>
+                            <?php $y = $node_y($index) ?>
+                            <circle cx="244" cy="<?= e((string) $y) ?>" r="4" fill="#4f6f52"></circle>
+                            <text x="24" y="<?= e((string) ($y + 4)) ?>">
+                                <title><?= e($label) ?></title>
+                                <?= e($short_label($label)) ?>
+                            </text>
+                        <?php endforeach ?>
+
+                        <?php foreach ($child_nodes as $label => $index) : ?>
+                            <?php $y = $node_y($index) ?>
+                            <circle cx="556" cy="<?= e((string) $y) ?>" r="4" fill="#4f6f52"></circle>
+                            <text x="568" y="<?= e((string) ($y + 4)) ?>">
+                                <title><?= e($label) ?></title>
+                                <?= e($short_label($label)) ?>
+                            </text>
+                        <?php endforeach ?>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <table class="table table-bordered table-sm wt-table datatables"
+            <?= view('lists/datatables-attributes') ?>
+        >
+            <thead>
+                <tr>
+                    <th><?= I18N::translate('Parent entry') ?></th>
+                    <th><?= I18N::translate('Child entry') ?></th>
+                    <th><?= I18N::translate('Parent-child pairs') ?></th>
+                    <th><?= I18N::translate('Parents') ?></th>
+                    <th><?= MoreI18N::xlate('Children') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $row) : ?>
+                    <tr>
+                        <td><bdi><?= e($row['parent_label']) ?></bdi></td>
+                        <td><bdi><?= e($row['child_label']) ?></bdi></td>
+                        <td data-sort="<?= e((string) $row['count']) ?>"><?= I18N::number($row['count']) ?></td>
+                        <td data-sort="<?= e((string) $row['parent_count']) ?>"><?= I18N::number($row['parent_count']) ?></td>
+                        <td data-sort="<?= e((string) $row['child_count']) ?>"><?= I18N::number($row['child_count']) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    <?php endif ?>
+</div>
