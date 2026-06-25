@@ -32,6 +32,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Use cached FactGrid concept labels as fallback labels in the landing-page top-10 occupation charts.
 - Avoid duplicated OhdAB codes in hierarchy output and occupation-label tooltips.
 - Show consistent cross-navigation buttons between the occupation list, OhdAB hierarchy, and HISCO hierarchy views.
+- Style cross-navigation buttons as a recognizable navigation bar.
 
 ## 2.2.6.2 - 2026-06-24
 
