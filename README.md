@@ -252,7 +252,27 @@ The module can store and display identifiers for:
 <a name="Screenshots"></a>
 ## 🖼 Screenshots
 
-The screenshot shows the module settings in the webtrees control panel.
+**Occupation landing page**
+
+<p align="center"><img src="docs/img/landing.jpg" alt="Screenshot of the Occupation Standardizer landing page" align="center" width="80%"></p>
+
+**Occupation list and normalization form**
+
+<p align="center"><img src="docs/img/occupation-list.jpg" alt="Screenshot of the occupation list with editable normalization fields" align="center" width="80%"></p>
+
+**Occupation profile page**
+
+<p align="center"><img src="docs/img/occupation-profile.jpg" alt="Screenshot of an occupation profile page" align="center" width="80%"></p>
+
+**OhdAB hierarchy**
+
+<p align="center"><img src="docs/img/ohdab-hierarchy.jpg" alt="Screenshot of the OhdAB occupation hierarchy" align="center" width="80%"></p>
+
+**HISCO hierarchy**
+
+<p align="center"><img src="docs/img/hisco-hierarchy.jpg" alt="Screenshot of the HISCO occupation hierarchy" align="center" width="80%"></p>
+
+**Control panel settings**
 
 <p align="center"><img src="docs/img/control_panel.jpg" alt="Screenshot of Occupation Standardizer control panel" align="center" width="80%"></p>
 
