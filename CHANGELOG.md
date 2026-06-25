@@ -7,6 +7,10 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ## Unreleased
 
+No unreleased changes yet.
+
+## 2.2.6.3 - 2026-06-25
+
 ### Added
 
 - Added curated German labels and descriptions for HISCO major, minor, and unit groups with checksum-based import.
@@ -35,6 +39,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Avoid duplicated OhdAB codes in hierarchy output and occupation-label tooltips.
 - Show consistent cross-navigation buttons between the occupation list, OhdAB hierarchy, and HISCO hierarchy views.
 - Style cross-navigation buttons as a recognizable navigation bar.
+- Reduce the label size in the inheritance-flow chart for better readability.
 
 ## 2.2.6.2 - 2026-06-24
 

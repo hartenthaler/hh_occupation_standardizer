@@ -107,6 +107,7 @@ The frequency analysis shows top-10 charts of the most common visible normalized
 These charts are based on active module-owned normalization rows for the selected tree.
 
 The inheritance analysis shows the ten strongest parent-child flows as a compact graphic and keeps the full aggregated data table below it.
+The graphic is intentionally limited to the top 10 flows for readability.
 It can be switched between occupation inheritance and social-status inheritance.
 For occupations, the analysis level can be switched between normalized terms, OhdAB hierarchy levels, and HISCO hierarchy levels.
 For social statuses, normalized entries and OhdAB hierarchy levels are available.
