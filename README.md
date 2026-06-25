@@ -108,6 +108,8 @@ These charts are based on active module-owned normalization rows for the selecte
 
 The inheritance analysis is currently a data table.
 It can be switched between occupation inheritance and social-status inheritance.
+For occupations, the analysis level can be switched between normalized terms, OhdAB hierarchy levels, and HISCO hierarchy levels.
+For social statuses, normalized entries and OhdAB hierarchy levels are available.
 A later graphical view can use the same aggregated parent-child flows and apply a top-10 limit for readability.
 
 <a name="OccupationList"></a>

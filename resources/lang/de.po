@@ -813,6 +813,35 @@ msgstr "Vergleicht Berufs- oder Standeseinträge zwischen Eltern und Kindern."
 msgid "Analysis type"
 msgstr "Art der Analyse"
 
+#: src/OccupationStandardizerModule.php:743
+#: resources/views/occupation-inheritance.phtml:52
+msgid "Analysis level"
+msgstr "Analyseebene"
+
+#: src/OccupationStandardizerModule.php:731
+msgid "Normalized entry"
+msgstr "Normierter Eintrag"
+
+#: src/OccupationStandardizerModule.php:732
+msgid "OhdAB level 1"
+msgstr "OhdAB-Ebene 1"
+
+#: src/OccupationStandardizerModule.php:733
+msgid "OhdAB level 2"
+msgstr "OhdAB-Ebene 2"
+
+#: src/OccupationStandardizerModule.php:734
+msgid "OhdAB level 3"
+msgstr "OhdAB-Ebene 3"
+
+#: src/OccupationStandardizerModule.php:735
+msgid "OhdAB level 4"
+msgstr "OhdAB-Ebene 4"
+
+#: src/OccupationStandardizerModule.php:736
+msgid "OhdAB level 5"
+msgstr "OhdAB-Ebene 5"
+
 #: resources/views/occupation-inheritance.phtml:50
 msgid "This table compares normalized entries for parents and children in the active family tree."
 msgstr "Diese Tabelle vergleicht normierte Einträge für Eltern und Kinder im aktiven Stammbaum."

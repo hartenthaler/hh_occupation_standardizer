@@ -9,6 +9,8 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 /**
  * @var string $hiscoHierarchyUrl
  * @var string $hierarchyUrl
+ * @var string $inheritanceLevel
+ * @var array<string,string> $inheritanceLevelOptions
  * @var string $inheritanceType
  * @var callable(array):string $listUrl
  * @var list<array{parent_label:string,child_label:string,count:int,parent_count:int,child_count:int}> $rows
@@ -16,8 +18,8 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
  * @var Tree $tree
  */
 
-$occupation_url = $listUrl(['view' => 'inheritance', 'type' => 'occupation']);
-$status_url = $listUrl(['view' => 'inheritance', 'type' => 'status']);
+$occupation_url = $listUrl(['view' => 'inheritance', 'type' => 'occupation', 'level' => $inheritanceLevel]);
+$status_url = $listUrl(['view' => 'inheritance', 'type' => 'status', 'level' => $inheritanceLevel]);
 ?>
 
 <h2 class="wt-page-title"><?= e($title) ?></h2>
@@ -45,6 +47,17 @@ $status_url = $listUrl(['view' => 'inheritance', 'type' => 'status']);
         <a class="btn <?= $inheritanceType === 'status' ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($status_url) ?>">
             <?= MoreI18N::xlate('Social status') ?>
         </a>
+    </div>
+
+    <div class="mb-3">
+        <div class="small text-muted mb-1"><?= I18N::translate('Analysis level') ?></div>
+        <div class="btn-group flex-wrap" role="group" aria-label="<?= e(I18N::translate('Analysis level')) ?>">
+            <?php foreach ($inheritanceLevelOptions as $level => $label) : ?>
+                <a class="btn <?= $inheritanceLevel === $level ? 'btn-primary' : 'btn-outline-primary' ?>" href="<?= e($listUrl(['view' => 'inheritance', 'type' => $inheritanceType, 'level' => $level])) ?>">
+                    <?= e($label) ?>
+                </a>
+            <?php endforeach ?>
+        </div>
     </div>
 
     <p>

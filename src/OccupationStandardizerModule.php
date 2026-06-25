@@ -425,13 +425,18 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         if ($view === 'inheritance') {
             $inheritance_type = (string) ($query_params['type'] ?? 'occupation');
             $inheritance_type = in_array($inheritance_type, ['occupation', 'status'], true) ? $inheritance_type : 'occupation';
+            $inheritance_level = (string) ($query_params['level'] ?? 'normalized');
+            $inheritance_level_options = $this->inheritanceLevelOptions($inheritance_type);
+            $inheritance_level = array_key_exists($inheritance_level, $inheritance_level_options) ? $inheritance_level : 'normalized';
 
             return $this->viewResponse($this->name() . '::occupation-inheritance', [
                 'hiscoHierarchyUrl' => $this->listUrl($tree, ['view' => 'hisco-hierarchy']),
                 'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
+                'inheritanceLevel'  => $inheritance_level,
+                'inheritanceLevelOptions' => $inheritance_level_options,
                 'inheritanceType'   => $inheritance_type,
                 'listUrl'           => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
-                'rows'              => $this->occupationInheritanceRows($tree, $inheritance_type),
+                'rows'              => $this->occupationInheritanceRows($tree, $inheritance_type, $inheritance_level),
                 'title'             => I18N::translate('Occupation and social-status inheritance'),
                 'tree'              => $tree,
             ]);
@@ -480,9 +485,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * @return list<array{parent_label:string,child_label:string,count:int,parent_count:int,child_count:int}>
      */
-    private function occupationInheritanceRows(Tree $tree, string $type): array
+    private function occupationInheritanceRows(Tree $tree, string $type, string $level): array
     {
-        $values_by_individual = $this->inheritanceValuesByIndividual($tree, $type);
+        $values_by_individual = $this->inheritanceValuesByIndividual($tree, $type, $level);
         $parent_map = $this->parentMap($tree);
         $flows = [];
 
@@ -544,7 +549,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * @return array<string,array<string,string>>
      */
-    private function inheritanceValuesByIndividual(Tree $tree, string $type): array
+    private function inheritanceValuesByIndividual(Tree $tree, string $type, string $level): array
     {
         if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
             return [];
@@ -562,7 +567,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 continue;
             }
 
-            $value = $this->inheritanceValue($entry_row, $type);
+            $value = $this->inheritanceValue($entry_row, $type, $level);
 
             if ($value === null) {
                 continue;
@@ -603,6 +608,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'entries.occupation_en_male',
             'entries.occupation_en_female',
             'entries.occupation_en_neutral',
+            'entries.code_hisco',
             'entries.norm_concept_id',
             'concepts.ohdab_class',
         ];
@@ -615,6 +621,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'terms.occupation_en_male AS term_occupation_en_male',
                 'terms.occupation_en_female AS term_occupation_en_female',
                 'terms.occupation_en_neutral AS term_occupation_en_neutral',
+                'terms.code_hisco AS term_code_hisco',
             ]);
         }
 
@@ -626,10 +633,30 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * @return array{key:string,label:string}|null
      */
-    private function inheritanceValue(object $entry_row, string $type): array|null
+    private function inheritanceValue(object $entry_row, string $type, string $level): array|null
     {
         $ohdab_class = (string) ($entry_row->ohdab_class ?? '');
         $concept_id = (int) ($entry_row->norm_concept_id ?? 0);
+
+        if (str_starts_with($level, 'ohdab-')) {
+            if ($type === 'occupation' && $ohdab_class === 'A') {
+                return null;
+            }
+
+            if ($type === 'status' && $ohdab_class !== 'A' && $concept_id > 0) {
+                return null;
+            }
+
+            return $this->inheritanceOhdabValue($concept_id, (int) substr($level, 6));
+        }
+
+        if (str_starts_with($level, 'hisco-')) {
+            if ($type !== 'occupation') {
+                return null;
+            }
+
+            return $this->inheritanceHiscoValue($this->hiscoCodeForEntry($entry_row), substr($level, 6));
+        }
 
         if ($type === 'status') {
             if ($concept_id > 0 && $ohdab_class === 'A') {
@@ -658,6 +685,85 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             : 'occupation:' . mb_strtolower((string) ($entry_row->occupation_normalized ?? $label));
 
         return ['key' => $key, 'label' => $label];
+    }
+
+    /**
+     * @return array{key:string,label:string}|null
+     */
+    private function inheritanceOhdabValue(int $concept_id, int $level): array|null
+    {
+        if (
+            $concept_id <= 0
+            || $level < 1
+            || $level > 5
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_HIERARCHY_NODES)
+        ) {
+            return null;
+        }
+
+        $row = DBManager::table(OccupationSchema::TABLE_NORM_CONCEPT_HIERARCHY . ' AS links')
+            ->join(OccupationSchema::TABLE_NORM_HIERARCHY_NODES . ' AS nodes', 'nodes.id', '=', 'links.node_id')
+            ->where('links.concept_id', '=', $concept_id)
+            ->where('nodes.level', '=', $level)
+            ->select(['nodes.id', 'nodes.code', 'nodes.label'])
+            ->first();
+
+        if ($row === null) {
+            return null;
+        }
+
+        $label = $this->ohdabSpecialDatabaseService()->hierarchyLabel((int) $row->id, (string) $row->code, (string) $row->label, I18N::languageTag());
+
+        return [
+            'key'   => 'ohdab:' . (string) $row->code,
+            'label' => $label,
+        ];
+    }
+
+    /**
+     * @return array{key:string,label:string}|null
+     */
+    private function inheritanceHiscoValue(string $code, string $level): array|null
+    {
+        $hierarchy = (new HiscoCatalogService())->occupation($code, I18N::languageTag());
+
+        if ($hierarchy === null || !isset($hierarchy[$level]) || !is_array($hierarchy[$level])) {
+            return null;
+        }
+
+        $row = $hierarchy[$level];
+        $label = trim((string) ($row['code'] ?? '') . ' ' . (string) ($row['label'] ?? ''));
+
+        return $label !== '' ? [
+            'key'   => 'hisco-' . $level . ':' . (string) ($row['code'] ?? ''),
+            'label' => $label,
+        ] : null;
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private function inheritanceLevelOptions(string $type): array
+    {
+        $options = [
+            'normalized' => I18N::translate('Normalized entry'),
+            'ohdab-1'    => I18N::translate('OhdAB level 1'),
+            'ohdab-2'    => I18N::translate('OhdAB level 2'),
+            'ohdab-3'    => I18N::translate('OhdAB level 3'),
+            'ohdab-4'    => I18N::translate('OhdAB level 4'),
+            'ohdab-5'    => I18N::translate('OhdAB level 5'),
+        ];
+
+        if ($type === 'occupation') {
+            $options += [
+                'hisco-major' => I18N::translate('HISCO major group'),
+                'hisco-minor' => I18N::translate('HISCO minor group'),
+                'hisco-unit'  => I18N::translate('HISCO unit group'),
+            ];
+        }
+
+        return $options;
     }
 
     /**
