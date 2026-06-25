@@ -870,6 +870,14 @@ msgstr "Eltern-Kind-Paare"
 msgid "Parents"
 msgstr "Eltern"
 
+#: resources/views/occupation-inheritance.phtml:91
+msgid "Top-10 inheritance flows"
+msgstr "Top-10-Vererbungsflüsse"
+
+#: resources/views/occupation-inheritance.phtml:96
+msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
+msgstr "Die Grafik zeigt die zehn stärksten Eltern-Kind-Flüsse für die gewählte Analyseart und -ebene."
+
 #~ msgid "External source data"
 #~ msgstr "Externe Quelldaten"
 

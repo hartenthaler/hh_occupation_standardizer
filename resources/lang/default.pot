@@ -740,3 +740,11 @@ msgstr ""
 #: resources/views/occupation-inheritance.phtml:68
 msgid "Parents"
 msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:91
+msgid "Top-10 inheritance flows"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:96
+msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
+msgstr ""

@@ -64,7 +64,7 @@ The module currently provides:
 * bundled HISCO catalog tables for local HISCO lookups
 * HISCO hierarchy browsing based on stored HISCO identifiers
 * top-10 frequency charts for normalized occupation and social-status entries
-* a tabular inheritance analysis for normalized occupation and social-status entries between parents and children
+* a graphical and tabular inheritance analysis for normalized occupation and social-status entries between parents and children
 * links to external identifiers such as OhdAB, FactGrid, GND, Wikidata, and HISCO
 * module settings for rules, tree languages, normalization mappings, norm-data import, and maintenance
 
@@ -106,11 +106,10 @@ It provides five main action tiles:
 The frequency analysis shows top-10 charts of the most common visible normalized occupation and social-status entries in the active family tree.
 These charts are based on active module-owned normalization rows for the selected tree.
 
-The inheritance analysis is currently a data table.
+The inheritance analysis shows the ten strongest parent-child flows as a compact graphic and keeps the full aggregated data table below it.
 It can be switched between occupation inheritance and social-status inheritance.
 For occupations, the analysis level can be switched between normalized terms, OhdAB hierarchy levels, and HISCO hierarchy levels.
 For social statuses, normalized entries and OhdAB hierarchy levels are available.
-A later graphical view can use the same aggregated parent-child flows and apply a top-10 limit for readability.
 
 <a name="OccupationList"></a>
 ## 📋 Occupation List

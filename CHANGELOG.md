@@ -13,7 +13,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Added a HISCO hierarchy tile to the occupation landing page.
 - Added a HISCO hierarchy browser with major groups, minor groups, unit groups, occupations, counts, and matching visible individuals in the active family tree.
 - Added a dedicated frequency-analysis tile for top-10 occupation and social-status charts.
-- Added a tabular inheritance analysis for occupation and social-status entries between parents and children, with selectable normalized, OhdAB, and HISCO analysis levels.
+- Added a graphical top-10 and tabular inheritance analysis for occupation and social-status entries between parents and children, with selectable normalized, OhdAB, and HISCO analysis levels.
 
 ### Changed
 

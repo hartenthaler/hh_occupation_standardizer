@@ -20,7 +20,46 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 
 $occupation_url = $listUrl(['view' => 'inheritance', 'type' => 'occupation', 'level' => $inheritanceLevel]);
 $status_url = $listUrl(['view' => 'inheritance', 'type' => 'status', 'level' => $inheritanceLevel]);
+$chart_rows = array_slice($rows, 0, 10);
+$parent_nodes = [];
+$child_nodes = [];
+
+foreach ($chart_rows as $row) {
+    $parent_nodes[$row['parent_label']] ??= count($parent_nodes);
+    $child_nodes[$row['child_label']] ??= count($child_nodes);
+}
+
+$node_count = max(count($parent_nodes), count($child_nodes), 1);
+$chart_height = max(240, 56 + ($node_count * 44));
+$maximum_count = $chart_rows !== [] ? max(array_map(static fn (array $row): int => $row['count'], $chart_rows)) : 0;
+
+$node_y = static fn (int $index): int => 36 + ($index * 44);
+$short_label = static function (string $label): string {
+    return mb_strlen($label) > 34 ? mb_substr($label, 0, 31) . '...' : $label;
+};
 ?>
+
+<style>
+    .hh-occupation-flow-chart {
+        overflow-x: auto;
+    }
+
+    .hh-occupation-flow-chart svg {
+        min-width: 800px;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .hh-occupation-flow-chart text {
+        fill: var(--bs-body-color, #212529);
+        font-size: 13px;
+    }
+
+    .hh-occupation-flow-chart .hh-flow-label-muted {
+        fill: var(--bs-secondary-color, #6c757d);
+        font-size: 12px;
+    }
+</style>
 
 <h2 class="wt-page-title"><?= e($title) ?></h2>
 
@@ -70,6 +109,57 @@ $status_url = $listUrl(['view' => 'inheritance', 'type' => 'status', 'level' => 
             <?= I18N::translate('No parent-child pairs with matching entries were found in this family tree.') ?>
         </p>
     <?php else : ?>
+        <section class="card mb-3">
+            <div class="card-header">
+                <?= I18N::translate('Top-10 inheritance flows') ?>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    <?= I18N::translate('The graphic shows the ten strongest parent-child flows for the selected analysis type and level.') ?>
+                </p>
+
+                <div class="hh-occupation-flow-chart">
+                    <svg viewBox="0 0 800 <?= e((string) $chart_height) ?>" role="img" aria-label="<?= e(I18N::translate('Top-10 inheritance flows')) ?>">
+                        <text x="24" y="18" class="hh-flow-label-muted"><?= I18N::translate('Parent entry') ?></text>
+                        <text x="560" y="18" class="hh-flow-label-muted"><?= I18N::translate('Child entry') ?></text>
+
+                        <?php foreach ($chart_rows as $row) : ?>
+                            <?php
+                            $parent_y = $node_y($parent_nodes[$row['parent_label']]);
+                            $child_y = $node_y($child_nodes[$row['child_label']]);
+                            $stroke_width = $maximum_count > 0 ? 2 + (12 * $row['count'] / $maximum_count) : 2;
+                            ?>
+                            <path d="M 252 <?= e((string) $parent_y) ?> C 360 <?= e((string) $parent_y) ?>, 440 <?= e((string) $child_y) ?>, 548 <?= e((string) $child_y) ?>"
+                                  fill="none"
+                                  stroke="#4f6f52"
+                                  stroke-width="<?= e((string) $stroke_width) ?>"
+                                  stroke-opacity="0.38">
+                                <title><?= e($row['parent_label'] . ' -> ' . $row['child_label'] . ': ' . I18N::number($row['count'])) ?></title>
+                            </path>
+                        <?php endforeach ?>
+
+                        <?php foreach ($parent_nodes as $label => $index) : ?>
+                            <?php $y = $node_y($index) ?>
+                            <circle cx="244" cy="<?= e((string) $y) ?>" r="4" fill="#4f6f52"></circle>
+                            <text x="24" y="<?= e((string) ($y + 4)) ?>">
+                                <title><?= e($label) ?></title>
+                                <?= e($short_label($label)) ?>
+                            </text>
+                        <?php endforeach ?>
+
+                        <?php foreach ($child_nodes as $label => $index) : ?>
+                            <?php $y = $node_y($index) ?>
+                            <circle cx="556" cy="<?= e((string) $y) ?>" r="4" fill="#4f6f52"></circle>
+                            <text x="568" y="<?= e((string) ($y + 4)) ?>">
+                                <title><?= e($label) ?></title>
+                                <?= e($short_label($label)) ?>
+                            </text>
+                        <?php endforeach ?>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
         <table class="table table-bordered table-sm wt-table datatables"
             <?= view('lists/datatables-attributes') ?>
         >
