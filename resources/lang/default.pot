@@ -277,6 +277,21 @@ msgid "The family tree occupation languages have been saved."
 msgstr ""
 
 #: src/OccupationStandardizerModule.php:2558
+msgid "There is no occupation standardization table to re-normalize."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:2571
+msgid "The table was not re-normalized because the confirmation was missing or the selected tree was invalid."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:2587
+#, php-format
+msgid "Re-normalization has been run for %s automatic occupation standardization entry."
+msgid_plural "Re-normalization has been run for %s automatic occupation standardization entries."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/OccupationStandardizerModule.php:2558
 msgid "There is no occupation standardization table to delete."
 msgstr ""
 
@@ -662,6 +677,22 @@ msgstr ""
 
 #: resources/views/settings.phtml:733
 msgid "No occupation standardization table data exists yet."
+msgstr ""
+
+#: resources/views/settings.phtml:737
+msgid "Re-run normalization"
+msgstr ""
+
+#: resources/views/settings.phtml:741
+msgid "Managers can re-run normalization for one family tree after rule changes or updated external mappings. Reviewed and manually changed entries are preserved."
+msgstr ""
+
+#: resources/views/settings.phtml:744
+msgid "Do you really want to re-run automatic normalization for the selected family tree?"
+msgstr ""
+
+#: resources/views/settings.phtml:770
+msgid "Yes, re-run automatic normalization for the selected family tree."
 msgstr ""
 
 #: resources/views/settings.phtml:737

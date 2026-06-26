@@ -749,10 +749,6 @@ if (ohdabSpecialDatabaseInput !== null && ohdabSpecialDatabaseName !== null) {
                 <?= I18N::translate('No occupation standardization table data exists yet.') ?>
             </p>
         <?php else : ?>
-            <p>
-                <?= I18N::translate('Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed.') ?>
-            </p>
-
             <table class="table table-bordered table-sm">
                 <thead>
                     <tr>
@@ -778,6 +774,58 @@ if (ohdabSpecialDatabaseInput !== null && ohdabSpecialDatabaseName !== null) {
                     <?php endforeach ?>
                 </tbody>
             </table>
+
+            <h3 class="h5 mt-4"><?= I18N::translate('Re-run normalization') ?></h3>
+
+            <p>
+                <?= I18N::translate('Managers can re-run normalization for one family tree after rule changes or updated external mappings. Reviewed and manually changed entries are preserved.') ?>
+            </p>
+
+            <form method="post" onsubmit="return window.confirm(this.dataset.confirm)" data-confirm="<?= e(I18N::translate('Do you really want to re-run automatic normalization for the selected family tree?')) ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="task" value="renormalizeTreeTable">
+
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label" for="renormalizeTreeId">
+                        <?= MoreI18N::xlate('Family tree') ?>
+                    </label>
+                    <div class="col-sm-9">
+                        <select class="form-select" id="renormalizeTreeId" name="treeId">
+                            <?php foreach ($treeStatistics as $statistics) : ?>
+                                <option value="<?= e((string) $statistics['tree_id']) ?>">
+                                    <?= e($statistics['tree_title']) ?>
+                                    (<?= I18N::plural('%s entry', '%s entries', $statistics['total_entries'], I18N::number($statistics['total_entries'])) ?>)
+                                </option>
+                            <?php endforeach ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-9 offset-sm-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmRenormalize" name="confirmRenormalize" value="1" required>
+                            <label class="form-check-label" for="confirmRenormalize">
+                                <?= I18N::translate('Yes, re-run automatic normalization for the selected family tree.') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-sm-9 offset-sm-3">
+                        <button type="submit" class="btn btn-primary">
+                            <?= I18N::translate('Re-run normalization') ?>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <h3 class="h5 mt-4"><?= I18N::translate('Delete table data') ?></h3>
+
+            <p>
+                <?= I18N::translate('Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed.') ?>
+            </p>
 
             <form method="post" onsubmit="return window.confirm(this.dataset.confirm)" data-confirm="<?= e(I18N::translate('Do you really want to delete the occupation standardization table data for the selected family tree?')) ?>">
                 <?= csrf_field() ?>

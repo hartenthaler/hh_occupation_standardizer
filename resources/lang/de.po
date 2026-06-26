@@ -325,6 +325,35 @@ msgid "The family tree occupation languages have been saved."
 msgstr "Die Berufssprachen der Stammbäume wurden gespeichert."
 
 #: src/OccupationStandardizerModule.php:2558
+msgid "There is no occupation standardization table to re-normalize."
+msgstr ""
+"Es gibt keine Tabelle zur Vereinheitlichung von Berufsangaben, die neu "
+"normalisiert werden kann."
+
+#: src/OccupationStandardizerModule.php:2571
+msgid ""
+"The table was not re-normalized because the confirmation was missing or the "
+"selected tree was invalid."
+msgstr ""
+"Die Tabelle wurde nicht neu normalisiert, weil die Bestätigung fehlt oder "
+"der ausgewählte Stammbaum ungültig ist."
+
+#: src/OccupationStandardizerModule.php:2587
+#, php-format
+msgid ""
+"Re-normalization has been run for %s automatic occupation standardization "
+"entry."
+msgid_plural ""
+"Re-normalization has been run for %s automatic occupation standardization "
+"entries."
+msgstr[0] ""
+"Die Neu-Normalisierung wurde für %s automatisch verwalteten Eintrag zur "
+"Vereinheitlichung von Berufsangaben ausgeführt."
+msgstr[1] ""
+"Die Neu-Normalisierung wurde für %s automatisch verwaltete Einträge zur "
+"Vereinheitlichung von Berufsangaben ausgeführt."
+
+#: src/OccupationStandardizerModule.php:2558
 msgid "There is no occupation standardization table to delete."
 msgstr ""
 "Es gibt keine Tabelle zur Vereinheitlichung von Berufsangaben, die gelöscht "
@@ -784,6 +813,34 @@ msgstr "Tabellen zur Vereinheitlichung von Berufsangaben"
 msgid "No occupation standardization table data exists yet."
 msgstr ""
 "Es gibt noch keine Tabellendaten zur Vereinheitlichung von Berufsangaben."
+
+#: resources/views/settings.phtml:737
+msgid "Re-run normalization"
+msgstr "Normalisierung erneut ausführen"
+
+#: resources/views/settings.phtml:741
+msgid ""
+"Managers can re-run normalization for one family tree after rule changes or "
+"updated external mappings. Reviewed and manually changed entries are "
+"preserved."
+msgstr ""
+"Verwalter können die Normalisierung für einen Stammbaum nach Regeländerungen "
+"oder aktualisierten externen Zuordnungen erneut ausführen. Geprüfte und "
+"manuell geänderte Einträge bleiben erhalten."
+
+#: resources/views/settings.phtml:744
+msgid ""
+"Do you really want to re-run automatic normalization for the selected family "
+"tree?"
+msgstr ""
+"Soll die automatische Normalisierung für den ausgewählten Stammbaum wirklich "
+"erneut ausgeführt werden?"
+
+#: resources/views/settings.phtml:770
+msgid "Yes, re-run automatic normalization for the selected family tree."
+msgstr ""
+"Ja, die automatische Normalisierung für den ausgewählten Stammbaum erneut "
+"ausführen."
 
 #: resources/views/settings.phtml:737
 msgid ""
