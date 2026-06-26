@@ -23,6 +23,7 @@ Current use:
 | `tree_occu_<tree_id>` | Fingerprint of all current `INDI:OCCU` facts in one tree. If this fingerprint has not changed, synchronization can skip rebuilding normalization rows. |
 | `treeLanguage-<tree_id>` | Default language in which occupation facts are described in one tree. This is maintained in the module settings and used when new normalization rows are created. |
 | `hisco_catalog_hash` | SHA-1 fingerprint of the bundled HISCO CSV catalog. If this changes, the bundled catalog is imported again. |
+| `genwiki_occupation_hash` | SHA-1 fingerprint of the bundled GenWiki occupation-link workbook. If this changes, the links are imported again. |
 
 Changing the site-managed normalization mapping table clears these fingerprints
 so the next manager visit can resynchronize affected occupation rows.
@@ -235,6 +236,21 @@ database schema was derived from that structure.
 | `label_en` | `string(255)` | Original English occupation label. |
 | `description_en` | `text` | Original English occupation description. |
 | `updated_at` | timestamp nullable | Last import/update time. |
+
+## Bundled GenWiki Occupation Links
+
+The workbook `resources/data/GenWiki/Berufe_GenWiki.xlsx` contains links to
+occupation descriptions in the German-language GenWiki. Columns `Beruf` and
+`Link` are imported on first use and whenever the workbook checksum changes.
+The embedded hyperlinks in the first workbook column are intentionally not
+required by the importer.
+
+### `occupation_standardizer_genwiki_occupations`
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `occupation_text` | `string(255)` primary key | German occupation name used for matching a normalized occupation. |
+| `genwiki_url` | `text` | Link to the corresponding GenWiki occupation description. |
 
 ## `occupation_standardizer_rules`
 

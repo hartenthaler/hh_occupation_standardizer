@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
 $externalIdentifierRows ??= [];
+$genwikiRows ??= [];
 $ohdabHierarchyRows ??= [];
 $externalAuthorityRowsBySourceAndCode = [];
 $externalIdentifierSourceCodes = [];
@@ -40,6 +41,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
  * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
+ * @var list<array{text:string,url:string}> $genwikiRows
  * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
  * @var list<array{code:string,label:string}> $ohdabHierarchyRows
  * @var string $hierarchyPath
@@ -139,11 +141,22 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                         <?= I18N::translate('External identifiers and source data') ?>
                     </div>
                     <div class="card-body p-2">
-                        <?php if ($externalIdentifierRows === [] && $externalAuthorityRows === []) : ?>
+                        <?php if ($externalIdentifierRows === [] && $externalAuthorityRows === [] && $genwikiRows === []) : ?>
                             <p class="mb-0 text-muted"><?= I18N::translate('No external identifiers are available.') ?></p>
                         <?php else : ?>
                             <table class="table table-sm mb-0">
                                 <tbody>
+                                    <?php foreach ($genwikiRows as $row) : ?>
+                                        <tr>
+                                            <th class="text-muted w-25" scope="row">GenWiki</th>
+                                            <td>
+                                                <a href="<?= e($row['url']) ?>" target="_blank" rel="noopener noreferrer">
+                                                    <bdi><?= e($row['text']) ?></bdi>
+                                                    <i class="fa-solid fa-arrow-up-right-from-square ms-1" aria-hidden="true"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach ?>
                                     <?php foreach ($externalIdentifierRows as $row) : ?>
                                         <?php $externalIdentifierSourceCodes[$row['source'] . "\n" . $row['code']] = true ?>
                                         <tr>

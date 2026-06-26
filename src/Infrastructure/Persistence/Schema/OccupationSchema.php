@@ -23,6 +23,7 @@ final class OccupationSchema
     public const TABLE_HISCO_MINOR_GROUPS = 'occupation_standardizer_hisco_minor_groups';
     public const TABLE_HISCO_UNIT_GROUPS = 'occupation_standardizer_hisco_unit_groups';
     public const TABLE_HISCO_OCCUPATIONS = 'occupation_standardizer_hisco_occupations';
+    public const TABLE_GENWIKI_OCCUPATIONS = 'occupation_standardizer_genwiki_occupations';
 
     public function ensureSchema(): void
     {
@@ -339,6 +340,13 @@ final class OccupationSchema
         if (DB::schema()->hasTable(self::TABLE_HISCO_UNIT_GROUPS) && !DB::schema()->hasColumn(self::TABLE_HISCO_UNIT_GROUPS, 'label_de')) {
             DB::schema()->table(self::TABLE_HISCO_UNIT_GROUPS, static function ($table): void {
                 $table->string('label_de', 255)->nullable();
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_GENWIKI_OCCUPATIONS)) {
+            DB::schema()->create(self::TABLE_GENWIKI_OCCUPATIONS, static function ($table): void {
+                $table->string('occupation_text', 255)->primary();
+                $table->text('genwiki_url');
             });
         }
 
