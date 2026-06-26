@@ -364,18 +364,51 @@ msgid "Subcategories"
 msgstr "Unterkategorien"
 
 #: resources/views/occupation-hierarchy.phtml:95
+msgid "the top level"
+msgstr "der obersten Ebene"
+
+#: resources/views/occupation-hierarchy.phtml:96
+msgid "this main category"
+msgstr "dieser Hauptkategorie"
+
+#: resources/views/occupation-hierarchy.phtml:97
+#, php-format
+msgid "this hierarchy level %s"
+msgstr "dieser Hierarchieebene %s"
+
+#: resources/views/occupation-hisco-hierarchy.phtml:96
+msgid "this major group"
+msgstr "dieser Hauptgruppe"
+
+#: resources/views/occupation-hisco-hierarchy.phtml:97
+msgid "this minor group"
+msgstr "dieser Untergruppe"
+
+#: resources/views/occupation-hisco-hierarchy.phtml:98
+msgid "this unit group"
+msgstr "dieser Einheitsgruppe"
+
+#: resources/views/occupation-hisco-hierarchy.phtml:99
+msgid "this hierarchy entry"
+msgstr "diesem Hierarchieeintrag"
+
+#: resources/views/occupation-hierarchy.phtml:108
 msgid "There are no lower hierarchy levels for this entry."
 msgstr "Für diesen Eintrag gibt es keine tieferen Hierarchieebenen."
 
-#: resources/views/occupation-hierarchy.phtml:100
+#: resources/views/occupation-hierarchy.phtml:113
 #, php-format
-msgid "The subcategories shown contain %s occupation entry for %s individual."
+msgid ""
+"The subcategories shown for %s contain %s occupation entry for %s individual."
 msgid_plural ""
-"The subcategories shown contain %s occupation entries for %s individuals."
+"The subcategories shown for %s contain %s occupation entries for %s "
+"individuals."
 msgstr[0] ""
-"Die angezeigten Unterkategorien enthalten %s Berufseintrag zu %s Person."
+"Die angezeigten Unterkategorien zu %s enthalten %s Berufseintrag zu %s "
+"Person."
 msgstr[1] ""
-"Die angezeigten Unterkategorien enthalten %s Berufseinträge zu %s Personen."
+"Die angezeigten Unterkategorien zu %s enthalten %s Berufseinträge zu %s "
+"Personen."
 
 #: resources/views/occupation-hierarchy.phtml:111
 msgid "Code"
@@ -883,10 +916,6 @@ msgstr "Die Grafik zeigt die zehn stärksten Eltern-Kind-Flüsse für die gewäh
 msgid "List"
 msgstr "Liste"
 
-#: resources/views/occupation-portal-counts.phtml:35
-msgid "Density chart"
-msgstr "Dichtegrafik"
-
 #: resources/views/occupation-portal-counts.phtml:56
 msgid "The chart shows the most frequent places for this occupation."
 msgstr "Die Grafik zeigt die häufigsten Orte für diesen Beruf."
@@ -898,6 +927,46 @@ msgstr "Zeitachse"
 #: resources/views/occupation-portal.phtml:407
 msgid "The line marks the earliest and latest year; the markers show the median and average year."
 msgstr "Die Linie markiert das früheste und späteste Jahr; die Markierungen zeigen Median und Durchschnittsjahr."
+
+#: resources/views/occupation-inheritance.phtml:107
+msgid "Social status"
+msgstr "Stand"
+
+#: resources/views/occupation-portal-counts.phtml:43
+msgid "Map"
+msgstr "Karte"
+
+#: resources/views/occupation-portal-counts.phtml:61
+msgid "Place"
+msgstr "Ort"
+
+#: resources/views/occupation-portal-counts.phtml:63
+msgid "Latitude"
+msgstr "Breite"
+
+#: resources/views/occupation-portal-counts.phtml:64
+msgid "Longitude"
+msgstr "Länge"
+
+#: resources/views/occupation-portal-counts.phtml:65
+msgid "Count"
+msgstr "Anzahl"
+
+#: resources/views/occupation-portal-counts.phtml:122
+msgid "No coordinates are available for these places."
+msgstr "Für diese Orte sind keine Koordinaten verfügbar."
+
+#: resources/views/occupation-portal-counts.phtml:125
+msgid "The map uses coordinates from linked _LOC records."
+msgstr "Die Karte nutzt Koordinaten aus verknüpften _LOC-Datensätzen."
+
+#: resources/views/occupation-portal.phtml:397
+msgid "Histogram"
+msgstr "Histogramm"
+
+#: resources/views/occupation-portal.phtml:433
+msgid "The histogram groups the occupation dates into time buckets."
+msgstr "Das Histogramm gruppiert die Berufsdatierungen in Zeitabschnitte."
 
 #~ msgid "External source data"
 #~ msgstr "Externe Quelldaten"
@@ -916,9 +985,6 @@ msgstr "Die Linie markiert das früheste und späteste Jahr; die Markierungen ze
 
 #~ msgid "Occupations"
 #~ msgstr "Berufe"
-
-#~ msgid "Social status"
-#~ msgstr "Stand"
 
 #~ msgid "Office"
 #~ msgstr "Amt"

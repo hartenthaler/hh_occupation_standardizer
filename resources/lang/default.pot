@@ -308,13 +308,42 @@ msgid "Subcategories"
 msgstr ""
 
 #: resources/views/occupation-hierarchy.phtml:95
+msgid "the top level"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:96
+msgid "this main category"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:97
+#, php-format
+msgid "this hierarchy level %s"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:96
+msgid "this major group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:97
+msgid "this minor group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:98
+msgid "this unit group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:99
+msgid "this hierarchy entry"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:108
 msgid "There are no lower hierarchy levels for this entry."
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:100
+#: resources/views/occupation-hierarchy.phtml:113
 #, php-format
-msgid "The subcategories shown contain %s occupation entry for %s individual."
-msgid_plural "The subcategories shown contain %s occupation entries for %s individuals."
+msgid "The subcategories shown for %s contain %s occupation entry for %s individual."
+msgid_plural "The subcategories shown for %s contain %s occupation entries for %s individuals."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -754,10 +783,6 @@ msgstr ""
 msgid "List"
 msgstr ""
 
-#: resources/views/occupation-portal-counts.phtml:35
-msgid "Density chart"
-msgstr ""
-
 #: resources/views/occupation-portal-counts.phtml:56
 msgid "The chart shows the most frequent places for this occupation."
 msgstr ""
@@ -768,4 +793,44 @@ msgstr ""
 
 #: resources/views/occupation-portal.phtml:407
 msgid "The line marks the earliest and latest year; the markers show the median and average year."
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:107
+msgid "Social status"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:43
+msgid "Map"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:61
+msgid "Place"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:63
+msgid "Latitude"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:64
+msgid "Longitude"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:65
+msgid "Count"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:122
+msgid "No coordinates are available for these places."
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:125
+msgid "The map uses coordinates from linked _LOC records."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:397
+msgid "Histogram"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:433
+msgid "The histogram groups the occupation dates into time buckets."
 msgstr ""
