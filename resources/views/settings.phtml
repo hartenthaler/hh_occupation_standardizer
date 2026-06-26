@@ -26,7 +26,7 @@ $ohdabCategoryChartColors = [
 /**
  * @var string $title
  * @var string $description
- * @var list<array{id:string,label:string,description:string,enabled:bool}> $builtinRules
+ * @var list<array{id:string,label:string,description:string,enabled:bool,count:int}> $builtinRules
  * @var array<string,string> $languageOptions
  * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
@@ -71,6 +71,7 @@ $ohdabCategoryChartColors = [
         <h2 class="h4"><?= I18N::translate('Normalization rules') ?></h2>
         <p>
             <?= I18N::translate('These built-in rules are applied in the configured order. Disabled rules are skipped.') ?>
+            <?= I18N::translate('The counters are calculated from active module-owned occupation entries and are recalculated after synchronization or re-normalization.') ?>
         </p>
 
         <form method="post">
@@ -83,6 +84,7 @@ $ohdabCategoryChartColors = [
                         <th><?= MoreI18N::xlate('Rule') ?></th>
                         <th><?= MoreI18N::xlate('Description') ?></th>
                         <th><?= MoreI18N::xlate('Active') ?></th>
+                        <th class="text-end"><?= I18N::translate('Triggered') ?></th>
                         <th colspan="2"><?= MoreI18N::xlate('Move') ?></th>
                     </tr>
                 </thead>
@@ -100,6 +102,7 @@ $ohdabCategoryChartColors = [
                                     <input class="form-check-input" type="checkbox" name="builtinRuleStatus-<?= e($rule['id']) ?>" value="1" id="builtinRuleStatus-<?= e($rule['id']) ?>" aria-label="<?= e(MoreI18N::xlate('Active')) ?>" <?= $rule['enabled'] ? 'checked' : '' ?>>
                                 </div>
                             </td>
+                            <td class="text-end"><?= I18N::number($rule['count']) ?></td>
                             <td class="move up">
                                 <a href="#" title="<?= MoreI18N::xlate('Move up') ?>">
                                     <?= view('icons/arrow-up') ?>

@@ -524,6 +524,14 @@ msgstr ""
 msgid "These built-in rules are applied in the configured order. Disabled rules are skipped."
 msgstr ""
 
+#: resources/views/settings.phtml:74
+msgid "The counters are calculated from active module-owned occupation entries and are recalculated after synchronization or re-normalization."
+msgstr ""
+
+#: resources/views/settings.phtml:87
+msgid "Triggered"
+msgstr ""
+
 #: resources/views/settings.phtml:126
 msgid "Restore default rule sorting"
 msgstr ""

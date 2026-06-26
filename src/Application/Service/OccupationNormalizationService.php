@@ -89,9 +89,17 @@ final class OccupationNormalizationService
     {
         $entries = [];
         $parts = in_array('M2-R001', $this->builtin_rule_order, true) ? $this->splitOccupation($occupation) : [trim($occupation)];
+        $parts = array_values(array_filter($parts, static fn (string $part): bool => $part !== ''));
+        $split_triggered = in_array('M2-R001', $this->builtin_rule_order, true) && count($parts) > 1;
 
-        foreach (array_values(array_filter($parts, static fn (string $part): bool => $part !== '')) as $index => $part) {
-            $entries[] = ['part_index' => $index] + $this->normalizePart($part, $language, $context);
+        foreach ($parts as $index => $part) {
+            $entry = ['part_index' => $index] + $this->normalizePart($part, $language, $context);
+
+            if ($split_triggered) {
+                $entry['rule_numbers'] = trim('M2-R001' . ($entry['rule_numbers'] !== '' ? ', ' . $entry['rule_numbers'] : ''));
+            }
+
+            $entries[] = $entry;
         }
 
         return $entries;

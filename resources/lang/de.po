@@ -626,6 +626,18 @@ msgstr ""
 "Diese eingebauten Regeln werden in der konfigurierten Reihenfolge angewandt. "
 "Deaktivierte Regeln werden übersprungen."
 
+#: resources/views/settings.phtml:74
+msgid ""
+"The counters are calculated from active module-owned occupation entries and "
+"are recalculated after synchronization or re-normalization."
+msgstr ""
+"Die Zähler werden aus den aktiven, modulinternen Berufseinträgen berechnet "
+"und nach einer Synchronisation oder Neu-Normalisierung neu ermittelt."
+
+#: resources/views/settings.phtml:87
+msgid "Triggered"
+msgstr "Ausgelöst"
+
 #: resources/views/settings.phtml:126
 msgid "Restore default rule sorting"
 msgstr "Standardsortierung der Regeln wiederherstellen"

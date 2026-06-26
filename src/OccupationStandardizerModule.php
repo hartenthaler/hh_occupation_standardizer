@@ -2933,12 +2933,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:string,label:string,description:string,enabled:bool}>
+     * @return list<array{id:string,label:string,description:string,enabled:bool,count:int}>
      */
     private function builtinRuleRows(): array
     {
         $enabled_rules = $this->enabledBuiltinRuleIds();
         $definitions = $this->builtinRuleDefinitions();
+        $counts = $this->builtinRuleTriggerCounts();
 
         return array_map(
             static fn (string $rule_id): array => [
@@ -2946,9 +2947,36 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'label'       => $definitions[$rule_id]['label'],
                 'description' => $definitions[$rule_id]['description'],
                 'enabled'     => in_array($rule_id, $enabled_rules, true),
+                'count'       => $counts[$rule_id] ?? 0,
             ],
             $this->storedBuiltinRuleOrder()
         );
+    }
+
+    /**
+     * @return array<string,int>
+     */
+    private function builtinRuleTriggerCounts(): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return [];
+        }
+
+        $counts = [];
+
+        foreach (DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->get(['rule_numbers']) as $row) {
+            foreach (explode(',', (string) ($row->rule_numbers ?? '')) as $rule_id) {
+                $rule_id = trim($rule_id);
+
+                if ($rule_id !== '') {
+                    $counts[$rule_id] = ($counts[$rule_id] ?? 0) + 1;
+                }
+            }
+        }
+
+        return $counts;
     }
 
     /**
