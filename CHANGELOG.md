@@ -20,6 +20,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Read XLSX shared and inline strings without relying on inherited XML namespace prefixes.
 - Updated the inheritance-analysis explanation now that the graphic exists.
 - Gave the inheritance-flow labels more horizontal space and optional two-line wrapping.
 - Open the place card with the density chart and the period card with the timeline by default.
