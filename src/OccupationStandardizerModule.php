@@ -30,6 +30,7 @@ use Fisharebest\Webtrees\Module\ModuleListInterface;
 use Fisharebest\Webtrees\Module\ModuleListTrait;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Services\ModuleService;
+use Fisharebest\Webtrees\Services\TreeService;
 use Fisharebest\Webtrees\Source;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
@@ -111,6 +112,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const TASK_SAVE_NORMALIZATION_ENTRY = 'saveNormalizationEntry';
     private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
     private const TASK_IMPORT_OHDAB_SPECIAL_DATABASE = 'importOhdabSpecialDatabase';
+    private const TASK_RENORMALIZE_TREE_TABLE = 'renormalizeTreeTable';
     private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
     private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
     private const TREE_LANGUAGE_PREFIX = 'treeLanguage-';
@@ -235,6 +237,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ((string) ($params['task'] ?? '') === 'deleteTreeTable') {
             $this->deleteNormalizationRowsForTree($params);
+        }
+
+        if ((string) ($params['task'] ?? '') === self::TASK_RENORMALIZE_TREE_TABLE) {
+            $this->renormalizeRowsForTree($params);
         }
 
         if ((string) ($params['task'] ?? '') === 'saveNormalizationRule') {
@@ -2620,12 +2626,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         ];
     }
 
-    private function syncNormalizationRows(Tree $tree): void
+    private function syncNormalizationRows(Tree $tree, bool $force = false): void
     {
         $fingerprint = $this->occupationFingerprint($tree);
         $fingerprint_setting = self::FINGERPRINT_PREFIX . $tree->id();
 
-        if ($this->metadataValue($fingerprint_setting) === $fingerprint) {
+        if (!$force && $this->metadataValue($fingerprint_setting) === $fingerprint) {
             $this->deactivateDuplicateNormalizationRows($tree, date('Y-m-d H:i:s'));
 
             return;
@@ -2927,12 +2933,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:string,label:string,description:string,enabled:bool}>
+     * @return list<array{id:string,label:string,description:string,enabled:bool,count:int}>
      */
     private function builtinRuleRows(): array
     {
         $enabled_rules = $this->enabledBuiltinRuleIds();
         $definitions = $this->builtinRuleDefinitions();
+        $counts = $this->builtinRuleTriggerCounts();
 
         return array_map(
             static fn (string $rule_id): array => [
@@ -2940,9 +2947,36 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'label'       => $definitions[$rule_id]['label'],
                 'description' => $definitions[$rule_id]['description'],
                 'enabled'     => in_array($rule_id, $enabled_rules, true),
+                'count'       => $counts[$rule_id] ?? 0,
             ],
             $this->storedBuiltinRuleOrder()
         );
+    }
+
+    /**
+     * @return array<string,int>
+     */
+    private function builtinRuleTriggerCounts(): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return [];
+        }
+
+        $counts = [];
+
+        foreach (DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('is_active', '=', true)
+            ->get(['rule_numbers']) as $row) {
+            foreach (explode(',', (string) ($row->rule_numbers ?? '')) as $rule_id) {
+                $rule_id = trim($rule_id);
+
+                if ($rule_id !== '') {
+                    $counts[$rule_id] = ($counts[$rule_id] ?? 0) + 1;
+                }
+            }
+        }
+
+        return $counts;
     }
 
     /**
@@ -3721,6 +3755,50 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $query->get();
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function renormalizeRowsForTree(array $params): void
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            FlashMessages::addMessage(I18N::translate('There is no occupation standardization table to re-normalize.'), 'warning');
+
+            return;
+        }
+
+        $confirmed = (string) ($params['confirmRenormalize'] ?? '') === '1';
+        $tree_id = (int) ($params['treeId'] ?? 0);
+        $known_tree_ids = array_values(array_map(
+            static fn (array $statistics): int => $statistics['tree_id'],
+            $this->normalizationTableStatistics()
+        ));
+
+        if (!$confirmed || !in_array($tree_id, $known_tree_ids, true)) {
+            FlashMessages::addMessage(I18N::translate('The table was not re-normalized because the confirmation was missing or the selected tree was invalid.'), 'warning');
+
+            return;
+        }
+
+        $eligible = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree_id)
+            ->where('is_active', '=', true)
+            ->where('reviewed', '=', false)
+            ->where('manually_changed', '=', false)
+            ->count();
+
+        $tree_service = Registry::container()->get(TreeService::class);
+        assert($tree_service instanceof TreeService);
+
+        $this->syncNormalizationRows($tree_service->find($tree_id), true);
+
+        FlashMessages::addMessage(I18N::plural(
+            'Re-normalization has been run for %s automatic occupation standardization entry.',
+            'Re-normalization has been run for %s automatic occupation standardization entries.',
+            $eligible,
+            I18N::number($eligible)
+        ), 'success');
     }
 
     /**

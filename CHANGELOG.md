@@ -9,6 +9,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Added
 
+- Added an admin action to re-run automatic normalization for a selected family tree while preserving reviewed and manually changed entries.
+- Added trigger counters for built-in normalization rules in the admin settings.
 - Added a list/chart switch to the occupation profile place card.
 - Added a list/timeline switch to the occupation profile period card.
 - Added a coordinate-based map view for linked `_LOC` places on occupation profile pages.

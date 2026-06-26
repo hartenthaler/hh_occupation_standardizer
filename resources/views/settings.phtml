@@ -26,7 +26,7 @@ $ohdabCategoryChartColors = [
 /**
  * @var string $title
  * @var string $description
- * @var list<array{id:string,label:string,description:string,enabled:bool}> $builtinRules
+ * @var list<array{id:string,label:string,description:string,enabled:bool,count:int}> $builtinRules
  * @var array<string,string> $languageOptions
  * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
@@ -71,6 +71,7 @@ $ohdabCategoryChartColors = [
         <h2 class="h4"><?= I18N::translate('Normalization rules') ?></h2>
         <p>
             <?= I18N::translate('These built-in rules are applied in the configured order. Disabled rules are skipped.') ?>
+            <?= I18N::translate('The counters are calculated from active module-owned occupation entries and are recalculated after synchronization or re-normalization.') ?>
         </p>
 
         <form method="post">
@@ -83,6 +84,7 @@ $ohdabCategoryChartColors = [
                         <th><?= MoreI18N::xlate('Rule') ?></th>
                         <th><?= MoreI18N::xlate('Description') ?></th>
                         <th><?= MoreI18N::xlate('Active') ?></th>
+                        <th class="text-end"><?= I18N::translate('Triggered') ?></th>
                         <th colspan="2"><?= MoreI18N::xlate('Move') ?></th>
                     </tr>
                 </thead>
@@ -100,6 +102,7 @@ $ohdabCategoryChartColors = [
                                     <input class="form-check-input" type="checkbox" name="builtinRuleStatus-<?= e($rule['id']) ?>" value="1" id="builtinRuleStatus-<?= e($rule['id']) ?>" aria-label="<?= e(MoreI18N::xlate('Active')) ?>" <?= $rule['enabled'] ? 'checked' : '' ?>>
                                 </div>
                             </td>
+                            <td class="text-end"><?= I18N::number($rule['count']) ?></td>
                             <td class="move up">
                                 <a href="#" title="<?= MoreI18N::xlate('Move up') ?>">
                                     <?= view('icons/arrow-up') ?>
@@ -749,10 +752,6 @@ if (ohdabSpecialDatabaseInput !== null && ohdabSpecialDatabaseName !== null) {
                 <?= I18N::translate('No occupation standardization table data exists yet.') ?>
             </p>
         <?php else : ?>
-            <p>
-                <?= I18N::translate('Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed.') ?>
-            </p>
-
             <table class="table table-bordered table-sm">
                 <thead>
                     <tr>
@@ -778,6 +777,58 @@ if (ohdabSpecialDatabaseInput !== null && ohdabSpecialDatabaseName !== null) {
                     <?php endforeach ?>
                 </tbody>
             </table>
+
+            <h3 class="h5 mt-4"><?= I18N::translate('Re-run normalization') ?></h3>
+
+            <p>
+                <?= I18N::translate('Managers can re-run normalization for one family tree after rule changes or updated external mappings. Reviewed and manually changed entries are preserved.') ?>
+            </p>
+
+            <form method="post" onsubmit="return window.confirm(this.dataset.confirm)" data-confirm="<?= e(I18N::translate('Do you really want to re-run automatic normalization for the selected family tree?')) ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="task" value="renormalizeTreeTable">
+
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label" for="renormalizeTreeId">
+                        <?= MoreI18N::xlate('Family tree') ?>
+                    </label>
+                    <div class="col-sm-9">
+                        <select class="form-select" id="renormalizeTreeId" name="treeId">
+                            <?php foreach ($treeStatistics as $statistics) : ?>
+                                <option value="<?= e((string) $statistics['tree_id']) ?>">
+                                    <?= e($statistics['tree_title']) ?>
+                                    (<?= I18N::plural('%s entry', '%s entries', $statistics['total_entries'], I18N::number($statistics['total_entries'])) ?>)
+                                </option>
+                            <?php endforeach ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-9 offset-sm-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmRenormalize" name="confirmRenormalize" value="1" required>
+                            <label class="form-check-label" for="confirmRenormalize">
+                                <?= I18N::translate('Yes, re-run automatic normalization for the selected family tree.') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-sm-9 offset-sm-3">
+                        <button type="submit" class="btn btn-primary">
+                            <?= I18N::translate('Re-run normalization') ?>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <h3 class="h5 mt-4"><?= I18N::translate('Delete table data') ?></h3>
+
+            <p>
+                <?= I18N::translate('Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed.') ?>
+            </p>
 
             <form method="post" onsubmit="return window.confirm(this.dataset.confirm)" data-confirm="<?= e(I18N::translate('Do you really want to delete the occupation standardization table data for the selected family tree?')) ?>">
                 <?= csrf_field() ?>
