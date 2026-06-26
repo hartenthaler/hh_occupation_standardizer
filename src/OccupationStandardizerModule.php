@@ -382,6 +382,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'listUrl'           => $this->listUrl($tree, ['view' => 'list']),
                 'title'             => $this->listTitle(),
                 'tree'              => $tree,
+                'wordCloudRows'     => $this->topNormalizedOccupationRows($tree, 20),
             ]);
         }
 
@@ -1973,6 +1974,65 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $charts;
+    }
+
+    /**
+     * @return list<array{label:string,count:int,weight:int,url:string}>
+     */
+    private function topNormalizedOccupationRows(Tree $tree, int $limit): array
+    {
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORM_CONCEPTS)) {
+            return [];
+        }
+
+        $counts = [];
+
+        foreach ($this->activeNormalizedOccupationRows($tree) as $entry_row) {
+            $individual = Registry::individualFactory()->make((string) $entry_row->individual_xref, $tree);
+
+            if (!$individual instanceof Individual || !$individual->canShow() || !$this->occupationFactCanShow($individual, (string) $entry_row->fact_id)) {
+                continue;
+            }
+
+            if ((string) ($entry_row->ohdab_class ?? '') !== 'B') {
+                continue;
+            }
+
+            $concept_id = (int) ($entry_row->norm_concept_id ?? 0);
+
+            if ($concept_id <= 0) {
+                continue;
+            }
+
+            $counts[$concept_id] ??= [
+                'label' => $this->normalizedOccupationChartLabel($entry_row),
+                'count' => 0,
+                'url'   => $this->occupationPortalUrl($tree, $concept_id),
+            ];
+            $counts[$concept_id]['count']++;
+        }
+
+        usort($counts, static function (array $a, array $b): int {
+            return $b['count'] <=> $a['count'] ?: I18N::comparator()($a['label'], $b['label']);
+        });
+
+        $rows = array_slice($counts, 0, max(0, $limit));
+
+        if ($rows === []) {
+            return [];
+        }
+
+        $minimum = min(array_column($rows, 'count'));
+        $maximum = max(array_column($rows, 'count'));
+        $range = max(1, $maximum - $minimum);
+
+        return array_map(static fn (array $row): array => [
+            'label'  => $row['label'],
+            'count'  => $row['count'],
+            'weight' => (int) round(($row['count'] - $minimum) / $range * 6),
+            'url'    => $row['url'],
+        ], $rows);
     }
 
     /**
