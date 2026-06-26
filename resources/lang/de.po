@@ -847,8 +847,8 @@ msgid "This table compares normalized entries for parents and children in the ac
 msgstr "Diese Tabelle vergleicht normierte Einträge für Eltern und Kinder im aktiven Stammbaum."
 
 #: resources/views/occupation-inheritance.phtml:51
-msgid "It is intended as the tabular basis for a later chart."
-msgstr "Sie ist als tabellarische Grundlage für eine spätere Grafik gedacht."
+msgid "The graphic above the table shows the strongest flows for quick orientation."
+msgstr "Die Grafik oberhalb der Tabelle zeigt die stärksten Flüsse zur schnellen Orientierung."
 
 #: resources/views/occupation-inheritance.phtml:56
 msgid "No parent-child pairs with matching entries were found in this family tree."
@@ -877,6 +877,27 @@ msgstr "Top-10-Vererbungsflüsse"
 #: resources/views/occupation-inheritance.phtml:96
 msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
 msgstr "Die Grafik zeigt die zehn stärksten Eltern-Kind-Flüsse für die gewählte Analyseart und -ebene."
+
+#: resources/views/occupation-portal-counts.phtml:29
+#: resources/views/occupation-portal.phtml:380
+msgid "List"
+msgstr "Liste"
+
+#: resources/views/occupation-portal-counts.phtml:35
+msgid "Density chart"
+msgstr "Dichtegrafik"
+
+#: resources/views/occupation-portal-counts.phtml:56
+msgid "The chart shows the most frequent places for this occupation."
+msgstr "Die Grafik zeigt die häufigsten Orte für diesen Beruf."
+
+#: resources/views/occupation-portal.phtml:386
+msgid "Timeline"
+msgstr "Zeitachse"
+
+#: resources/views/occupation-portal.phtml:407
+msgid "The line marks the earliest and latest year; the markers show the median and average year."
+msgstr "Die Linie markiert das früheste und späteste Jahr; die Markierungen zeigen Median und Durchschnittsjahr."
 
 #~ msgid "External source data"
 #~ msgstr "Externe Quelldaten"

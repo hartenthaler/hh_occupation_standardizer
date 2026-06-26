@@ -6,8 +6,14 @@ use Fisharebest\Webtrees\I18N;
 
 /**
  * @var array<string,int> $counts
+ * @var string|null $chartId
+ * @var bool|null $showChart
  * @var string $title
  */
+$chartId ??= 'occupation-portal-counts';
+$showChart ??= false;
+$chartCounts = array_slice($counts, 0, 12, true);
+$maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
 ?>
 
 <section class="card h-100">
@@ -17,6 +23,52 @@ use Fisharebest\Webtrees\I18N;
     <div class="card-body">
         <?php if ($counts === []) : ?>
             <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
+        <?php elseif ($showChart) : ?>
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="<?= e($chartId) ?>-list-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-list" type="button" role="tab" aria-controls="<?= e($chartId) ?>-list" aria-selected="true">
+                        <?= I18N::translate('List') ?>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="<?= e($chartId) ?>-chart-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-chart" type="button" role="tab" aria-controls="<?= e($chartId) ?>-chart" aria-selected="false">
+                        <?= I18N::translate('Density chart') ?>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="<?= e($chartId) ?>-list" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-list-tab" tabindex="0">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <?php foreach ($counts as $label => $count) : ?>
+                                <tr>
+                                    <td><bdi><?= e($label) ?></bdi></td>
+                                    <td class="text-end"><?= I18N::number($count) ?></td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-pane fade" id="<?= e($chartId) ?>-chart" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-chart-tab" tabindex="0">
+                    <p class="small text-muted">
+                        <?= I18N::translate('The chart shows the most frequent places for this occupation.') ?>
+                    </p>
+                    <?php foreach ($chartCounts as $label => $count) : ?>
+                        <?php $width = $maximumCount > 0 ? max(4, (int) round(100 * $count / $maximumCount)) : 0 ?>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between gap-2 small">
+                                <span class="text-truncate"><bdi><?= e($label) ?></bdi></span>
+                                <span><?= I18N::number($count) ?></span>
+                            </div>
+                            <div class="progress" style="height: .6rem;">
+                                <div class="progress-bar" role="progressbar" style="width: <?= e((string) $width) ?>%;" aria-valuenow="<?= e((string) $count) ?>" aria-valuemin="0" aria-valuemax="<?= e((string) $maximumCount) ?>"></div>
+                            </div>
+                        </div>
+                    <?php endforeach ?>
+                </div>
+            </div>
         <?php else : ?>
             <table class="table table-sm mb-0">
                 <tbody>
