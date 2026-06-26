@@ -3663,10 +3663,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         $table_counts = [
-            ['table' => 'Major groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->count()],
-            ['table' => 'Minor groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->count()],
-            ['table' => 'Unit groups', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->count()],
-            ['table' => 'Occupations', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->count()],
+            ['table' => I18N::translate('HISCO major groups'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->count()],
+            ['table' => I18N::translate('HISCO minor groups'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->count()],
+            ['table' => I18N::translate('HISCO unit groups'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->count()],
+            ['table' => MoreI18N::xlate('Occupations'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->count()],
         ];
 
         $active_entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)

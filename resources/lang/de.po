@@ -757,6 +757,18 @@ msgstr "Es sind noch keine zugeordneten HISCO-Kategorien verfügbar."
 msgid "HISCO major group"
 msgstr "HISCO-Hauptgruppe"
 
+#: src/OccupationStandardizerModule.php:3666
+msgid "HISCO major groups"
+msgstr "HISCO-Hauptgruppen"
+
+#: src/OccupationStandardizerModule.php:3667
+msgid "HISCO minor groups"
+msgstr "HISCO-Untergruppen"
+
+#: src/OccupationStandardizerModule.php:3668
+msgid "HISCO unit groups"
+msgstr "HISCO-Einheitsgruppen"
+
 #: resources/views/settings.phtml:330
 msgid "Normalized occupation terms"
 msgstr "Normierte Berufsbegriffe"
