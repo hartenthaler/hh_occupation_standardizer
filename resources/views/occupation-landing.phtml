@@ -29,12 +29,30 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
         text-align: center;
     }
 
+    .hh-occupation-word-cloud.is-layout-ready {
+        position: relative;
+        display: block;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .hh-occupation-word-cloud.is-laying-out {
+        visibility: hidden;
+    }
+
     .hh-occupation-word-cloud a {
         color: var(--bs-link-color);
         font-size: calc(1rem + var(--hh-word-weight) * 0.22rem);
         font-weight: calc(450 + var(--hh-word-weight) * 60);
         line-height: 1.15;
         text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .hh-occupation-word-cloud.is-layout-ready a {
+        position: absolute;
+        display: block;
+        transform-origin: center;
     }
 
     .hh-occupation-word-cloud a:hover,
@@ -90,11 +108,13 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
             <p class="small text-muted mb-2">
                 <?= I18N::translate('The word cloud shows the 20 most common visible normalized occupations in the active family tree.') ?>
             </p>
-            <div class="hh-occupation-word-cloud border rounded" aria-label="<?= e(I18N::translate('Most common normalized occupations')) ?>">
-                <?php foreach ($wordCloudRows as $row) : ?>
+            <div class="hh-occupation-word-cloud border rounded" data-word-cloud aria-label="<?= e(I18N::translate('Most common normalized occupations')) ?>">
+                <?php foreach ($wordCloudRows as $index => $row) : ?>
                     <a
                         href="<?= e($row['url']) ?>"
                         style="--hh-word-weight: <?= e((string) $row['weight']) ?>;"
+                        data-cloud-index="<?= e((string) $index) ?>"
+                        data-cloud-weight="<?= e((string) $row['weight']) ?>"
                         title="<?= e(I18N::plural('%s occurrence', '%s occurrences', $row['count'], I18N::number($row['count']))) ?>"
                     ><bdi><?= e($row['label']) ?></bdi></a>
                 <?php endforeach ?>
@@ -102,3 +122,138 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
         </section>
     <?php endif ?>
 </div>
+
+<script>
+(() => {
+    const cloud = document.querySelector('[data-word-cloud]');
+
+    if (cloud === null) {
+        return;
+    }
+
+    const words = Array.from(cloud.querySelectorAll('a'));
+    let scheduledFrame = 0;
+
+    const intersects = (candidate, placed, padding) => placed.some((rectangle) =>
+        candidate.left < rectangle.right + padding &&
+        candidate.right + padding > rectangle.left &&
+        candidate.top < rectangle.bottom + padding &&
+        candidate.bottom + padding > rectangle.top
+    );
+
+    const tryLayout = (height, scale) => {
+        const width = cloud.clientWidth;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const placed = [];
+
+        cloud.style.height = `${height}px`;
+
+        for (const word of words) {
+            const index = Number(word.dataset.cloudIndex || 0);
+            const weight = Number(word.dataset.cloudWeight || 0);
+            const rotation = index % 4 === 3 || index % 7 === 5 ? 90 : 0;
+            const direction = index % 2 === 0 ? 1 : -1;
+            const phase = ((index * 137.508) % 360) * Math.PI / 180;
+
+            word.style.fontSize = `${(15 + weight * 3.1) * scale}px`;
+            word.style.fontWeight = String(Math.round(450 + weight * 60));
+            word.style.left = '0';
+            word.style.top = '0';
+            word.style.transform = 'none';
+
+            const naturalWidth = word.offsetWidth;
+            const naturalHeight = word.offsetHeight;
+            const boxWidth = rotation === 0 ? naturalWidth : naturalHeight;
+            const boxHeight = rotation === 0 ? naturalHeight : naturalWidth;
+            let position = null;
+
+            for (let step = 0; step < 1800; step++) {
+                const angle = phase + direction * step * 0.18;
+                const radius = 1.65 * angle * (width / Math.max(height, 1));
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius * 0.58;
+                const candidate = {
+                    left: x - boxWidth / 2,
+                    right: x + boxWidth / 2,
+                    top: y - boxHeight / 2,
+                    bottom: y + boxHeight / 2,
+                };
+
+                if (candidate.left < 8 || candidate.right > width - 8 || candidate.top < 8 || candidate.bottom > height - 8) {
+                    continue;
+                }
+
+                if (!intersects(candidate, placed, 5)) {
+                    position = {x, y, rectangle: candidate};
+                    break;
+                }
+            }
+
+            if (position === null) {
+                return false;
+            }
+
+            placed.push(position.rectangle);
+            word.style.left = `${position.x - naturalWidth / 2}px`;
+            word.style.top = `${position.y - naturalHeight / 2}px`;
+            word.style.transform = `rotate(${rotation}deg)`;
+        }
+
+        return true;
+    };
+
+    const layout = () => {
+        scheduledFrame = 0;
+        cloud.classList.add('is-layout-ready', 'is-laying-out');
+        const baseHeight = Math.max(300, Math.min(440, cloud.clientWidth * 0.48));
+        let successful = false;
+
+        for (const scale of [1, 0.94, 0.88, 0.82]) {
+            for (const height of [baseHeight, baseHeight + 60, baseHeight + 120]) {
+                if (tryLayout(height, scale)) {
+                    successful = true;
+                    break;
+                }
+            }
+
+            if (successful) {
+                break;
+            }
+        }
+
+        if (!successful) {
+            cloud.classList.remove('is-layout-ready');
+            cloud.removeAttribute('style');
+            words.forEach((word) => word.removeAttribute('style'));
+            words.forEach((word) => word.style.setProperty('--hh-word-weight', word.dataset.cloudWeight || '0'));
+        }
+
+        cloud.classList.remove('is-laying-out');
+    };
+
+    const scheduleLayout = () => {
+        cancelAnimationFrame(scheduledFrame);
+        scheduledFrame = requestAnimationFrame(layout);
+    };
+
+    scheduleLayout();
+
+    if ('ResizeObserver' in window) {
+        let observedWidth = cloud.clientWidth;
+
+        new ResizeObserver((entries) => {
+            const width = entries[0]?.contentRect.width ?? cloud.clientWidth;
+
+            if (Math.abs(width - observedWidth) < 1) {
+                return;
+            }
+
+            observedWidth = width;
+            scheduleLayout();
+        }).observe(cloud);
+    } else {
+        window.addEventListener('resize', scheduleLayout);
+    }
+})();
+</script>
