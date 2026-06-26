@@ -21,6 +21,7 @@ foreach ($externalAuthorityRows as $row) {
 $hiscoCatalogRows ??= [];
 $hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): string => $row['hisco_pretty'], $hiscoCatalogRows)));
 $hierarchyColumnClass = $hiscoCatalogRows !== [] ? 'col-12 col-xl-6' : 'col-12';
+$periodHistogramRows ??= [];
 $periodStats ??= [];
 $periodYears = array_map(
     static fn (string $value): int => (int) preg_replace('/[^0-9-]/', '', $value),
@@ -33,6 +34,7 @@ $periodAverage = $periodYears[3] ?? 0;
 $periodRange = max(1, $periodMaximum - $periodMinimum);
 $periodMedianPosition = $periodMedian > 0 ? max(0, min(100, (int) round(100 * ($periodMedian - $periodMinimum) / $periodRange))) : 0;
 $periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * ($periodAverage - $periodMinimum) / $periodRange))) : 0;
+$maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($periodHistogramRows, 'count')) : 0;
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
@@ -43,7 +45,9 @@ $periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * 
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
  * @var Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string}> $people
+ * @var list<array{label:string,start:int,end:int,count:int}> $periodHistogramRows
  * @var array<string,string> $periodStats
+ * @var list<array{place:string,location_xref:string,latitude:float|null,longitude:float|null,count:int}> $placeRows
  * @var array<string,int> $placeCounts
  * @var array<string,int> $sourceCounts
  * @var array<string,int> $textCounts
@@ -363,6 +367,7 @@ $periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * 
                     'title' => MoreI18N::xlate('Places'),
                     'counts' => $placeCounts,
                     'chartId' => 'occupation-portal-places',
+                    'placeRows' => $placeRows,
                     'showChart' => true,
                 ]) ?>
             </div>
@@ -377,19 +382,24 @@ $periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * 
                         <?php else : ?>
                             <ul class="nav nav-tabs mb-3" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="occupation-portal-period-list-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-list" type="button" role="tab" aria-controls="occupation-portal-period-list" aria-selected="true">
+                                    <button class="nav-link" id="occupation-portal-period-list-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-list" type="button" role="tab" aria-controls="occupation-portal-period-list" aria-selected="false">
                                         <?= I18N::translate('List') ?>
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="occupation-portal-period-chart-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-chart" type="button" role="tab" aria-controls="occupation-portal-period-chart" aria-selected="false">
+                                    <button class="nav-link active" id="occupation-portal-period-chart-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-chart" type="button" role="tab" aria-controls="occupation-portal-period-chart" aria-selected="true">
                                         <?= I18N::translate('Timeline') ?>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="occupation-portal-period-histogram-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-histogram" type="button" role="tab" aria-controls="occupation-portal-period-histogram" aria-selected="false">
+                                        <?= I18N::translate('Histogram') ?>
                                     </button>
                                 </li>
                             </ul>
 
                             <div class="tab-content">
-                                <div class="tab-pane fade show active" id="occupation-portal-period-list" role="tabpanel" aria-labelledby="occupation-portal-period-list-tab" tabindex="0">
+                                <div class="tab-pane fade" id="occupation-portal-period-list" role="tabpanel" aria-labelledby="occupation-portal-period-list-tab" tabindex="0">
                                     <table class="table table-sm mb-0">
                                         <tbody>
                                             <?php foreach ($periodStats as $label => $value) : ?>
@@ -402,7 +412,7 @@ $periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * 
                                     </table>
                                 </div>
 
-                                <div class="tab-pane fade" id="occupation-portal-period-chart" role="tabpanel" aria-labelledby="occupation-portal-period-chart-tab" tabindex="0">
+                                <div class="tab-pane fade show active" id="occupation-portal-period-chart" role="tabpanel" aria-labelledby="occupation-portal-period-chart-tab" tabindex="0">
                                     <p class="small text-muted">
                                         <?= I18N::translate('The line marks the earliest and latest year; the markers show the median and average year.') ?>
                                     </p>
@@ -421,6 +431,28 @@ $periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * 
                                             <?= e((string) $periodAverage) ?>
                                         </span>
                                     </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="occupation-portal-period-histogram" role="tabpanel" aria-labelledby="occupation-portal-period-histogram-tab" tabindex="0">
+                                    <?php if ($periodHistogramRows === []) : ?>
+                                        <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
+                                    <?php else : ?>
+                                        <p class="small text-muted">
+                                            <?= I18N::translate('The histogram groups the occupation dates into time buckets.') ?>
+                                        </p>
+                                        <?php foreach ($periodHistogramRows as $row) : ?>
+                                            <?php $width = $maximumPeriodBucketCount > 0 ? max(4, (int) round(100 * $row['count'] / $maximumPeriodBucketCount)) : 0 ?>
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between gap-2 small">
+                                                    <span><bdi><?= e($row['label']) ?></bdi></span>
+                                                    <span><?= I18N::number($row['count']) ?></span>
+                                                </div>
+                                                <div class="progress" style="height: .6rem;">
+                                                    <div class="progress-bar" role="progressbar" style="width: <?= e((string) $width) ?>%;" aria-valuenow="<?= e((string) $row['count']) ?>" aria-valuemin="0" aria-valuemax="<?= e((string) $maximumPeriodBucketCount) ?>"></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach ?>
+                                    <?php endif ?>
                                 </div>
                             </div>
                         <?php endif ?>

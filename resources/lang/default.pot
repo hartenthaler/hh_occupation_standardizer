@@ -769,3 +769,43 @@ msgstr ""
 #: resources/views/occupation-portal.phtml:407
 msgid "The line marks the earliest and latest year; the markers show the median and average year."
 msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:107
+msgid "Social status"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:43
+msgid "Map"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:61
+msgid "Place"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:63
+msgid "Latitude"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:64
+msgid "Longitude"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:65
+msgid "Count"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:122
+msgid "No coordinates are available for these places."
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:125
+msgid "The map uses coordinates from linked _LOC records."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:397
+msgid "Histogram"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:433
+msgid "The histogram groups the occupation dates into time buckets."
+msgstr ""

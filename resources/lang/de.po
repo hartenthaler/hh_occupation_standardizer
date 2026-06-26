@@ -899,6 +899,46 @@ msgstr "Zeitachse"
 msgid "The line marks the earliest and latest year; the markers show the median and average year."
 msgstr "Die Linie markiert das früheste und späteste Jahr; die Markierungen zeigen Median und Durchschnittsjahr."
 
+#: resources/views/occupation-inheritance.phtml:107
+msgid "Social status"
+msgstr "Stand"
+
+#: resources/views/occupation-portal-counts.phtml:43
+msgid "Map"
+msgstr "Karte"
+
+#: resources/views/occupation-portal-counts.phtml:61
+msgid "Place"
+msgstr "Ort"
+
+#: resources/views/occupation-portal-counts.phtml:63
+msgid "Latitude"
+msgstr "Breite"
+
+#: resources/views/occupation-portal-counts.phtml:64
+msgid "Longitude"
+msgstr "Länge"
+
+#: resources/views/occupation-portal-counts.phtml:65
+msgid "Count"
+msgstr "Anzahl"
+
+#: resources/views/occupation-portal-counts.phtml:122
+msgid "No coordinates are available for these places."
+msgstr "Für diese Orte sind keine Koordinaten verfügbar."
+
+#: resources/views/occupation-portal-counts.phtml:125
+msgid "The map uses coordinates from linked _LOC records."
+msgstr "Die Karte nutzt Koordinaten aus verknüpften _LOC-Datensätzen."
+
+#: resources/views/occupation-portal.phtml:397
+msgid "Histogram"
+msgstr "Histogramm"
+
+#: resources/views/occupation-portal.phtml:433
+msgid "The histogram groups the occupation dates into time buckets."
+msgstr "Das Histogramm gruppiert die Berufsdatierungen in Zeitabschnitte."
+
 #~ msgid "External source data"
 #~ msgstr "Externe Quelldaten"
 
@@ -916,9 +956,6 @@ msgstr "Die Linie markiert das früheste und späteste Jahr; die Markierungen ze
 
 #~ msgid "Occupations"
 #~ msgstr "Berufe"
-
-#~ msgid "Social status"
-#~ msgstr "Stand"
 
 #~ msgid "Office"
 #~ msgstr "Amt"

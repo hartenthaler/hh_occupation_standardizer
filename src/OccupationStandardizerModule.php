@@ -66,6 +66,7 @@ use function array_unique;
 use function arsort;
 use function assert;
 use function class_exists;
+use function ceil;
 use function date;
 use function explode;
 use function file_exists;
@@ -74,6 +75,7 @@ use function in_array;
 use function is_array;
 use function method_exists;
 use function max;
+use function mb_strtoupper;
 use function mb_strtolower;
 use function min;
 use function preg_match_all;
@@ -459,7 +461,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
                 'periodStats'   => $this->occupationPortalPeriodStats($people),
+                'periodHistogramRows' => $this->occupationPortalPeriodHistogramRows($people),
                 'placeCounts'   => $this->occupationPortalCounts($people, 'place'),
+                'placeRows'     => $this->occupationPortalPlaceRows($people, $tree),
                 'sourceCounts'  => $this->occupationPortalCounts($people, 'source_names'),
                 'textCounts'    => $this->occupationPortalCounts($people, 'original_part_text'),
                 'title'         => $concept !== null ? (string) $concept['preferred_label'] : I18N::translate('Normalized occupation'),
@@ -1591,7 +1595,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,source_names:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}>
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,location_xref:string,latitude:float|null,longitude:float|null,source_names:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}>
      */
     private function occupationConceptPeople(Tree $tree, int $concept_id): Collection
     {
@@ -1612,6 +1616,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
             $entry = $this->normalizationEntryArray($entry_row);
             $labels = $label_service->labelsForEntries([$entry], $individual->sex(), I18N::languageTag());
+            $location_xref = (string) ($entry_row->location_xref ?? '');
+            $coordinates = $this->locationCoordinates($tree, $location_xref);
 
             $rows->push([
                 'individual'         => $individual,
@@ -1620,6 +1626,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'original_part_text' => (string) $entry_row->original_part_text,
                 'date'               => (string) ($entry_row->date ?? ''),
                 'place'              => (string) (($entry_row->location_hierarchy ?? '') !== '' ? $entry_row->location_hierarchy : ($entry_row->place ?? '')),
+                'location_xref'      => $location_xref,
+                'latitude'           => $coordinates['latitude'] ?? null,
+                'longitude'          => $coordinates['longitude'] ?? null,
                 'source_names'       => (string) ($entry_row->source_names ?? ''),
                 'code_hisco'         => (string) ($entry_row->code_hisco ?? ''),
                 'code_gnd'           => (string) ($entry_row->code_gnd ?? ''),
@@ -1654,6 +1663,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.original_part_text',
                 'entries.date',
                 'entries.place',
+                'entries.location_xref',
                 'entries.location_hierarchy',
                 'entries.source_names',
                 'entries.language',
@@ -2092,6 +2102,48 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * @param Collection<int,array<string,mixed>> $rows
      *
+     * @return list<array{place:string,location_xref:string,latitude:float|null,longitude:float|null,count:int}>
+     */
+    private function occupationPortalPlaceRows(Collection $rows, Tree $tree): array
+    {
+        $places = [];
+
+        foreach ($rows as $row) {
+            $place = trim((string) ($row['place'] ?? ''));
+
+            if ($place === '') {
+                continue;
+            }
+
+            $location_xref = trim((string) ($row['location_xref'] ?? ''));
+            $key = $location_xref !== '' ? $location_xref : $place;
+            $coordinates = [
+                'latitude'  => $row['latitude'] ?? null,
+                'longitude' => $row['longitude'] ?? null,
+            ];
+
+            if (($coordinates['latitude'] === null || $coordinates['longitude'] === null) && $location_xref !== '') {
+                $coordinates = $this->locationCoordinates($tree, $location_xref) ?? $coordinates;
+            }
+
+            $places[$key] ??= [
+                'place'         => $place,
+                'location_xref' => $location_xref,
+                'latitude'      => $coordinates['latitude'],
+                'longitude'     => $coordinates['longitude'],
+                'count'         => 0,
+            ];
+            $places[$key]['count']++;
+        }
+
+        usort($places, static fn (array $a, array $b): int => $b['count'] <=> $a['count'] ?: I18N::comparator()($a['place'], $b['place']));
+
+        return $places;
+    }
+
+    /**
+     * @param Collection<int,array<string,mixed>> $rows
+     *
      * @return array<string,string>
      */
     private function occupationPortalPeriodStats(Collection $rows): array
@@ -2141,12 +2193,158 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         ];
     }
 
+    /**
+     * @param Collection<int,array<string,mixed>> $rows
+     *
+     * @return list<array{label:string,start:int,end:int,count:int}>
+     */
+    private function occupationPortalPeriodHistogramRows(Collection $rows): array
+    {
+        $years = [];
+
+        foreach ($rows as $row) {
+            $date_string = trim((string) ($row['date'] ?? ''));
+
+            if ($date_string === '') {
+                continue;
+            }
+
+            $date = new GedcomDate($date_string);
+
+            if (!$date->isOK()) {
+                continue;
+            }
+
+            $years[] = (int) $this->julianDayYear(intdiv($date->minimumJulianDay() + $date->maximumJulianDay(), 2));
+        }
+
+        if ($years === []) {
+            return [];
+        }
+
+        sort($years);
+
+        $minimum = min($years);
+        $maximum = max($years);
+
+        if ($minimum === $maximum) {
+            return [[
+                'label' => (string) $minimum,
+                'start' => $minimum,
+                'end'   => $maximum,
+                'count' => count($years),
+            ]];
+        }
+
+        $bucket_count = min(10, max(5, count(array_unique($years))));
+        $bucket_size = max(1, (int) ceil(($maximum - $minimum + 1) / $bucket_count));
+        $buckets = [];
+
+        for ($bucket = 0; $bucket < $bucket_count; $bucket++) {
+            $start = $minimum + ($bucket * $bucket_size);
+            $end = min($maximum, $start + $bucket_size - 1);
+
+            if ($start > $maximum) {
+                break;
+            }
+
+            $buckets[$bucket] = [
+                'label' => $start === $end ? (string) $start : $start . '-' . $end,
+                'start' => $start,
+                'end'   => $end,
+                'count' => 0,
+            ];
+        }
+
+        foreach ($years as $year) {
+            $bucket = min(count($buckets) - 1, intdiv($year - $minimum, $bucket_size));
+            $buckets[$bucket]['count']++;
+        }
+
+        return array_values($buckets);
+    }
+
     private function julianDayYear(int $julian_day): string
     {
         $gregorian_calendar = new GregorianCalendar();
         [$year] = $gregorian_calendar->jdToYmd($julian_day);
 
         return (string) $year;
+    }
+
+    /**
+     * @return array{latitude:float,longitude:float}|null
+     */
+    private function locationCoordinates(Tree $tree, string $location_xref): array|null
+    {
+        static $cache = [];
+
+        if ($location_xref === '') {
+            return null;
+        }
+
+        $cache_key = $tree->id() . ':' . $location_xref;
+
+        if (array_key_exists($cache_key, $cache)) {
+            return $cache[$cache_key];
+        }
+
+        $location = Registry::locationFactory()->make($location_xref, $tree);
+
+        if (!$location instanceof Location || !$location->canShow()) {
+            $cache[$cache_key] = null;
+
+            return null;
+        }
+
+        if (preg_match('/\n1 MAP\b[^\n]*(?:\n[2-9].*)*/', $location->gedcom(), $map_match) !== 1) {
+            $cache[$cache_key] = null;
+
+            return null;
+        }
+
+        if (
+            preg_match('/\n2 LATI\s+([^\n]+)/', $map_match[0], $latitude_match) !== 1
+            || preg_match('/\n2 LONG\s+([^\n]+)/', $map_match[0], $longitude_match) !== 1
+        ) {
+            $cache[$cache_key] = null;
+
+            return null;
+        }
+
+        $latitude = $this->gedcomCoordinate((string) $latitude_match[1]);
+        $longitude = $this->gedcomCoordinate((string) $longitude_match[1]);
+
+        if ($latitude === null || $longitude === null) {
+            $cache[$cache_key] = null;
+
+            return null;
+        }
+
+        $cache[$cache_key] = [
+            'latitude'  => $latitude,
+            'longitude' => $longitude,
+        ];
+
+        return $cache[$cache_key];
+    }
+
+    private function gedcomCoordinate(string $coordinate): float|null
+    {
+        $coordinate = trim($coordinate);
+
+        if (preg_match('/^([NSEW])?\s*([+-]?\d+(?:\.\d+)?)$/i', $coordinate, $match) !== 1) {
+            return null;
+        }
+
+        $direction = mb_strtoupper((string) ($match[1] ?? ''));
+        $value = (float) $match[2];
+
+        if ($direction === 'S' || $direction === 'W') {
+            $value *= -1;
+        }
+
+        return $value;
     }
 
     /**

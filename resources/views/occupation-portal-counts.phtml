@@ -7,13 +7,24 @@ use Fisharebest\Webtrees\I18N;
 /**
  * @var array<string,int> $counts
  * @var string|null $chartId
+ * @var list<array{place:string,location_xref:string,latitude:float|null,longitude:float|null,count:int}>|null $placeRows
  * @var bool|null $showChart
  * @var string $title
  */
 $chartId ??= 'occupation-portal-counts';
+$placeRows ??= [];
 $showChart ??= false;
 $chartCounts = array_slice($counts, 0, 12, true);
 $maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
+$mapRows = array_values(array_filter($placeRows, static fn (array $row): bool => $row['latitude'] !== null && $row['longitude'] !== null));
+$latitudes = array_column($mapRows, 'latitude');
+$longitudes = array_column($mapRows, 'longitude');
+$minimumLatitude = $latitudes !== [] ? min($latitudes) : 0.0;
+$maximumLatitude = $latitudes !== [] ? max($latitudes) : 0.0;
+$minimumLongitude = $longitudes !== [] ? min($longitudes) : 0.0;
+$maximumLongitude = $longitudes !== [] ? max($longitudes) : 0.0;
+$latitudeRange = max(0.01, $maximumLatitude - $minimumLatitude);
+$longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
 ?>
 
 <section class="card h-100">
@@ -26,32 +37,60 @@ $maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
         <?php elseif ($showChart) : ?>
             <ul class="nav nav-tabs mb-3" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="<?= e($chartId) ?>-list-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-list" type="button" role="tab" aria-controls="<?= e($chartId) ?>-list" aria-selected="true">
+                    <button class="nav-link" id="<?= e($chartId) ?>-list-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-list" type="button" role="tab" aria-controls="<?= e($chartId) ?>-list" aria-selected="false">
                         <?= I18N::translate('List') ?>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="<?= e($chartId) ?>-chart-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-chart" type="button" role="tab" aria-controls="<?= e($chartId) ?>-chart" aria-selected="false">
+                    <button class="nav-link active" id="<?= e($chartId) ?>-chart-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-chart" type="button" role="tab" aria-controls="<?= e($chartId) ?>-chart" aria-selected="true">
                         <?= I18N::translate('Density chart') ?>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="<?= e($chartId) ?>-map-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-map" type="button" role="tab" aria-controls="<?= e($chartId) ?>-map" aria-selected="false">
+                        <?= I18N::translate('Map') ?>
                     </button>
                 </li>
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="<?= e($chartId) ?>-list" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-list-tab" tabindex="0">
+                <div class="tab-pane fade" id="<?= e($chartId) ?>-list" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-list-tab" tabindex="0">
                     <table class="table table-sm mb-0">
-                        <tbody>
-                            <?php foreach ($counts as $label => $count) : ?>
+                        <?php if ($placeRows !== []) : ?>
+                            <thead>
                                 <tr>
-                                    <td><bdi><?= e($label) ?></bdi></td>
-                                    <td class="text-end"><?= I18N::number($count) ?></td>
+                                    <th><?= I18N::translate('Place') ?></th>
+                                    <th><bdi>_LOC</bdi></th>
+                                    <th><?= I18N::translate('Latitude') ?></th>
+                                    <th><?= I18N::translate('Longitude') ?></th>
+                                    <th class="text-end"><?= I18N::translate('Count') ?></th>
                                 </tr>
-                            <?php endforeach ?>
+                            </thead>
+                        <?php endif ?>
+                        <tbody>
+                            <?php if ($placeRows !== []) : ?>
+                                <?php foreach ($placeRows as $row) : ?>
+                                    <tr>
+                                        <td><bdi><?= e($row['place']) ?></bdi></td>
+                                        <td><bdi><?= e($row['location_xref']) ?></bdi></td>
+                                        <td><bdi><?= $row['latitude'] === null ? '' : e((string) $row['latitude']) ?></bdi></td>
+                                        <td><bdi><?= $row['longitude'] === null ? '' : e((string) $row['longitude']) ?></bdi></td>
+                                        <td class="text-end"><?= I18N::number($row['count']) ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            <?php else : ?>
+                                <?php foreach ($counts as $label => $count) : ?>
+                                    <tr>
+                                        <td><bdi><?= e($label) ?></bdi></td>
+                                        <td class="text-end"><?= I18N::number($count) ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            <?php endif ?>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="tab-pane fade" id="<?= e($chartId) ?>-chart" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-chart-tab" tabindex="0">
+                <div class="tab-pane fade show active" id="<?= e($chartId) ?>-chart" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-chart-tab" tabindex="0">
                     <p class="small text-muted">
                         <?= I18N::translate('The chart shows the most frequent places for this occupation.') ?>
                     </p>
@@ -67,6 +106,29 @@ $maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
                             </div>
                         </div>
                     <?php endforeach ?>
+                </div>
+
+                <div class="tab-pane fade" id="<?= e($chartId) ?>-map" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-map-tab" tabindex="0">
+                    <?php if ($mapRows === []) : ?>
+                        <p class="mb-0 text-muted"><?= I18N::translate('No coordinates are available for these places.') ?></p>
+                    <?php else : ?>
+                        <p class="small text-muted">
+                            <?= I18N::translate('The map uses coordinates from linked _LOC records.') ?>
+                        </p>
+                        <svg viewBox="0 0 320 180" role="img" aria-label="<?= e(I18N::translate('Map')) ?>" style="width: 100%; height: auto; background: var(--bs-tertiary-bg, #f8f9fa); border: 1px solid var(--bs-border-color, #dee2e6);">
+                            <rect x="0" y="0" width="320" height="180" fill="transparent"></rect>
+                            <?php foreach ($mapRows as $row) : ?>
+                                <?php
+                                $x = 20 + (280 * ((float) $row['longitude'] - $minimumLongitude) / $longitudeRange);
+                                $y = 160 - (140 * ((float) $row['latitude'] - $minimumLatitude) / $latitudeRange);
+                                $radius = min(14, 4 + $row['count']);
+                                ?>
+                                <circle cx="<?= e((string) $x) ?>" cy="<?= e((string) $y) ?>" r="<?= e((string) $radius) ?>" fill="#4f6f52" fill-opacity="0.55" stroke="#2f4b35">
+                                    <title><?= e($row['place'] . ' (' . $row['location_xref'] . '): ' . I18N::number($row['count'])) ?></title>
+                                </circle>
+                            <?php endforeach ?>
+                        </svg>
+                    <?php endif ?>
                 </div>
             </div>
         <?php else : ?>
