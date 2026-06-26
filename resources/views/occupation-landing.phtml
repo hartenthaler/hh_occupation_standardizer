@@ -12,8 +12,37 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
  * @var string $inheritanceUrl
  * @var string $listUrl
  * @var string $title
+ * @var list<array{label:string,count:int,weight:int,url:string}> $wordCloudRows
  */
 ?>
+
+<style>
+    .hh-occupation-word-cloud {
+        display: flex;
+        min-height: 12rem;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        align-content: center;
+        align-items: baseline;
+        justify-content: center;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .hh-occupation-word-cloud a {
+        color: var(--bs-link-color);
+        font-size: calc(1rem + var(--hh-word-weight) * 0.22rem);
+        font-weight: calc(450 + var(--hh-word-weight) * 60);
+        line-height: 1.15;
+        text-decoration: none;
+    }
+
+    .hh-occupation-word-cloud a:hover,
+    .hh-occupation-word-cloud a:focus {
+        color: var(--bs-link-hover-color);
+        text-decoration: underline;
+    }
+</style>
 
 <h2 class="wt-page-title"><?= e($title) ?></h2>
 
@@ -54,4 +83,22 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
             </a>
         </div>
     </div>
+
+    <?php if ($wordCloudRows !== []) : ?>
+        <section class="mt-4" aria-labelledby="hh-occupation-word-cloud-title">
+            <h3 id="hh-occupation-word-cloud-title"><?= I18N::translate('Most common normalized occupations') ?></h3>
+            <p class="small text-muted mb-2">
+                <?= I18N::translate('The word cloud shows the 20 most common visible normalized occupations in the active family tree.') ?>
+            </p>
+            <div class="hh-occupation-word-cloud border rounded" aria-label="<?= e(I18N::translate('Most common normalized occupations')) ?>">
+                <?php foreach ($wordCloudRows as $row) : ?>
+                    <a
+                        href="<?= e($row['url']) ?>"
+                        style="--hh-word-weight: <?= e((string) $row['weight']) ?>;"
+                        title="<?= e(I18N::plural('%s occurrence', '%s occurrences', $row['count'], I18N::number($row['count']))) ?>"
+                    ><bdi><?= e($row['label']) ?></bdi></a>
+                <?php endforeach ?>
+            </div>
+        </section>
+    <?php endif ?>
 </div>

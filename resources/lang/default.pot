@@ -406,6 +406,17 @@ msgstr ""
 msgid "Most common normalized occupations"
 msgstr ""
 
+#: resources/views/occupation-landing.phtml
+msgid "The word cloud shows the 20 most common visible normalized occupations in the active family tree."
+msgstr ""
+
+#: resources/views/occupation-landing.phtml
+#, php-format
+msgid "%s occurrence"
+msgid_plural "%s occurrences"
+msgstr[0] ""
+msgstr[1] ""
+
 #: resources/views/occupation-landing.phtml:86
 #, php-format
 msgid ""
