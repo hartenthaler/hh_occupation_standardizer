@@ -42,6 +42,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Hisc
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\GenwikiOccupationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 use Illuminate\Database\Capsule\Manager as DBManager;
@@ -175,6 +176,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     {
         (new OccupationSchema())->ensureSchema();
         (new HiscoCatalogService())->ensureImported($this->resourcesFolder() . 'data/hisco/');
+        (new GenwikiOccupationService())->ensureImported($this->resourcesFolder() . 'data/GenWiki/Berufe_GenWiki.xlsx');
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
         View::registerCustomView('::fact', $this->name() . '::fact');
@@ -457,6 +459,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $people = $this->occupationConceptPeople($tree, $concept_id);
             $external_identifiers = $this->occupationPortalExternalIdentifiers($concept, $people);
             $ohdab_service = new OhdabSpecialDatabaseService();
+            $genwiki_service = new GenwikiOccupationService();
 
             return $this->viewResponse($this->name() . '::occupation-portal', [
                 'concept'       => $concept,
@@ -464,6 +467,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
                 'hiscoCatalogRows' => $this->occupationPortalHiscoCatalogRows($external_identifiers),
                 'hierarchyPath' => $concept !== null ? $ohdab_service->hierarchyPath($concept_id) : '',
+                'genwikiRows'   => $concept !== null ? $genwiki_service->linksForConcept($concept) : [],
                 'ohdabHierarchyRows' => $concept !== null ? $ohdab_service->hierarchyRows($concept_id) : [],
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,

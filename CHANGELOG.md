@@ -9,6 +9,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Added
 
+- Added checksum-based import of bundled GenWiki occupation links and display matching links on occupation profile pages.
 - Added a linked, collision-free top-20 word cloud of visible normalized occupations to the landing page.
 - Added an admin action to re-run automatic normalization for a selected family tree while preserving reviewed and manually changed entries.
 - Added trigger counters for built-in normalization rules in the admin settings.
