@@ -682,13 +682,12 @@ final class OhdabSpecialDatabaseService
             return [];
         }
 
-        $xml->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
         $strings = [];
 
         foreach ($xml->si as $si) {
             $text_parts = [];
 
-            foreach ($si->xpath('.//m:t') ?: [] as $text) {
+            foreach ($si->xpath('.//*[local-name()="t"]') ?: [] as $text) {
                 $text_parts[] = (string) $text;
             }
 
@@ -712,8 +711,7 @@ final class OhdabSpecialDatabaseService
         }
 
         if ($type === 'inlineStr') {
-            $cell->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
-            $text = $cell->xpath('.//m:t');
+            $text = $cell->xpath('.//*[local-name()="t"]');
 
             return isset($text[0]) ? (string) $text[0] : '';
         }
