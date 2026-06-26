@@ -22,6 +22,17 @@ $hiscoCatalogRows ??= [];
 $hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): string => $row['hisco_pretty'], $hiscoCatalogRows)));
 $hierarchyColumnClass = $hiscoCatalogRows !== [] ? 'col-12 col-xl-6' : 'col-12';
 $periodStats ??= [];
+$periodYears = array_map(
+    static fn (string $value): int => (int) preg_replace('/[^0-9-]/', '', $value),
+    array_values($periodStats)
+);
+$periodMinimum = $periodYears[0] ?? 0;
+$periodMaximum = $periodYears[1] ?? 0;
+$periodMedian = $periodYears[2] ?? 0;
+$periodAverage = $periodYears[3] ?? 0;
+$periodRange = max(1, $periodMaximum - $periodMinimum);
+$periodMedianPosition = $periodMedian > 0 ? max(0, min(100, (int) round(100 * ($periodMedian - $periodMinimum) / $periodRange))) : 0;
+$periodAveragePosition = $periodAverage > 0 ? max(0, min(100, (int) round(100 * ($periodAverage - $periodMinimum) / $periodRange))) : 0;
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
@@ -351,6 +362,8 @@ $periodStats ??= [];
                 <?= view('_hh_occupation_standardizer_::occupation-portal-counts', [
                     'title' => MoreI18N::xlate('Places'),
                     'counts' => $placeCounts,
+                    'chartId' => 'occupation-portal-places',
+                    'showChart' => true,
                 ]) ?>
             </div>
             <div class="col-12 col-xl-4">
@@ -362,16 +375,54 @@ $periodStats ??= [];
                         <?php if ($periodStats === []) : ?>
                             <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
                         <?php else : ?>
-                            <table class="table table-sm mb-0">
-                                <tbody>
-                                    <?php foreach ($periodStats as $label => $value) : ?>
-                                        <tr>
-                                            <td><bdi><?= e($label) ?></bdi></td>
-                                            <td class="text-end"><bdi><?= e($value) ?></bdi></td>
-                                        </tr>
-                                    <?php endforeach ?>
-                                </tbody>
-                            </table>
+                            <ul class="nav nav-tabs mb-3" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="occupation-portal-period-list-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-list" type="button" role="tab" aria-controls="occupation-portal-period-list" aria-selected="true">
+                                        <?= I18N::translate('List') ?>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="occupation-portal-period-chart-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-chart" type="button" role="tab" aria-controls="occupation-portal-period-chart" aria-selected="false">
+                                        <?= I18N::translate('Timeline') ?>
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="occupation-portal-period-list" role="tabpanel" aria-labelledby="occupation-portal-period-list-tab" tabindex="0">
+                                    <table class="table table-sm mb-0">
+                                        <tbody>
+                                            <?php foreach ($periodStats as $label => $value) : ?>
+                                                <tr>
+                                                    <td><bdi><?= e($label) ?></bdi></td>
+                                                    <td class="text-end"><bdi><?= e($value) ?></bdi></td>
+                                                </tr>
+                                            <?php endforeach ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="tab-pane fade" id="occupation-portal-period-chart" role="tabpanel" aria-labelledby="occupation-portal-period-chart-tab" tabindex="0">
+                                    <p class="small text-muted">
+                                        <?= I18N::translate('The line marks the earliest and latest year; the markers show the median and average year.') ?>
+                                    </p>
+                                    <div class="position-relative my-4 mx-2" style="height: 3rem;">
+                                        <div class="position-absolute top-50 start-0 end-0 border-top border-3"></div>
+                                        <span class="position-absolute top-50 translate-middle badge text-bg-secondary" style="left: 0%;">
+                                            <?= e((string) $periodMinimum) ?>
+                                        </span>
+                                        <span class="position-absolute top-50 translate-middle badge text-bg-secondary" style="left: 100%;">
+                                            <?= e((string) $periodMaximum) ?>
+                                        </span>
+                                        <span class="position-absolute translate-middle badge text-bg-primary" style="left: <?= e((string) $periodMedianPosition) ?>%; top: 20%;" title="<?= e(I18N::translate('Median year')) ?>">
+                                            <?= e((string) $periodMedian) ?>
+                                        </span>
+                                        <span class="position-absolute translate-middle badge text-bg-info" style="left: <?= e((string) $periodAveragePosition) ?>%; top: 80%;" title="<?= e(I18N::translate('Average year')) ?>">
+                                            <?= e((string) $periodAverage) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         <?php endif ?>
                     </div>
                 </section>

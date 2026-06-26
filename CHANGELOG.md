@@ -7,7 +7,15 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ## Unreleased
 
-No unreleased changes yet.
+### Added
+
+- Added a list/chart switch to the occupation profile place card.
+- Added a list/timeline switch to the occupation profile period card.
+
+### Fixed
+
+- Updated the inheritance-analysis explanation now that the graphic exists.
+- Gave the inheritance-flow labels more horizontal space and optional two-line wrapping.
 
 ## 2.2.6.3 - 2026-06-25
 

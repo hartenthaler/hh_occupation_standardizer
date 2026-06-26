@@ -718,7 +718,7 @@ msgid "This table compares normalized entries for parents and children in the ac
 msgstr ""
 
 #: resources/views/occupation-inheritance.phtml:51
-msgid "It is intended as the tabular basis for a later chart."
+msgid "The graphic above the table shows the strongest flows for quick orientation."
 msgstr ""
 
 #: resources/views/occupation-inheritance.phtml:56
@@ -747,4 +747,25 @@ msgstr ""
 
 #: resources/views/occupation-inheritance.phtml:96
 msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:29
+#: resources/views/occupation-portal.phtml:380
+msgid "List"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:35
+msgid "Density chart"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:56
+msgid "The chart shows the most frequent places for this occupation."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:386
+msgid "Timeline"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:407
+msgid "The line marks the earliest and latest year; the markers show the median and average year."
 msgstr ""
