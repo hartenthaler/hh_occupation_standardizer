@@ -21,6 +21,13 @@ use Illuminate\Support\Collection;
  */
 $childEntryCount = array_sum(array_map(static fn (array $child): int => $child['entry_count'], $children));
 $childIndividualCount = array_sum(array_map(static fn (array $child): int => $child['individual_count'], $children));
+$subcategoryContext = I18N::translate('the top level');
+
+if ($currentNode !== null) {
+    $subcategoryContext = $currentNode['level'] === 1
+        ? I18N::translate('this main category')
+        : I18N::translate('this hierarchy level %s', I18N::number($currentNode['level']));
+}
 ?>
 
 <h2 class="wt-page-title"><?= e($title) ?></h2>
@@ -106,9 +113,10 @@ $childIndividualCount = array_sum(array_map(static fn (array $child): int => $ch
                 <?php else : ?>
                     <p class="text-muted">
                         <?= I18N::plural(
-                            'The subcategories shown contain %s occupation entry for %s individual.',
-                            'The subcategories shown contain %s occupation entries for %s individuals.',
+                            'The subcategories shown for %s contain %s occupation entry for %s individual.',
+                            'The subcategories shown for %s contain %s occupation entries for %s individuals.',
                             $childEntryCount,
+                            $subcategoryContext,
                             I18N::number($childEntryCount),
                             I18N::number($childIndividualCount)
                         ) ?>

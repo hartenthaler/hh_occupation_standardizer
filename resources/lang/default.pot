@@ -308,13 +308,42 @@ msgid "Subcategories"
 msgstr ""
 
 #: resources/views/occupation-hierarchy.phtml:95
+msgid "the top level"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:96
+msgid "this main category"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:97
+#, php-format
+msgid "this hierarchy level %s"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:96
+msgid "this major group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:97
+msgid "this minor group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:98
+msgid "this unit group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:99
+msgid "this hierarchy entry"
+msgstr ""
+
+#: resources/views/occupation-hierarchy.phtml:108
 msgid "There are no lower hierarchy levels for this entry."
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:100
+#: resources/views/occupation-hierarchy.phtml:113
 #, php-format
-msgid "The subcategories shown contain %s occupation entry for %s individual."
-msgid_plural "The subcategories shown contain %s occupation entries for %s individuals."
+msgid "The subcategories shown for %s contain %s occupation entry for %s individual."
+msgid_plural "The subcategories shown for %s contain %s occupation entries for %s individuals."
 msgstr[0] ""
 msgstr[1] ""
 

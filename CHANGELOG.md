@@ -19,6 +19,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Updated the inheritance-analysis explanation now that the graphic exists.
 - Gave the inheritance-flow labels more horizontal space and optional two-line wrapping.
 - Open the place card with the density chart and the period card with the timeline by default.
+- Clarify hierarchy subcategory summaries by naming the current hierarchy level or category.
 - Translate the social-status inheritance button in the module context.
 
 ## 2.2.6.3 - 2026-06-25
