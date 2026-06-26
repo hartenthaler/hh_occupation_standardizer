@@ -754,10 +754,6 @@ msgstr ""
 msgid "List"
 msgstr ""
 
-#: resources/views/occupation-portal-counts.phtml:35
-msgid "Density chart"
-msgstr ""
-
 #: resources/views/occupation-portal-counts.phtml:56
 msgid "The chart shows the most frequent places for this occupation."
 msgstr ""

@@ -43,7 +43,7 @@ $longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="<?= e($chartId) ?>-chart-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-chart" type="button" role="tab" aria-controls="<?= e($chartId) ?>-chart" aria-selected="true">
-                        <?= I18N::translate('Density chart') ?>
+                        <?= I18N::translate('Histogram') ?>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -60,7 +60,6 @@ $longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
                             <thead>
                                 <tr>
                                     <th><?= I18N::translate('Place') ?></th>
-                                    <th><bdi>_LOC</bdi></th>
                                     <th><?= I18N::translate('Latitude') ?></th>
                                     <th><?= I18N::translate('Longitude') ?></th>
                                     <th class="text-end"><?= I18N::translate('Count') ?></th>
@@ -72,7 +71,6 @@ $longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
                                 <?php foreach ($placeRows as $row) : ?>
                                     <tr>
                                         <td><bdi><?= e($row['place']) ?></bdi></td>
-                                        <td><bdi><?= e($row['location_xref']) ?></bdi></td>
                                         <td><bdi><?= $row['latitude'] === null ? '' : e((string) $row['latitude']) ?></bdi></td>
                                         <td><bdi><?= $row['longitude'] === null ? '' : e((string) $row['longitude']) ?></bdi></td>
                                         <td class="text-end"><?= I18N::number($row['count']) ?></td>

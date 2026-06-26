@@ -883,10 +883,6 @@ msgstr "Die Grafik zeigt die zehn stärksten Eltern-Kind-Flüsse für die gewäh
 msgid "List"
 msgstr "Liste"
 
-#: resources/views/occupation-portal-counts.phtml:35
-msgid "Density chart"
-msgstr "Dichtegrafik"
-
 #: resources/views/occupation-portal-counts.phtml:56
 msgid "The chart shows the most frequent places for this occupation."
 msgstr "Die Grafik zeigt die häufigsten Orte für diesen Beruf."
