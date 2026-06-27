@@ -170,6 +170,8 @@ It can show:
 
 * normalized occupation details
 * external identifiers and source data
+* GenWiki occupation links
+* multilingual Wikipedia links and a language-appropriate introductory paragraph
 * OhdAB hierarchy
 * HISCO hierarchy, when a HISCO code is available
 * visible individuals in the active tree who exercised this occupation
@@ -179,7 +181,13 @@ It can show:
 * source references
 
 External authority information is cached in module-owned tables where applicable.
+Wikipedia introductory paragraphs are cached for 30 days.
+Managers and administrators can replace automatically discovered Wikidata
+sitelinks with a manually maintained language-and-link list.
 The profile page shows source references for displayed external data.
+Managers and administrators can additionally open a collapsed technical status
+table for online sources. If a service is temporarily unavailable, the last
+valid cached response remains visible and is marked as stale in this table.
 
 <a name="OccupationHierarchies"></a>
 ## 🌳 Occupation Hierarchies

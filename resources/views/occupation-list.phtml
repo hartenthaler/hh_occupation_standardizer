@@ -238,6 +238,12 @@ $externalIdentifierService = new ExternalIdentifierService();
                                                     <a class="small" href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer"><?= e($entry['code_wikidata']) ?></a>
                                                 <?php endif ?>
                                             </div>
+                                            <div class="col-12">
+                                                <?= view('_hh_occupation_standardizer_::wikipedia-link-editor', [
+                                                    'links' => $entry['wikipedia_links'],
+                                                    'managed' => $entry['wikipedia_links_managed'],
+                                                ]) ?>
+                                            </div>
                                             <div class="col-12 col-xl-4">
                                                 <label class="form-label small mb-0"><?= MoreI18N::xlate('Status') ?></label>
                                                 <select class="form-select form-select-sm" name="status">

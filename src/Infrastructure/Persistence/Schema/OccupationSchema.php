@@ -69,6 +69,8 @@ final class OccupationSchema
                 $table->string('code_ohdab', 64)->nullable();
                 $table->string('code_factgrid', 64)->nullable();
                 $table->string('code_wikidata', 64)->nullable();
+                $table->text('wikipedia_links')->nullable();
+                $table->boolean('wikipedia_links_managed')->default(false);
                 $table->integer('norm_concept_id')->nullable();
                 $table->string('status', 32);
                 $table->boolean('reviewed')->default(false);
@@ -119,6 +121,8 @@ final class OccupationSchema
                 $table->string('code_ohdab', 64)->nullable();
                 $table->string('code_factgrid', 64)->nullable();
                 $table->string('code_wikidata', 64)->nullable();
+                $table->text('wikipedia_links')->nullable();
+                $table->boolean('wikipedia_links_managed')->default(false);
                 $table->timestamp('created_at')->useCurrent();
                 $table->timestamp('updated_at')->nullable();
             });
@@ -305,6 +309,20 @@ final class OccupationSchema
                     } else {
                         $table->string($column, $length)->nullable();
                     }
+                });
+            }
+        }
+
+        foreach ([self::TABLE_NORMALIZED_ENTRIES, self::TABLE_NORMALIZATION_TERMS] as $table_name) {
+            if (!DB::schema()->hasColumn($table_name, 'wikipedia_links')) {
+                DB::schema()->table($table_name, static function ($table): void {
+                    $table->text('wikipedia_links')->nullable();
+                });
+            }
+
+            if (!DB::schema()->hasColumn($table_name, 'wikipedia_links_managed')) {
+                DB::schema()->table($table_name, static function ($table): void {
+                    $table->boolean('wikipedia_links_managed')->default(false);
                 });
             }
         }

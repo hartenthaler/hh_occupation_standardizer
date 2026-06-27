@@ -87,6 +87,8 @@ written back to GEDCOM by the module.
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier. |
 | `code_factgrid` | `string(64)` nullable | FactGrid item id, e.g. `Q699480`. |
 | `code_wikidata` | `string(64)` nullable | Wikidata item id, e.g. `Q28640`. |
+| `wikipedia_links` | `text` nullable | JSON list of Wikipedia language codes and article URLs; stores either the latest automatic list or a manual override. |
+| `wikipedia_links_managed` | boolean | Whether the stored list fully overrides automatically discovered Wikidata sitelinks. |
 | `norm_concept_id` | integer nullable | Linked imported norm concept, currently used for the tailored German OhdAB special database. |
 | `status` | `string(32)` | Normalization status, currently `recognized`, `unclear`, or `ignored`. These values are stored as stable internal keys and translated for display. |
 | `reviewed` | boolean | Explicit reviewer decision. Saving a manual edit does not automatically set this flag. |
@@ -134,6 +136,8 @@ as well as external identifiers belong here, not on the individual mapping rule.
 | `code_ohdab` | `string(64)` nullable | OhdAB identifier for the normalized term. |
 | `code_factgrid` | `string(64)` nullable | FactGrid item id for the normalized term. |
 | `code_wikidata` | `string(64)` nullable | Wikidata item id for the normalized term. |
+| `wikipedia_links` | `text` nullable | JSON list of Wikipedia language codes and article URLs; stores either the latest automatic list or a manual override. |
+| `wikipedia_links_managed` | boolean | Whether the stored list fully overrides automatically discovered Wikidata sitelinks. |
 | `created_at` | timestamp | Creation time of the term. |
 | `updated_at` | timestamp nullable | Last update time. |
 

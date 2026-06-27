@@ -442,6 +442,12 @@ $ohdabCategoryChartColors = [
                             <input class="form-control form-control-sm" type="text" name="codeWikidata" value="<?= e($term['code_wikidata']) ?>">
                         <?php endif ?>
                     </div>
+                    <div class="col-12">
+                        <?= view('_hh_occupation_standardizer_::wikipedia-link-editor', [
+                            'links' => $term['wikipedia_links'],
+                            'managed' => $term['wikipedia_links_managed'],
+                        ]) ?>
+                    </div>
                     <div class="col-md-2 d-flex gap-2">
                         <button class="btn btn-primary btn-sm" type="submit">
                             <?= MoreI18N::xlate('Save') ?>
@@ -514,6 +520,12 @@ $ohdabCategoryChartColors = [
                 <div class="col-md-2">
                     <label class="form-label small mb-0">Wikidata</label>
                     <input class="form-control form-control-sm" type="text" name="codeWikidata">
+                </div>
+                <div class="col-12">
+                    <?= view('_hh_occupation_standardizer_::wikipedia-link-editor', [
+                        'links' => [],
+                        'managed' => false,
+                    ]) ?>
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary btn-sm" type="submit">
