@@ -9,6 +9,12 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Added
 
+### Fixed
+
+## 2.2.6.4 - 2026-06-27
+
+### Added
+
 - Added multilingual Wikipedia link lists with manual overrides on normalized terms and individual normalization entries.
 - Added language-sensitive Wikipedia introductory paragraphs with a 30-day cache and English fallback.
 - Added manager-only external-data status information and stale-cache fallback during temporary service failures.
