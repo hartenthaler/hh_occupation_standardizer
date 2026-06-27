@@ -9,6 +9,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 use Illuminate\Support\Collection;
 
 $externalAuthorityRows ??= [];
+$externalDataStatusRows ??= [];
 $externalIdentifierRows ??= [];
 $genwikiRows ??= [];
 $ohdabHierarchyRows ??= [];
@@ -26,6 +27,7 @@ $periodHistogramRows ??= [];
 $periodStats ??= [];
 $wikipediaIntroduction ??= null;
 $wikipediaLinks ??= [];
+$canManageExternalData ??= false;
 $periodYears = array_map(
     static fn (string $value): int => (int) preg_replace('/[^0-9-]/', '', $value),
     array_values($periodStats)
@@ -42,6 +44,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
  * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}> $externalAuthorityRows
+ * @var list<array{source:string,status:string,fetched_at:string}> $externalDataStatusRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var list<array{text:string,url:string}> $genwikiRows
  * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
@@ -82,6 +85,59 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
             <?= I18N::translate('Inheritance analysis') ?>
         </a>
     </p>
+
+    <?php if ($canManageExternalData && $externalDataStatusRows !== []) : ?>
+        <section class="card mb-3">
+            <div class="card-header p-0">
+                <button class="btn btn-link text-start text-decoration-none w-100 p-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#occupation-portal-external-data-status" aria-expanded="false" aria-controls="occupation-portal-external-data-status">
+                    <?= I18N::translate('External data status') ?>
+                </button>
+            </div>
+            <div class="collapse" id="occupation-portal-external-data-status">
+                <div class="card-body">
+                    <p class="small text-muted">
+                        <?= I18N::translate('This technical information is visible only to managers and administrators.') ?>
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th><?= MoreI18N::xlate('Source') ?></th>
+                                    <th><?= MoreI18N::xlate('Status') ?></th>
+                                    <th><?= I18N::translate('Last successful retrieval') ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($externalDataStatusRows as $statusRow) : ?>
+                                    <?php
+                                    $statusClass = match ($statusRow['status']) {
+                                        'current' => 'text-bg-success',
+                                        'stale' => 'text-bg-warning',
+                                        default => 'text-bg-danger',
+                                    };
+                                    $statusLabel = match ($statusRow['status']) {
+                                        'current' => I18N::translate('current'),
+                                        'stale' => I18N::translate('stale'),
+                                        'partly unavailable' => I18N::translate('partly unavailable'),
+                                        default => I18N::translate('unavailable'),
+                                    };
+                                    ?>
+                                    <tr>
+                                        <td><bdi><?= e($statusRow['source']) ?></bdi></td>
+                                        <td><span class="badge <?= e($statusClass) ?>"><?= e($statusLabel) ?></span></td>
+                                        <td><bdi><?= e($statusRow['fetched_at'] !== '' ? $statusRow['fetched_at'] : MoreI18N::xlate('never')) ?></bdi></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mt-2 mb-0">
+                        <?= I18N::translate('If a source is temporarily unavailable, the most recently cached data is shown and marked as stale.') ?>
+                    </p>
+                </div>
+            </div>
+        </section>
+    <?php endif ?>
 
     <?php if ($concept === null) : ?>
         <p class="alert alert-warning">

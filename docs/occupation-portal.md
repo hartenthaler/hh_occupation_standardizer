@@ -103,7 +103,13 @@ Visitors may trigger cache misses.
 The external authority databases are public sources, and their public data may be displayed and cached by the module.
 If an external source is queried or cached, the page must show a source reference for the displayed information.
 
-## Open Decisions
+When an expired cache entry cannot be refreshed because the external service is
+temporarily unavailable, the module continues to display the last valid cached
+data. Ordinary visitors do not see technical cache information. Managers and
+administrators can open a collapsed status section showing the source, the last
+successful retrieval, and whether the data is current, stale, partly
+unavailable, or unavailable.
 
-The remaining decision is which source has priority when labels or descriptions
-from multiple authority services disagree.
+This status applies only to online services such as Wikidata, FactGrid, GND, and
+Wikipedia. Locally imported HISCO, OhdAB, and GenWiki data are outside this
+online-cache status.

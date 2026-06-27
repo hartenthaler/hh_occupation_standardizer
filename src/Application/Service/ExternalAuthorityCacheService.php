@@ -28,9 +28,20 @@ final class ExternalAuthorityCacheService
      */
     public function read(string $source, string $cache_key, int $ttl = self::DEFAULT_TTL): array|null
     {
-        $cache_file = $this->cacheFile($source, $cache_key);
+        $entry = $this->entry($source, $cache_key, $ttl);
 
-        if (!file_exists($cache_file) || filemtime($cache_file) === false || time() - filemtime($cache_file) >= $ttl) {
+        return $entry !== null && !$entry['stale'] ? $entry['data'] : null;
+    }
+
+    /**
+     * @return array{data:array<string,mixed>,fetched_at:int,stale:bool}|null
+     */
+    public function entry(string $source, string $cache_key, int $ttl = self::DEFAULT_TTL): array|null
+    {
+        $cache_file = $this->cacheFile($source, $cache_key);
+        $fetched_at = file_exists($cache_file) ? filemtime($cache_file) : false;
+
+        if ($fetched_at === false) {
             return null;
         }
 
@@ -42,7 +53,15 @@ final class ExternalAuthorityCacheService
 
         $data = json_decode($contents, true);
 
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) {
+            return null;
+        }
+
+        return [
+            'data'       => $data,
+            'fetched_at' => $fetched_at,
+            'stale'      => time() - $fetched_at >= $ttl,
+        ];
     }
 
     /**

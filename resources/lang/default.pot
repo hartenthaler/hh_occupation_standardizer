@@ -925,3 +925,35 @@ msgstr ""
 #, php-format
 msgid "Text licensed under %s."
 msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "External data status"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "This technical information is visible only to managers and administrators."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "Last successful retrieval"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "current"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "stale"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "partly unavailable"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "unavailable"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "If a source is temporarily unavailable, the most recently cached data is shown and marked as stale."
+msgstr ""

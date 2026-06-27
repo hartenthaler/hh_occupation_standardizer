@@ -1160,6 +1160,38 @@ msgstr "Verfügbare Sprachen"
 msgid "Text licensed under %s."
 msgstr "Text lizenziert unter %s."
 
+#: resources/views/occupation-portal.phtml
+msgid "External data status"
+msgstr "Status externer Daten"
+
+#: resources/views/occupation-portal.phtml
+msgid "This technical information is visible only to managers and administrators."
+msgstr "Diese technischen Informationen sind nur für Verwalter und Administratoren sichtbar."
+
+#: resources/views/occupation-portal.phtml
+msgid "Last successful retrieval"
+msgstr "Letzter erfolgreicher Abruf"
+
+#: resources/views/occupation-portal.phtml
+msgid "current"
+msgstr "aktuell"
+
+#: resources/views/occupation-portal.phtml
+msgid "stale"
+msgstr "veraltet"
+
+#: resources/views/occupation-portal.phtml
+msgid "partly unavailable"
+msgstr "teilweise nicht verfügbar"
+
+#: resources/views/occupation-portal.phtml
+msgid "unavailable"
+msgstr "nicht verfügbar"
+
+#: resources/views/occupation-portal.phtml
+msgid "If a source is temporarily unavailable, the most recently cached data is shown and marked as stale."
+msgstr "Wenn eine Quelle vorübergehend nicht verfügbar ist, werden die zuletzt zwischengespeicherten Daten angezeigt und als veraltet gekennzeichnet."
+
 #~ msgid "The PHP ZIP extension is required to import XLSX files."
 #~ msgstr ""
 #~ "Die PHP-ZIP-Erweiterung wird benötigt, um XLSX-Dateien zu importieren."

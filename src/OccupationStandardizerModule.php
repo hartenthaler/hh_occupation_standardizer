@@ -41,6 +41,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Occu
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\HiscoCatalogService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\WikipediaService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalAuthorityHttpClient;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\GenwikiOccupationService;
@@ -460,10 +461,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $concept = $this->occupationConcept($concept_id);
             $people = $this->occupationConceptPeople($tree, $concept_id);
             $external_identifiers = $this->occupationPortalExternalIdentifiers($concept, $people);
-            $external_authority_rows = (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag());
-            $ohdab_service = new OhdabSpecialDatabaseService();
+            $external_http_client = new ExternalAuthorityHttpClient();
+            $external_authority_rows = (new ExternalOccupationAuthorityService($external_http_client))
+                ->rowsForIdentifiers($external_identifiers, I18N::languageTag());
+            $ohdab_service = new OhdabSpecialDatabaseService($external_http_client);
             $genwiki_service = new GenwikiOccupationService();
-            $wikipedia_service = new WikipediaService();
+            $wikipedia_service = new WikipediaService($external_http_client);
             $manual_wikipedia = $this->occupationPortalManualWikipediaLinks($people, $external_identifiers);
             $wikipedia_links = $manual_wikipedia['managed']
                 ? $manual_wikipedia['links']
@@ -473,14 +476,19 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 $this->storeAutomaticWikipediaLinks($tree, $concept_id, $external_identifiers, $wikipedia_links);
             }
 
+            $ohdab_hierarchy_rows = $concept !== null ? $ohdab_service->hierarchyRows($concept_id) : [];
+            $wikipedia_introduction = $wikipedia_service->introduction($wikipedia_links, I18N::languageTag());
+
             return $this->viewResponse($this->name() . '::occupation-portal', [
+                'canManageExternalData' => $can_manage_normalization,
                 'concept'       => $concept,
+                'externalDataStatusRows' => $this->externalDataStatusRows($external_http_client->statusRows()),
                 'externalAuthorityRows' => $external_authority_rows,
                 'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
                 'hiscoCatalogRows' => $this->occupationPortalHiscoCatalogRows($external_identifiers),
                 'hierarchyPath' => $concept !== null ? $ohdab_service->hierarchyPath($concept_id) : '',
                 'genwikiRows'   => $concept !== null ? $genwiki_service->linksForConcept($concept) : [],
-                'ohdabHierarchyRows' => $concept !== null ? $ohdab_service->hierarchyRows($concept_id) : [],
+                'ohdabHierarchyRows' => $ohdab_hierarchy_rows,
                 'listUrl'       => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
                 'people'        => $people,
                 'periodStats'   => $this->occupationPortalPeriodStats($people),
@@ -491,7 +499,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'textCounts'    => $this->occupationPortalCounts($people, 'original_part_text'),
                 'title'         => $concept !== null ? (string) $concept['preferred_label'] : I18N::translate('Normalized occupation'),
                 'tree'          => $tree,
-                'wikipediaIntroduction' => $wikipedia_service->introduction($wikipedia_links, I18N::languageTag()),
+                'wikipediaIntroduction' => $wikipedia_introduction,
                 'wikipediaLinks' => $wikipedia_links,
             ]);
         }
@@ -2654,6 +2662,63 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private function canManageNormalization(Tree $tree): bool
     {
         return Auth::isManager($tree) || Auth::isAdmin();
+    }
+
+    /**
+     * @param list<array{source:string,status:string,fetched_at:int|null}> $request_statuses
+     *
+     * @return list<array{source:string,status:string,fetched_at:string}>
+     */
+    private function externalDataStatusRows(array $request_statuses): array
+    {
+        $source_labels = [
+            'factgrid'          => 'FactGrid',
+            'gnd'               => 'GND',
+            'wikidata'          => 'Wikidata',
+            'wikipedia-summary' => 'Wikipedia',
+        ];
+        $sources = [];
+
+        foreach ($request_statuses as $request_status) {
+            $source = $request_status['source'];
+            $sources[$source] ??= [
+                'current'     => 0,
+                'stale'       => 0,
+                'unavailable' => 0,
+                'fetched_at'  => 0,
+            ];
+            $sources[$source][$request_status['status']]++;
+            $sources[$source]['fetched_at'] = max(
+                $sources[$source]['fetched_at'],
+                $request_status['fetched_at'] ?? 0
+            );
+        }
+
+        $rows = [];
+
+        foreach ($sources as $source => $status_counts) {
+            if ($status_counts['unavailable'] > 0 && $status_counts['current'] + $status_counts['stale'] > 0) {
+                $status = 'partly unavailable';
+            } elseif ($status_counts['unavailable'] > 0) {
+                $status = 'unavailable';
+            } elseif ($status_counts['stale'] > 0) {
+                $status = 'stale';
+            } else {
+                $status = 'current';
+            }
+
+            $rows[] = [
+                'source'     => $source_labels[$source] ?? $source,
+                'status'     => $status,
+                'fetched_at' => $status_counts['fetched_at'] > 0
+                    ? date('Y-m-d H:i:s', $status_counts['fetched_at'])
+                    : '',
+            ];
+        }
+
+        usort($rows, static fn (array $left, array $right): int => $left['source'] <=> $right['source']);
+
+        return $rows;
     }
 
     /**

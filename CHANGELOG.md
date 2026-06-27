@@ -11,6 +11,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 - Added multilingual Wikipedia link lists with manual overrides on normalized terms and individual normalization entries.
 - Added language-sensitive Wikipedia introductory paragraphs with a 30-day cache and English fallback.
+- Added manager-only external-data status information and stale-cache fallback during temporary service failures.
 - Added checksum-based import of bundled GenWiki occupation links and display matching links on occupation profile pages.
 - Added a linked, collision-free top-20 word cloud of visible normalized occupations to the landing page.
 - Added an admin action to re-run automatic normalization for a selected family tree while preserving reviewed and manually changed entries.
