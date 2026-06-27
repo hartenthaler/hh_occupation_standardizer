@@ -396,20 +396,23 @@ final class OccupationSchema
         ] as $rule) {
             $normalized_key = $this->normalizedTermKey($rule['language'], $rule['occupation_normalized']);
 
-            DB::table(self::TABLE_NORMALIZATION_TERMS)->updateOrInsert(
-                ['normalized_key' => $normalized_key],
-                [
+            $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
+                ->where('normalized_key', '=', $normalized_key)
+                ->first();
+
+            if ($term === null) {
+                DB::table(self::TABLE_NORMALIZATION_TERMS)->insertOrIgnore([
+                    'normalized_key'         => $normalized_key,
                     'language'              => $rule['language'],
                     'occupation_de_male'    => $rule['occupation_normalized'],
                     'occupation_de_female'  => $rule['occupation_de_female'],
                     'occupation_de_neutral' => $rule['occupation_de_neutral'],
-                    'updated_at'            => date('Y-m-d H:i:s'),
-                ]
-            );
+                ]);
 
-            $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
-                ->where('normalized_key', '=', $normalized_key)
-                ->first();
+                $term = DB::table(self::TABLE_NORMALIZATION_TERMS)
+                    ->where('normalized_key', '=', $normalized_key)
+                    ->first();
+            }
 
             $exists = DB::table(self::TABLE_NORMALIZATION_RULES)
                 ->where('language', '=', $rule['language'])
@@ -417,7 +420,7 @@ final class OccupationSchema
                 ->exists();
 
             if (!$exists) {
-                DB::table(self::TABLE_NORMALIZATION_RULES)->insert([
+                DB::table(self::TABLE_NORMALIZATION_RULES)->insertOrIgnore([
                     'language'           => $rule['language'],
                     'original_text'      => $rule['original_text'],
                     'normalized_term_id' => $term !== null ? (int) $term->id : null,

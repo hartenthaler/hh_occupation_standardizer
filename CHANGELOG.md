@@ -23,6 +23,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Avoid rewriting seeded normalization terms during every module boot, preventing lock wait timeouts on ordinary page requests.
 - Read XLSX shared and inline strings without relying on inherited XML namespace prefixes.
 - Updated the inheritance-analysis explanation now that the graphic exists.
 - Gave the inheritance-flow labels more horizontal space and optional two-line wrapping.
