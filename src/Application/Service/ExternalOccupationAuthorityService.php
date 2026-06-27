@@ -11,6 +11,9 @@ use function explode;
 use function implode;
 use function is_array;
 use function is_string;
+use function ksort;
+use function mb_strtolower;
+use function preg_match;
 use function rawurlencode;
 use function str_replace;
 use function trim;
@@ -27,7 +30,7 @@ final class ExternalOccupationAuthorityService
     /**
      * @param array<string,list<string>> $identifiers
      *
-     * @return list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}>
+     * @return list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}>
      */
     public function rowsForIdentifiers(array $identifiers, string $language_tag): array
     {
@@ -49,7 +52,7 @@ final class ExternalOccupationAuthorityService
     }
 
     /**
-     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}|null
      */
     private function wikidataRow(string $id, string $language_tag): array|null
     {
@@ -68,7 +71,7 @@ final class ExternalOccupationAuthorityService
                 'label'         => '',
                 'description'   => '',
                 'url'           => 'https://www.wikidata.org/wiki/' . rawurlencode($id),
-                'wikipedia_url' => '',
+                'wikipedia_links' => [],
             ];
         }
 
@@ -78,12 +81,12 @@ final class ExternalOccupationAuthorityService
             'label'         => $this->languageValue($entity['labels'] ?? [], $language_tag),
             'description'   => $this->languageValue($entity['descriptions'] ?? [], $language_tag),
             'url'           => 'https://www.wikidata.org/wiki/' . rawurlencode($id),
-            'wikipedia_url' => $this->wikipediaUrl($entity, $language_tag),
+            'wikipedia_links' => $this->wikipediaLinks($entity),
         ];
     }
 
     /**
-     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}|null
      */
     private function factgridRow(string $id, string $language_tag): array|null
     {
@@ -102,7 +105,7 @@ final class ExternalOccupationAuthorityService
                 'label'         => '',
                 'description'   => '',
                 'url'           => 'https://database.factgrid.de/wiki/Item:' . rawurlencode($id),
-                'wikipedia_url' => '',
+                'wikipedia_links' => [],
             ];
         }
 
@@ -112,12 +115,12 @@ final class ExternalOccupationAuthorityService
             'label'         => $this->languageValue($entity['labels'] ?? [], $language_tag),
             'description'   => $this->languageValue($entity['descriptions'] ?? [], $language_tag),
             'url'           => 'https://database.factgrid.de/wiki/Item:' . rawurlencode($id),
-            'wikipedia_url' => '',
+            'wikipedia_links' => [],
         ];
     }
 
     /**
-     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}|null
+     * @return array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}|null
      */
     private function gndRow(string $id): array|null
     {
@@ -135,7 +138,7 @@ final class ExternalOccupationAuthorityService
                 'label'         => '',
                 'description'   => '',
                 'url'           => 'https://d-nb.info/gnd/' . rawurlencode($id),
-                'wikipedia_url' => '',
+                'wikipedia_links' => [],
             ];
         }
 
@@ -145,7 +148,7 @@ final class ExternalOccupationAuthorityService
             'label'         => (string) ($data['preferredName'] ?? ''),
             'description'   => $this->gndDescription($data),
             'url'           => 'https://d-nb.info/gnd/' . rawurlencode($id),
-            'wikipedia_url' => '',
+            'wikipedia_links' => [],
         ];
     }
 
@@ -184,23 +187,33 @@ final class ExternalOccupationAuthorityService
     /**
      * @param array<string,mixed> $entity
      */
-    private function wikipediaUrl(array $entity, string $language_tag): string
+    private function wikipediaLinks(array $entity): array
     {
         $sitelinks = $entity['sitelinks'] ?? [];
 
         if (!is_array($sitelinks)) {
-            return '';
+            return [];
         }
 
-        foreach ($this->languageCandidates($language_tag) as $language) {
-            $title = $sitelinks[$language . 'wiki']['title'] ?? null;
+        $links = [];
 
-            if (is_string($title) && trim($title) !== '') {
-                return 'https://' . $language . '.wikipedia.org/wiki/' . rawurlencode(str_replace(' ', '_', trim($title)));
+        foreach ($sitelinks as $sitelink) {
+            $url = is_array($sitelink) ? ($sitelink['url'] ?? null) : null;
+
+            if (!is_string($url) || preg_match('~^https://([a-z0-9-]+)\.wikipedia\.org/wiki/~iu', $url, $match) !== 1) {
+                continue;
             }
+
+            $language = mb_strtolower($match[1]);
+            $links[$language] = [
+                'language' => $language,
+                'url'      => $url,
+            ];
         }
 
-        return '';
+        ksort($links);
+
+        return array_values($links);
     }
 
     /**

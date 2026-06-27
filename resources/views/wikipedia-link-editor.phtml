@@ -1,0 +1,114 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+
+$links ??= [];
+$managed ??= false;
+$displayLinks = $links !== [] ? $links : [['language' => '', 'url' => '']];
+
+/**
+ * @var list<array{language:string,url:string}> $links
+ * @var bool $managed
+ */
+?>
+
+<fieldset class="border rounded p-2" data-wikipedia-editor>
+    <legend class="float-none w-auto px-1 fs-6 mb-1">Wikipedia</legend>
+
+    <div class="form-check mb-2">
+        <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" name="wikipediaLinksManaged" value="1" data-wikipedia-managed <?= $managed ? 'checked' : '' ?>>
+            <?= I18N::translate('Maintain Wikipedia links manually') ?>
+        </label>
+    </div>
+
+    <p class="small text-muted mb-2">
+        <?= I18N::translate('When manual maintenance is disabled, Wikipedia links are obtained automatically from Wikidata.') ?>
+    </p>
+
+    <div class="vstack gap-2" data-wikipedia-rows>
+        <?php foreach ($displayLinks as $link) : ?>
+            <div class="row g-2 align-items-end" data-wikipedia-row>
+                <div class="col-12 col-sm-3">
+                    <label class="form-label small mb-0"><?= I18N::translate('Language code') ?></label>
+                    <input class="form-control form-control-sm" type="text" name="wikipediaLanguage[]" value="<?= e($link['language']) ?>" maxlength="20" placeholder="de" <?= $managed ? '' : 'disabled' ?>>
+                </div>
+                <div class="col">
+                    <label class="form-label small mb-0"><?= MoreI18N::xlate('URL') ?></label>
+                    <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" value="<?= e($link['url']) ?>" placeholder="https://de.wikipedia.org/wiki/..." <?= $managed ? '' : 'disabled' ?>>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>" <?= $managed ? '' : 'disabled' ?>>
+                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                        <span class="visually-hidden"><?= I18N::translate('Remove Wikipedia link') ?></span>
+                    </button>
+                </div>
+            </div>
+        <?php endforeach ?>
+    </div>
+
+    <button class="btn btn-outline-secondary btn-sm mt-2" type="button" data-wikipedia-add <?= $managed ? '' : 'disabled' ?>>
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <?= I18N::translate('Add Wikipedia link') ?>
+    </button>
+
+    <template data-wikipedia-template>
+        <div class="row g-2 align-items-end" data-wikipedia-row>
+            <div class="col-12 col-sm-3">
+                <label class="form-label small mb-0"><?= I18N::translate('Language code') ?></label>
+                <input class="form-control form-control-sm" type="text" name="wikipediaLanguage[]" maxlength="20" placeholder="de">
+            </div>
+            <div class="col">
+                <label class="form-label small mb-0"><?= MoreI18N::xlate('URL') ?></label>
+                <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" placeholder="https://de.wikipedia.org/wiki/...">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>">
+                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                    <span class="visually-hidden"><?= I18N::translate('Remove Wikipedia link') ?></span>
+                </button>
+            </div>
+        </div>
+    </template>
+</fieldset>
+
+<script>
+if (!window.hhWikipediaEditorInitialized) {
+    window.hhWikipediaEditorInitialized = true;
+
+    document.addEventListener('change', (event) => {
+        const toggle = event.target.closest('[data-wikipedia-managed]');
+
+        if (toggle === null) {
+            return;
+        }
+
+        const editor = toggle.closest('[data-wikipedia-editor]');
+        const enabled = toggle.checked;
+
+        editor.querySelectorAll('[data-wikipedia-row] input, [data-wikipedia-remove], [data-wikipedia-add]').forEach((control) => {
+            control.disabled = !enabled;
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        const addButton = event.target.closest('[data-wikipedia-add]');
+
+        if (addButton !== null) {
+            const editor = addButton.closest('[data-wikipedia-editor]');
+            const template = editor.querySelector('[data-wikipedia-template]');
+            editor.querySelector('[data-wikipedia-rows]').append(template.content.cloneNode(true));
+            return;
+        }
+
+        const removeButton = event.target.closest('[data-wikipedia-remove]');
+
+        if (removeButton !== null) {
+            removeButton.closest('[data-wikipedia-row]').remove();
+        }
+    });
+}
+</script>

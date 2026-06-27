@@ -24,6 +24,8 @@ $hiscoCatalogIds = array_values(array_unique(array_map(static fn (array $row): s
 $hierarchyColumnClass = $hiscoCatalogRows !== [] ? 'col-12 col-xl-6' : 'col-12';
 $periodHistogramRows ??= [];
 $periodStats ??= [];
+$wikipediaIntroduction ??= null;
+$wikipediaLinks ??= [];
 $periodYears = array_map(
     static fn (string $value): int => (int) preg_replace('/[^0-9-]/', '', $value),
     array_values($periodStats)
@@ -39,7 +41,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
 
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
- * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_url:string}> $externalAuthorityRows
+ * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}> $externalAuthorityRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var list<array{text:string,url:string}> $genwikiRows
  * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
@@ -55,6 +57,8 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
  * @var array<string,int> $textCounts
  * @var string $title
  * @var Tree $tree
+ * @var array{language:string,url:string,extract:string}|null $wikipediaIntroduction
+ * @var list<array{language:string,url:string}> $wikipediaLinks
  */
 ?>
 
@@ -188,12 +192,6 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                                             <bdi><?= e($authority_row['description']) ?></bdi>
                                                         </div>
                                                     <?php endif ?>
-                                                    <?php if ($authority_row['wikipedia_url'] !== '') : ?>
-                                                        <div class="small">
-                                                            <span class="text-muted">Wikipedia:</span>
-                                                            <a href="<?= e($authority_row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
-                                                        </div>
-                                                    <?php endif ?>
                                                 <?php endforeach ?>
                                             </td>
                                         </tr>
@@ -222,12 +220,6 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                                         <bdi><?= e($authority_row['description']) ?></bdi>
                                                     </div>
                                                 <?php endif ?>
-                                                <?php if ($authority_row['wikipedia_url'] !== '') : ?>
-                                                    <div class="small">
-                                                        <span class="text-muted">Wikipedia:</span>
-                                                        <a href="<?= e($authority_row['wikipedia_url']) ?>" target="_blank" rel="noopener noreferrer">Wikipedia</a>
-                                                    </div>
-                                                <?php endif ?>
                                             </td>
                                         </tr>
                                     <?php endforeach ?>
@@ -237,6 +229,36 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                     </div>
                 </section>
             </div>
+
+            <?php if ($wikipediaLinks !== []) : ?>
+                <div class="col-12">
+                    <section class="card">
+                        <div class="card-header">Wikipedia</div>
+                        <div class="card-body">
+                            <?php if ($wikipediaIntroduction !== null) : ?>
+                                <p><?= e($wikipediaIntroduction['extract']) ?></p>
+                                <p class="small text-muted">
+                                    <?= MoreI18N::xlate('Source') ?>:
+                                    <a href="<?= e($wikipediaIntroduction['url']) ?>" target="_blank" rel="noopener noreferrer">
+                                        Wikipedia (<?= e($wikipediaIntroduction['language']) ?>)
+                                        <i class="fa-solid fa-arrow-up-right-from-square ms-1" aria-hidden="true"></i>
+                                    </a>.
+                                    <?= I18N::translate('Text licensed under %s.', '<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>') ?>
+                                </p>
+                            <?php endif ?>
+
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span class="small text-muted"><?= I18N::translate('Available languages') ?>:</span>
+                                <?php foreach ($wikipediaLinks as $link) : ?>
+                                    <a class="btn btn-outline-secondary btn-sm" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer">
+                                        <?= e($link['language']) ?>
+                                    </a>
+                                <?php endforeach ?>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            <?php endif ?>
 
             <div class="<?= e($hierarchyColumnClass) ?>">
                 <section class="card">

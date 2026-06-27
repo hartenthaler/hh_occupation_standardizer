@@ -896,3 +896,32 @@ msgstr ""
 #: resources/views/occupation-portal.phtml:433
 msgid "The histogram groups the occupation dates into time buckets."
 msgstr ""
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Maintain Wikipedia links manually"
+msgstr ""
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "When manual maintenance is disabled, Wikipedia links are obtained automatically from Wikidata."
+msgstr ""
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Language code"
+msgstr ""
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Remove Wikipedia link"
+msgstr ""
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Add Wikipedia link"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+msgid "Available languages"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml
+#, php-format
+msgid "Text licensed under %s."
+msgstr ""

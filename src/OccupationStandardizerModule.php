@@ -40,6 +40,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Occu
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\HiscoCatalogService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\WikipediaService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalOccupationAuthorityService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\ExternalIdentifierService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\GenwikiOccupationService;
@@ -75,6 +76,7 @@ use function file_exists;
 use function implode;
 use function in_array;
 use function is_array;
+use function ksort;
 use function method_exists;
 use function max;
 use function mb_strtoupper;
@@ -458,12 +460,22 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $concept = $this->occupationConcept($concept_id);
             $people = $this->occupationConceptPeople($tree, $concept_id);
             $external_identifiers = $this->occupationPortalExternalIdentifiers($concept, $people);
+            $external_authority_rows = (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag());
             $ohdab_service = new OhdabSpecialDatabaseService();
             $genwiki_service = new GenwikiOccupationService();
+            $wikipedia_service = new WikipediaService();
+            $manual_wikipedia = $this->occupationPortalManualWikipediaLinks($people, $external_identifiers);
+            $wikipedia_links = $manual_wikipedia['managed']
+                ? $manual_wikipedia['links']
+                : $wikipedia_service->linksFromAuthorityRows($external_authority_rows);
+
+            if (!$manual_wikipedia['managed']) {
+                $this->storeAutomaticWikipediaLinks($tree, $concept_id, $external_identifiers, $wikipedia_links);
+            }
 
             return $this->viewResponse($this->name() . '::occupation-portal', [
                 'concept'       => $concept,
-                'externalAuthorityRows' => (new ExternalOccupationAuthorityService())->rowsForIdentifiers($external_identifiers, I18N::languageTag()),
+                'externalAuthorityRows' => $external_authority_rows,
                 'externalIdentifierRows' => $this->occupationPortalExternalIdentifierRows($external_identifiers),
                 'hiscoCatalogRows' => $this->occupationPortalHiscoCatalogRows($external_identifiers),
                 'hierarchyPath' => $concept !== null ? $ohdab_service->hierarchyPath($concept_id) : '',
@@ -479,6 +491,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'textCounts'    => $this->occupationPortalCounts($people, 'original_part_text'),
                 'title'         => $concept !== null ? (string) $concept['preferred_label'] : I18N::translate('Normalized occupation'),
                 'tree'          => $tree,
+                'wikipediaIntroduction' => $wikipedia_service->introduction($wikipedia_links, I18N::languageTag()),
+                'wikipediaLinks' => $wikipedia_links,
             ]);
         }
 
@@ -1606,7 +1620,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,location_xref:string,latitude:float|null,longitude:float|null,source_names:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}>
+     * @return Collection<int,array{individual:Individual,label:string,label_title:string,original_part_text:string,date:string,place:string,location_xref:string,latitude:float|null,longitude:float|null,source_names:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,wikipedia_links:list<array{language:string,url:string}>,wikipedia_links_managed:bool}>
      */
     private function occupationConceptPeople(Tree $tree, int $concept_id): Collection
     {
@@ -1646,6 +1660,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_ohdab'         => (string) ($entry_row->code_ohdab ?? ''),
                 'code_factgrid'      => (string) ($entry_row->code_factgrid ?? ''),
                 'code_wikidata'      => (string) ($entry_row->code_wikidata ?? ''),
+                'wikipedia_links'    => (new WikipediaService())->decodeLinks((string) ($entry_row->wikipedia_links ?? '')),
+                'wikipedia_links_managed' => (bool) ($entry_row->wikipedia_links_managed ?? false),
             ]);
         }
 
@@ -1693,6 +1709,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.code_ohdab',
                 'entries.code_factgrid',
                 'entries.code_wikidata',
+                'entries.wikipedia_links',
+                'entries.wikipedia_links_managed',
                 'entries.norm_concept_id',
                 'entries.status',
                 'entries.rule_numbers',
@@ -1739,6 +1757,95 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $identifiers;
+    }
+
+    /**
+     * @param Collection<int,array<string,mixed>> $people
+     * @param array<string,list<string>> $identifiers
+     *
+     * @return array{managed:bool,links:list<array{language:string,url:string}>}
+     */
+    private function occupationPortalManualWikipediaLinks(Collection $people, array $identifiers): array
+    {
+        $entry_links = [];
+        $entries_managed = false;
+
+        foreach ($people as $person) {
+            if (!(bool) ($person['wikipedia_links_managed'] ?? false)) {
+                continue;
+            }
+
+            $entries_managed = true;
+
+            foreach ($person['wikipedia_links'] ?? [] as $link) {
+                $entry_links[$link['language']] = $link;
+            }
+        }
+
+        if ($entries_managed) {
+            ksort($entry_links);
+
+            return ['managed' => true, 'links' => array_values($entry_links)];
+        }
+
+        $wikidata_ids = $identifiers['wikidata'] ?? [];
+
+        if ($wikidata_ids === [] || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            return ['managed' => false, 'links' => []];
+        }
+
+        $term_links = [];
+        $terms_managed = false;
+        $wikipedia_service = new WikipediaService();
+
+        foreach (DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->whereIn('code_wikidata', $wikidata_ids)
+            ->where('wikipedia_links_managed', '=', true)
+            ->get(['wikipedia_links']) as $term) {
+            $terms_managed = true;
+
+            foreach ($wikipedia_service->decodeLinks((string) ($term->wikipedia_links ?? '')) as $link) {
+                $term_links[$link['language']] = $link;
+            }
+        }
+
+        ksort($term_links);
+
+        return ['managed' => $terms_managed, 'links' => array_values($term_links)];
+    }
+
+    /**
+     * @param array<string,list<string>> $identifiers
+     * @param list<array{language:string,url:string}> $links
+     */
+    private function storeAutomaticWikipediaLinks(Tree $tree, int $concept_id, array $identifiers, array $links): void
+    {
+        if ($links === []) {
+            return;
+        }
+
+        $json = (new WikipediaService())->encodeLinks($links);
+
+        DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('norm_concept_id', '=', $concept_id)
+            ->where('wikipedia_links_managed', '=', false)
+            ->where(static function ($query) use ($json): void {
+                $query->whereNull('wikipedia_links')->orWhere('wikipedia_links', '<>', $json);
+            })
+            ->update(['wikipedia_links' => $json]);
+
+        $wikidata_ids = $identifiers['wikidata'] ?? [];
+
+        if ($wikidata_ids !== []) {
+            DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+                ->whereIn('code_wikidata', $wikidata_ids)
+                ->where('wikipedia_links_managed', '=', false)
+                ->where(static function ($query) use ($json): void {
+                    $query->whereNull('wikipedia_links')->orWhere('wikipedia_links', '<>', $json);
+                })
+                ->update(['wikipedia_links' => $json]);
+        }
     }
 
     /**
@@ -2594,6 +2701,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'code_ohdab'            => (string) ($entry->code_ohdab ?? ''),
                     'code_factgrid'         => (string) ($entry->code_factgrid ?? ''),
                     'code_wikidata'         => (string) ($entry->code_wikidata ?? ''),
+                    'wikipedia_links'       => (new WikipediaService())->decodeLinks((string) ($entry->wikipedia_links ?? '')),
+                    'wikipedia_links_managed' => (bool) ($entry->wikipedia_links_managed ?? false),
                     'norm_concept_id'       => (int) ($entry->norm_concept_id ?? 0),
                     'status'                => (string) $entry->status,
                     'reviewed'              => (bool) $entry->reviewed,
@@ -2619,42 +2728,51 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $status = OccupationNormalizationService::STATUS_UNCLEAR;
         }
 
+        $wikipedia_service = new WikipediaService();
+        $wikipedia_links_managed = (string) ($params['wikipediaLinksManaged'] ?? '') === '1';
+        $values = [
+            'date'                  => trim((string) ($params['date'] ?? '')),
+            'place'                 => trim((string) ($params['place'] ?? '')),
+            'location_xref'         => trim((string) ($params['locationXref'] ?? '')),
+            'location_hierarchy'    => trim((string) ($params['locationHierarchy'] ?? '')),
+            'employer'              => trim((string) ($params['employer'] ?? '')),
+            'type'                  => trim((string) ($params['type'] ?? '')),
+            'note'                  => trim((string) ($params['note'] ?? '')),
+            'source_xrefs'          => trim((string) ($params['sourceXrefs'] ?? '')),
+            'source_names'          => trim((string) ($params['sourceNames'] ?? '')),
+            'language'              => trim((string) ($params['language'] ?? '')),
+            'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
+            'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
+            'occupation_de_male'    => '',
+            'occupation_de_female'  => '',
+            'occupation_de_neutral' => '',
+            'occupation_en_male'    => '',
+            'occupation_en_female'  => '',
+            'occupation_en_neutral' => '',
+            'office'                => trim((string) ($params['office'] ?? '')),
+            'qualification'         => trim((string) ($params['qualification'] ?? '')),
+            'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
+            'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
+            'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
+            'code_factgrid'         => trim((string) ($params['codeFactgrid'] ?? '')),
+            'code_wikidata'         => trim((string) ($params['codeWikidata'] ?? '')),
+            'wikipedia_links_managed' => $wikipedia_links_managed,
+            'norm_concept_id'       => 0,
+            'status'                => $status,
+            'reviewed'              => (string) ($params['reviewed'] ?? '') === '1',
+            'manually_changed'      => true,
+            'updated_at'            => date('Y-m-d H:i:s'),
+        ];
+
+        if ($wikipedia_links_managed) {
+            $values['wikipedia_links'] = $wikipedia_service->encodeLinks($wikipedia_service->linksFromPost($params));
+        }
+
         $updated = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
             ->where('tree_id', '=', $tree->id())
             ->where('entry_key', '=', $entry_key)
             ->where('is_active', '=', true)
-            ->update([
-                'date'                  => trim((string) ($params['date'] ?? '')),
-                'place'                 => trim((string) ($params['place'] ?? '')),
-                'location_xref'         => trim((string) ($params['locationXref'] ?? '')),
-                'location_hierarchy'    => trim((string) ($params['locationHierarchy'] ?? '')),
-                'employer'              => trim((string) ($params['employer'] ?? '')),
-                'type'                  => trim((string) ($params['type'] ?? '')),
-                'note'                  => trim((string) ($params['note'] ?? '')),
-                'source_xrefs'          => trim((string) ($params['sourceXrefs'] ?? '')),
-                'source_names'          => trim((string) ($params['sourceNames'] ?? '')),
-                'language'              => trim((string) ($params['language'] ?? '')),
-                'social_status'         => trim((string) ($params['socialStatus'] ?? '')),
-                'occupation_normalized' => trim((string) ($params['occupationNormalized'] ?? '')),
-                'occupation_de_male'    => '',
-                'occupation_de_female'  => '',
-                'occupation_de_neutral' => '',
-                'occupation_en_male'    => '',
-                'occupation_en_female'  => '',
-                'occupation_en_neutral' => '',
-                'office'                => trim((string) ($params['office'] ?? '')),
-                'qualification'         => trim((string) ($params['qualification'] ?? '')),
-                'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
-                'code_gnd'              => trim((string) ($params['codeGnd'] ?? '')),
-                'code_ohdab'            => trim((string) ($params['codeOhdab'] ?? '')),
-                'code_factgrid'         => trim((string) ($params['codeFactgrid'] ?? '')),
-                'code_wikidata'         => trim((string) ($params['codeWikidata'] ?? '')),
-                'norm_concept_id'       => 0,
-                'status'                => $status,
-                'reviewed'              => (string) ($params['reviewed'] ?? '') === '1',
-                'manually_changed'      => true,
-                'updated_at'            => date('Y-m-d H:i:s'),
-            ]);
+            ->update($values);
 
         if ($updated > 0) {
             FlashMessages::addMessage(I18N::translate('The normalization entry has been updated.'), 'success');
@@ -3209,7 +3327,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}>
+     * @return list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,wikipedia_links:list<array{language:string,url:string}>,wikipedia_links_managed:bool}>
      */
     private function normalizationTermRows(): array
     {
@@ -3236,6 +3354,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'code_ohdab'           => (string) ($row->code_ohdab ?? ''),
                 'code_factgrid'        => (string) ($row->code_factgrid ?? ''),
                 'code_wikidata'        => (string) ($row->code_wikidata ?? ''),
+                'wikipedia_links'       => (new WikipediaService())->decodeLinks((string) ($row->wikipedia_links ?? '')),
+                'wikipedia_links_managed' => (bool) ($row->wikipedia_links_managed ?? false),
             ])
             ->all();
     }
@@ -3371,6 +3491,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
+        $wikipedia_service = new WikipediaService();
+        $wikipedia_links_managed = (string) ($params['wikipediaLinksManaged'] ?? '') === '1';
         $values = [
             'language'              => $language,
             'original_text'         => $original_text,
@@ -3444,8 +3566,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'code_ohdab'             => trim((string) ($params['codeOhdab'] ?? '')),
             'code_factgrid'          => trim((string) ($params['codeFactgrid'] ?? '')),
             'code_wikidata'          => trim((string) ($params['codeWikidata'] ?? '')),
+            'wikipedia_links_managed' => $wikipedia_links_managed,
             'updated_at'             => date('Y-m-d H:i:s'),
         ];
+
+        if ($wikipedia_links_managed) {
+            $values['wikipedia_links'] = $wikipedia_service->encodeLinks($wikipedia_service->linksFromPost($params));
+        }
 
         if ($id > 0) {
             DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)

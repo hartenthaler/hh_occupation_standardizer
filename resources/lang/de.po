@@ -1129,6 +1129,37 @@ msgstr "Das Histogramm gruppiert die Berufsdatierungen in Zeitabschnitte."
 #~ msgid "The uploaded file could not be read."
 #~ msgstr "Die hochgeladene Datei konnte nicht gelesen werden."
 
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Maintain Wikipedia links manually"
+msgstr "Wikipedia-Links manuell pflegen"
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "When manual maintenance is disabled, Wikipedia links are obtained automatically from Wikidata."
+msgstr ""
+"Wenn die manuelle Pflege deaktiviert ist, werden Wikipedia-Links automatisch "
+"aus Wikidata übernommen."
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Language code"
+msgstr "Sprachcode"
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Remove Wikipedia link"
+msgstr "Wikipedia-Link entfernen"
+
+#: resources/views/wikipedia-link-editor.phtml
+msgid "Add Wikipedia link"
+msgstr "Wikipedia-Link hinzufügen"
+
+#: resources/views/occupation-portal.phtml
+msgid "Available languages"
+msgstr "Verfügbare Sprachen"
+
+#: resources/views/occupation-portal.phtml
+#, php-format
+msgid "Text licensed under %s."
+msgstr "Text lizenziert unter %s."
+
 #~ msgid "The PHP ZIP extension is required to import XLSX files."
 #~ msgstr ""
 #~ "Die PHP-ZIP-Erweiterung wird benötigt, um XLSX-Dateien zu importieren."

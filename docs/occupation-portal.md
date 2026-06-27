@@ -42,6 +42,7 @@ The page can show:
 - places
 - time span statistics
 - source references
+- multilingual Wikipedia links and a language-appropriate introductory paragraph
 
 The persons card is permission-filtered for the current user.
 
@@ -56,7 +57,23 @@ The currently supported external identifier families are:
 - GND / DNB
 
 The implementation fetches Wikidata, FactGrid, and GND entity data when a normalized occupation concept or one of its visible occupation entries contains the corresponding external identifier.
-The raw JSON response is stored in the local cache and the page displays a small source-data table with the source label, description, source link, and the Wikidata-derived Wikipedia link where available.
+The raw JSON response is stored in the local cache and the page displays a small source-data table with the source label, description, and source link.
+
+All Wikipedia sitelinks returned by Wikidata are exposed as a language-and-link
+list. Administrators can maintain a complete overriding list on normalized
+terms, and managers can override it on individual normalization entries. An
+entry-level override has priority over a term-level override; otherwise the
+Wikidata list is used. A deliberately empty manually maintained list suppresses
+the automatic links. The most recently discovered automatic list is also stored
+with its non-managed state so that an administrator or manager can use it as the
+starting point for manual maintenance.
+
+For the introductory paragraph, the module first looks for the primary user
+interface language and then for English. If neither link exists, no Wikipedia
+introduction is shown. The selected article is queried through the public
+MediaWiki Action API using a plain-text introductory extract. Only the first
+non-empty paragraph is displayed, together with its Wikipedia source link and
+the applicable CC BY-SA 4.0 license notice.
 
 GND identifiers are also linked to the GND Explorer relation view.
 This is exposed as an external link, not embedded into the page.
@@ -75,7 +92,8 @@ The module therefore uses a local JSON file cache below:
 data/cache/hh_occupation_standardizer/<source>-<hash>.json
 ```
 
-The initial TTL is 24 hours, matching the cache strategy used in `hh-historic-events`.
+The initial TTL for authority data is 24 hours, matching the cache strategy used
+in `hh-historic-events`. Wikipedia introductory extracts are valid for 30 days.
 If the cache directory is not writable, the module continues to work without storing the response.
 
 The cache key is based on the full request URL.
@@ -87,8 +105,5 @@ If an external source is queried or cached, the page must show a source referenc
 
 ## Open Decisions
 
-The following decisions still need explicit agreement:
-
-- Whether Wikipedia summaries should be displayed or only linked.
-- Which source has priority when labels or descriptions disagree.
-- How GenWiki links should be discovered or maintained.
+The remaining decision is which source has priority when labels or descriptions
+from multiple authority services disagree.
