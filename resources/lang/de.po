@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Occupation Standardizer for webtrees 2.2.6.4\n"
+"Project-Id-Version: Occupation Standardizer for webtrees 2.2.6.5\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-24 03:35+0200\n"
 "PO-Revision-Date: \n"
