@@ -426,12 +426,6 @@ final class OccupationSchema
                     'normalized_term_id' => $term !== null ? (int) $term->id : null,
                     'enabled'            => true,
                 ]);
-            } elseif ($term !== null) {
-                DB::table(self::TABLE_NORMALIZATION_RULES)
-                    ->where('language', '=', $rule['language'])
-                    ->where('original_text', '=', $rule['original_text'])
-                    ->whereNull('normalized_term_id')
-                    ->update(['normalized_term_id' => (int) $term->id]);
             }
         }
     }

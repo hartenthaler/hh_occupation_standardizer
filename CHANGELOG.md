@@ -11,6 +11,12 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+## 2.2.6.5 - 2026-06-27
+
+### Fixed
+
+- Removed the remaining automatic repair update for existing seeded normalization rules from the module boot path, preventing lock wait timeouts when legacy rules have no normalized-term reference.
+
 ## 2.2.6.4 - 2026-06-27
 
 ### Added
