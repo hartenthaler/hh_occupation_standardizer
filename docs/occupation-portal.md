@@ -68,6 +68,13 @@ the automatic links. The most recently discovered automatic list is also stored
 with its non-managed state so that an administrator or manager can use it as the
 starting point for manual maintenance.
 
+Administrators can explicitly synchronize the automatic Wikipedia lists from
+the module settings, either for one normalized term or for all terms. The
+synchronization requires a Wikidata identifier and never overwrites a manually
+maintained list. Its result message reports checked and updated terms, missing
+Wikidata identifiers, terms without Wikipedia sitelinks, protected manual
+lists, and external-service errors.
+
 For the introductory paragraph, the module first looks for the primary user
 interface language and then for English. If neither link exists, no Wikipedia
 introduction is shown. The selected article is queried through the public

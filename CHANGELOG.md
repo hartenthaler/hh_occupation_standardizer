@@ -9,6 +9,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Added
 
+- Added per-term and bulk administrator actions to synchronize automatic Wikipedia language links from Wikidata.
+
 ### Fixed
 
 - Fixed saving manually maintained Wikipedia link lists for normalized terms and replaced misleading empty URL placeholders with an explicit no-links status.

@@ -1155,6 +1155,27 @@ msgstr "Wikipedia-Link hinzufügen"
 msgid "No Wikipedia links are available yet."
 msgstr "Es sind noch keine Wikipedia-Links verfügbar."
 
+#: src/OccupationStandardizerModule.php
+msgid "No normalized occupation terms were found."
+msgstr "Es wurden keine normierten Berufsbegriffe gefunden."
+
+#: src/OccupationStandardizerModule.php
+#, php-format
+msgid "Wikipedia synchronization finished: %s checked, %s updated, %s without Wikidata ID, %s without Wikipedia links, %s manually maintained, %s errors."
+msgstr "Wikipedia-Synchronisierung abgeschlossen: %s geprüft, %s aktualisiert, %s ohne Wikidata-ID, %s ohne Wikipedia-Links, %s manuell gepflegt, %s Fehler."
+
+#: resources/views/settings.phtml
+msgid "Update all Wikipedia links from Wikidata"
+msgstr "Alle Wikipedia-Links aus Wikidata aktualisieren"
+
+#: resources/views/settings.phtml
+msgid "Update Wikipedia links from Wikidata"
+msgstr "Wikipedia-Links aus Wikidata aktualisieren"
+
+#: resources/views/settings.phtml
+msgid "Update Wikipedia links"
+msgstr "Wikipedia-Links aktualisieren"
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr "Verfügbare Sprachen"

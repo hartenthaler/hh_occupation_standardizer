@@ -28,7 +28,7 @@ $ohdabCategoryChartColors = [
  * @var string $description
  * @var list<array{id:string,label:string,description:string,enabled:bool,count:int}> $builtinRules
  * @var array<string,string> $languageOptions
- * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string}> $normalizationTerms
+ * @var list<array{id:int,language:string,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,wikipedia_links:list<array{language:string,url:string}>,wikipedia_links_managed:bool}> $normalizationTerms
  * @var array<int,string> $normalizationTermOptions
  * @var list<array{id:int,language:string,original_text:string,normalized_term_id:int,normalized_key:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,social_status:string,occupation_normalized:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,enabled:bool}> $normalizationRules
  * @var array{original_total:int,split_total:int,assigned_total:int,table_counts:list<array{table:string,count:int}>,categories:list<array{category:string,count:int,percentage:float}>} $hiscoStatistics
@@ -341,6 +341,15 @@ $ohdabCategoryChartColors = [
             <?= I18N::translate('The language and the language-specific masculine form identify the normalized term.') ?>
         </p>
 
+        <form method="post" class="mb-3">
+            <?= csrf_field() ?>
+            <input type="hidden" name="task" value="refreshWikipediaLinks">
+            <button class="btn btn-outline-secondary btn-sm" type="submit">
+                <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                <?= I18N::translate('Update all Wikipedia links from Wikidata') ?>
+            </button>
+        </form>
+
         <?php foreach ($normalizationTerms as $term) : ?>
             <form method="post" class="border rounded p-2 mb-2">
                 <?= csrf_field() ?>
@@ -448,9 +457,20 @@ $ohdabCategoryChartColors = [
                             'managed' => $term['wikipedia_links_managed'],
                         ]) ?>
                     </div>
-                    <div class="col-md-2 d-flex gap-2">
+                    <div class="col-12 d-flex flex-wrap gap-2">
                         <button class="btn btn-primary btn-sm" type="submit">
                             <?= MoreI18N::xlate('Save') ?>
+                        </button>
+                        <button
+                            class="btn btn-outline-secondary btn-sm"
+                            type="submit"
+                            name="task"
+                            value="refreshWikipediaLinks"
+                            <?= $term['code_wikidata'] === '' || $term['wikipedia_links_managed'] ? 'disabled' : '' ?>
+                            title="<?= e(I18N::translate('Update Wikipedia links from Wikidata')) ?>"
+                        >
+                            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                            <?= I18N::translate('Update Wikipedia links') ?>
                         </button>
                         <button class="btn btn-danger btn-sm" type="submit" name="task" value="deleteNormalizationTerm">
                             <?= MoreI18N::xlate('Delete') ?>
