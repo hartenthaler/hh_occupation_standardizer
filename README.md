@@ -184,6 +184,9 @@ External authority information is cached in module-owned tables where applicable
 Wikipedia introductory paragraphs are cached for 30 days.
 Managers and administrators can replace automatically discovered Wikidata
 sitelinks with a manually maintained language-and-link list.
+Administrators can synchronize these automatic links from Wikidata for one
+normalized occupation or for all normalized occupations. Manually maintained
+lists are never overwritten by this action.
 The profile page shows source references for displayed external data.
 Managers and administrators can additionally open a collapsed technical status
 table for online sources. If a service is temporarily unavailable, the last

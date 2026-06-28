@@ -117,6 +117,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     private const TASK_SAVE_BUILTIN_RULES = 'saveBuiltinRules';
     private const TASK_IMPORT_OHDAB_SPECIAL_DATABASE = 'importOhdabSpecialDatabase';
     private const TASK_RENORMALIZE_TREE_TABLE = 'renormalizeTreeTable';
+    private const TASK_REFRESH_WIKIPEDIA_LINKS = 'refreshWikipediaLinks';
     private const BUILTIN_RULE_ORDER_PREFERENCE = 'builtinRuleOrder';
     private const BUILTIN_RULE_STATUS_PREFIX = 'builtinRuleStatus-';
     private const TREE_LANGUAGE_PREFIX = 'treeLanguage-';
@@ -258,6 +259,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ((string) ($params['task'] ?? '') === 'saveNormalizationTerm') {
             $this->saveNormalizationTermAction($params);
+        }
+
+        if ((string) ($params['task'] ?? '') === self::TASK_REFRESH_WIKIPEDIA_LINKS) {
+            $this->refreshWikipediaLinks($params);
         }
 
         if ((string) ($params['task'] ?? '') === 'deleteNormalizationTerm') {
@@ -3652,6 +3657,100 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $this->clearOccupationFingerprints();
         FlashMessages::addMessage(I18N::translate('The normalized term has been saved.'), 'success');
+    }
+
+    /**
+     * @param array<string,mixed> $params
+     */
+    private function refreshWikipediaLinks(array $params): void
+    {
+        $term_id = (int) ($params['termId'] ?? 0);
+        $query = DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+            ->select(['id', 'code_wikidata', 'wikipedia_links', 'wikipedia_links_managed'])
+            ->orderBy('id');
+
+        if ($term_id > 0) {
+            $query->where('id', '=', $term_id);
+        }
+
+        $terms = $query->get();
+
+        if ($terms->isEmpty()) {
+            FlashMessages::addMessage(I18N::translate('No normalized occupation terms were found.'), 'warning');
+
+            return;
+        }
+
+        $checked = 0;
+        $updated = 0;
+        $missing_wikidata = 0;
+        $without_links = 0;
+        $errors = 0;
+        $manual = 0;
+        $wikipedia_service = new WikipediaService();
+
+        foreach ($terms as $term) {
+            $checked++;
+
+            if ((bool) ($term->wikipedia_links_managed ?? false)) {
+                $manual++;
+                continue;
+            }
+
+            $wikidata_id = trim((string) ($term->code_wikidata ?? ''));
+
+            if ($wikidata_id === '') {
+                $missing_wikidata++;
+                continue;
+            }
+
+            $http_client = new ExternalAuthorityHttpClient();
+            $authority_rows = (new ExternalOccupationAuthorityService($http_client))->rowsForIdentifiers(
+                ['wikidata' => [$wikidata_id]],
+                I18N::languageTag()
+            );
+            $unavailable = array_filter(
+                $http_client->statusRows(),
+                static fn (array $status): bool => $status['source'] === 'wikidata' && $status['status'] === 'unavailable'
+            );
+
+            if ($unavailable !== []) {
+                $errors++;
+                continue;
+            }
+
+            $links = $wikipedia_service->linksFromAuthorityRows($authority_rows);
+
+            if ($links === []) {
+                $without_links++;
+                continue;
+            }
+
+            $encoded_links = $wikipedia_service->encodeLinks($links);
+
+            if ((string) ($term->wikipedia_links ?? '') === $encoded_links) {
+                continue;
+            }
+
+            $updated += DBManager::table(OccupationSchema::TABLE_NORMALIZATION_TERMS)
+                ->where('id', '=', (int) $term->id)
+                ->where('wikipedia_links_managed', '=', false)
+                ->update([
+                    'wikipedia_links' => $encoded_links,
+                    'updated_at'      => date('Y-m-d H:i:s'),
+                ]);
+        }
+
+        $message = I18N::translate(
+            'Wikipedia synchronization finished: %s checked, %s updated, %s without Wikidata ID, %s without Wikipedia links, %s manually maintained, %s errors.',
+            I18N::number($checked),
+            I18N::number($updated),
+            I18N::number($missing_wikidata),
+            I18N::number($without_links),
+            I18N::number($manual),
+            I18N::number($errors)
+        );
+        FlashMessages::addMessage($message, $errors > 0 ? 'warning' : 'success');
     }
 
     private function normalizedTermKey(string $language, string $occupation): string
