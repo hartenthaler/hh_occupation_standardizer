@@ -7,7 +7,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 
 $links ??= [];
 $managed ??= false;
-$displayLinks = $links !== [] ? $links : [['language' => '', 'url' => '']];
+$displayLinks = $links !== [] ? $links : ($managed ? [['language' => '', 'url' => '']] : []);
 
 /**
  * @var list<array{language:string,url:string}> $links
@@ -30,6 +30,11 @@ $displayLinks = $links !== [] ? $links : [['language' => '', 'url' => '']];
     </p>
 
     <div class="vstack gap-2" data-wikipedia-rows>
+        <?php if ($displayLinks === []) : ?>
+            <p class="small text-muted mb-0" data-wikipedia-empty>
+                <?= I18N::translate('No Wikipedia links are available yet.') ?>
+            </p>
+        <?php endif ?>
         <?php foreach ($displayLinks as $link) : ?>
             <div class="row g-2 align-items-end" data-wikipedia-row>
                 <div class="col-12 col-sm-3">
@@ -38,7 +43,7 @@ $displayLinks = $links !== [] ? $links : [['language' => '', 'url' => '']];
                 </div>
                 <div class="col">
                     <label class="form-label small mb-0"><?= MoreI18N::xlate('URL') ?></label>
-                    <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" value="<?= e($link['url']) ?>" placeholder="https://de.wikipedia.org/wiki/..." <?= $managed ? '' : 'disabled' ?>>
+                    <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" value="<?= e($link['url']) ?>" title="<?= e($link['url']) ?>" placeholder="https://de.wikipedia.org/wiki/Article_title" <?= $managed ? '' : 'disabled' ?>>
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>" <?= $managed ? '' : 'disabled' ?>>
@@ -63,7 +68,7 @@ $displayLinks = $links !== [] ? $links : [['language' => '', 'url' => '']];
             </div>
             <div class="col">
                 <label class="form-label small mb-0"><?= MoreI18N::xlate('URL') ?></label>
-                <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" placeholder="https://de.wikipedia.org/wiki/...">
+                <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" placeholder="https://de.wikipedia.org/wiki/Article_title">
             </div>
             <div class="col-auto">
                 <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>">
@@ -88,10 +93,18 @@ if (!window.hhWikipediaEditorInitialized) {
 
         const editor = toggle.closest('[data-wikipedia-editor]');
         const enabled = toggle.checked;
+        const rows = editor.querySelector('[data-wikipedia-rows]');
+
+        if (enabled && rows.querySelector('[data-wikipedia-row]') === null) {
+            const template = editor.querySelector('[data-wikipedia-template]');
+            rows.append(template.content.cloneNode(true));
+        }
 
         editor.querySelectorAll('[data-wikipedia-row] input, [data-wikipedia-remove], [data-wikipedia-add]').forEach((control) => {
             control.disabled = !enabled;
         });
+
+        editor.querySelector('[data-wikipedia-empty]')?.classList.toggle('d-none', enabled);
     });
 
     document.addEventListener('click', (event) => {

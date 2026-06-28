@@ -917,6 +917,10 @@ msgstr ""
 msgid "Add Wikipedia link"
 msgstr ""
 
+#: resources/views/wikipedia-link-editor.phtml
+msgid "No Wikipedia links are available yet."
+msgstr ""
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr ""

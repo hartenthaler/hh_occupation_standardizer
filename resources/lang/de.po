@@ -1151,6 +1151,10 @@ msgstr "Wikipedia-Link entfernen"
 msgid "Add Wikipedia link"
 msgstr "Wikipedia-Link hinzufügen"
 
+#: resources/views/wikipedia-link-editor.phtml
+msgid "No Wikipedia links are available yet."
+msgstr "Es sind noch keine Wikipedia-Links verfügbar."
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr "Verfügbare Sprachen"
