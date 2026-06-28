@@ -11,6 +11,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Fixed saving manually maintained Wikipedia link lists for normalized terms and replaced misleading empty URL placeholders with an explicit no-links status.
+
 ## 2.2.6.5 - 2026-06-27
 
 ### Fixed

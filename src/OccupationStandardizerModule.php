@@ -3556,8 +3556,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
-        $wikipedia_service = new WikipediaService();
-        $wikipedia_links_managed = (string) ($params['wikipediaLinksManaged'] ?? '') === '1';
         $values = [
             'language'              => $language,
             'original_text'         => $original_text,
@@ -3617,6 +3615,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
+        $wikipedia_service = new WikipediaService();
+        $wikipedia_links_managed = (string) ($params['wikipediaLinksManaged'] ?? '') === '1';
         $values = [
             'language'               => $language,
             'normalized_key'         => $normalized_key,
