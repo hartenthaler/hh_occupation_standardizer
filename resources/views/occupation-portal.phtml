@@ -44,7 +44,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
 /**
  * @var array{id:int,source_label:string,language:string,preferred_label:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,ohdab_full_id:string,factgrid_id:string,wikidata_id:string,requirement_level:string,requirement_label:string}|null $concept
  * @var list<array{source:string,code:string,label:string,description:string,url:string,wikipedia_links:list<array{language:string,url:string}>}> $externalAuthorityRows
- * @var list<array{source:string,status:string,fetched_at:string}> $externalDataStatusRows
+ * @var list<array{source:string,status:string,fetched_at:string,error:string}> $externalDataStatusRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var list<array{text:string,url:string}> $genwikiRows
  * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
@@ -105,6 +105,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                     <th><?= MoreI18N::xlate('Source') ?></th>
                                     <th><?= MoreI18N::xlate('Status') ?></th>
                                     <th><?= I18N::translate('Last successful retrieval') ?></th>
+                                    <th><?= MoreI18N::xlate('Details') ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,6 +127,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                         <td><bdi><?= e($statusRow['source']) ?></bdi></td>
                                         <td><span class="badge <?= e($statusClass) ?>"><?= e($statusLabel) ?></span></td>
                                         <td><bdi><?= e($statusRow['fetched_at'] !== '' ? $statusRow['fetched_at'] : MoreI18N::xlate('never')) ?></bdi></td>
+                                        <td class="small"><bdi><?= e($statusRow['error']) ?></bdi></td>
                                     </tr>
                                 <?php endforeach ?>
                             </tbody>

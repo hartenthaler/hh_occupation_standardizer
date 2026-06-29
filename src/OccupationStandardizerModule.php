@@ -2670,9 +2670,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @param list<array{source:string,status:string,fetched_at:int|null}> $request_statuses
+     * @param list<array{source:string,status:string,fetched_at:int|null,error:string}> $request_statuses
      *
-     * @return list<array{source:string,status:string,fetched_at:string}>
+     * @return list<array{source:string,status:string,fetched_at:string,error:string}>
      */
     private function externalDataStatusRows(array $request_statuses): array
     {
@@ -2691,12 +2691,17 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'stale'       => 0,
                 'unavailable' => 0,
                 'fetched_at'  => 0,
+                'errors'      => [],
             ];
             $sources[$source][$request_status['status']]++;
             $sources[$source]['fetched_at'] = max(
                 $sources[$source]['fetched_at'],
                 $request_status['fetched_at'] ?? 0
             );
+
+            if ($request_status['error'] !== '') {
+                $sources[$source]['errors'][] = $request_status['error'];
+            }
         }
 
         $rows = [];
@@ -2718,6 +2723,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'fetched_at' => $status_counts['fetched_at'] > 0
                     ? date('Y-m-d H:i:s', $status_counts['fetched_at'])
                     : '',
+                'error'      => implode(' | ', array_unique($status_counts['errors'])),
             ];
         }
 
@@ -3686,6 +3692,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $missing_wikidata = 0;
         $without_links = 0;
         $errors = 0;
+        $error_details = [];
         $manual = 0;
         $wikipedia_service = new WikipediaService();
 
@@ -3716,6 +3723,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
             if ($unavailable !== []) {
                 $errors++;
+
+                foreach ($unavailable as $status) {
+                    $detail = trim((string) ($status['error'] ?? ''));
+                    $error_details[] = $wikidata_id . ': ' . ($detail !== '' ? $detail : I18N::translate('External service unavailable.'));
+                }
+
                 continue;
             }
 
@@ -3751,6 +3764,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             I18N::number($errors)
         );
         FlashMessages::addMessage($message, $errors > 0 ? 'warning' : 'success');
+
+        if ($error_details !== []) {
+            FlashMessages::addMessage(
+                I18N::translate('External service errors: %s', implode(' | ', array_unique($error_details))),
+                'warning'
+            );
+        }
     }
 
     private function normalizedTermKey(string $language, string $occupation): string

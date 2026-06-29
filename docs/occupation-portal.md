@@ -75,6 +75,11 @@ maintained list. Its result message reports checked and updated terms, missing
 Wikidata identifiers, terms without Wikipedia sitelinks, protected manual
 lists, and external-service errors.
 
+External requests identify the module through a descriptive HTTP user agent.
+Failed requests retain their technical error message. Administrators see these
+details in synchronization feedback and managers can inspect them in the
+collapsed external-data status section on occupation profile pages.
+
 For the introductory paragraph, the module first looks for the primary user
 interface language and then for English. If neither link exists, no Wikipedia
 introduction is shown. The selected article is queried through the public
