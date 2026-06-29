@@ -1176,6 +1176,15 @@ msgstr "Wikipedia-Links aus Wikidata aktualisieren"
 msgid "Update Wikipedia links"
 msgstr "Wikipedia-Links aktualisieren"
 
+#: src/OccupationStandardizerModule.php
+msgid "External service unavailable."
+msgstr "Der externe Dienst ist nicht verfügbar."
+
+#: src/OccupationStandardizerModule.php
+#, php-format
+msgid "External service errors: %s"
+msgstr "Fehler externer Dienste: %s"
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr "Verfügbare Sprachen"

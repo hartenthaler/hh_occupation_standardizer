@@ -14,9 +14,11 @@ use function time;
 
 final class ExternalAuthorityHttpClient
 {
+    private const USER_AGENT = 'hh_occupation_standardizer (+https://github.com/hartenthaler/hh_occupation_standardizer)';
+
     private ExternalAuthorityCacheService $cache;
 
-    /** @var array<string,array{source:string,status:string,fetched_at:int|null}> */
+    /** @var array<string,array{source:string,status:string,fetched_at:int|null,error:string}> */
     private array $request_statuses = [];
 
     public function __construct(ExternalAuthorityCacheService|null $cache = null)
@@ -38,14 +40,20 @@ final class ExternalAuthorityHttpClient
         }
 
         try {
-            $response = (new Client(['timeout' => 15]))->get($url);
+            $response = (new Client([
+                'timeout' => 15,
+                'headers' => [
+                    'Accept'     => 'application/json',
+                    'User-Agent' => self::USER_AGENT,
+                ],
+            ]))->get($url);
             $data = json_decode($response->getBody()->getContents(), true);
-        } catch (GuzzleException) {
-            return $this->staleFallback($source, $url, $cache_entry);
+        } catch (GuzzleException $ex) {
+            return $this->staleFallback($source, $url, $cache_entry, $ex->getMessage());
         }
 
         if (!is_array($data)) {
-            return $this->staleFallback($source, $url, $cache_entry);
+            return $this->staleFallback($source, $url, $cache_entry, 'The external service returned invalid JSON.');
         }
 
         $this->cache->write($source, $url, $data);
@@ -55,7 +63,7 @@ final class ExternalAuthorityHttpClient
     }
 
     /**
-     * @return list<array{source:string,status:string,fetched_at:int|null}>
+     * @return list<array{source:string,status:string,fetched_at:int|null,error:string}>
      */
     public function statusRows(): array
     {
@@ -67,25 +75,26 @@ final class ExternalAuthorityHttpClient
      *
      * @return array<string,mixed>|null
      */
-    private function staleFallback(string $source, string $url, array|null $cache_entry): array|null
+    private function staleFallback(string $source, string $url, array|null $cache_entry, string $error): array|null
     {
         if ($cache_entry !== null) {
-            $this->recordStatus($source, $url, 'stale', $cache_entry['fetched_at']);
+            $this->recordStatus($source, $url, 'stale', $cache_entry['fetched_at'], $error);
 
             return $cache_entry['data'];
         }
 
-        $this->recordStatus($source, $url, 'unavailable', null);
+        $this->recordStatus($source, $url, 'unavailable', null, $error);
 
         return null;
     }
 
-    private function recordStatus(string $source, string $url, string $status, int|null $fetched_at): void
+    private function recordStatus(string $source, string $url, string $status, int|null $fetched_at, string $error = ''): void
     {
         $this->request_statuses[$source . "\n" . $url] = [
             'source'     => $source,
             'status'     => $status,
             'fetched_at' => $fetched_at,
+            'error'      => $error,
         ];
     }
 }

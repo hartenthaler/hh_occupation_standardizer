@@ -942,6 +942,15 @@ msgstr ""
 msgid "Update Wikipedia links"
 msgstr ""
 
+#: src/OccupationStandardizerModule.php
+msgid "External service unavailable."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php
+#, php-format
+msgid "External service errors: %s"
+msgstr ""
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr ""
