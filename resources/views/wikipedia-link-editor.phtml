@@ -29,30 +29,41 @@ $displayLinks = $links !== [] ? $links : ($managed ? [['language' => '', 'url' =
         <?= I18N::translate('When manual maintenance is disabled, Wikipedia links are obtained automatically from Wikidata.') ?>
     </p>
 
-    <div class="vstack gap-2" data-wikipedia-rows>
-        <?php if ($displayLinks === []) : ?>
-            <p class="small text-muted mb-0" data-wikipedia-empty>
-                <?= I18N::translate('No Wikipedia links are available yet.') ?>
-            </p>
-        <?php endif ?>
-        <?php foreach ($displayLinks as $link) : ?>
-            <div class="row g-2 align-items-end" data-wikipedia-row>
-                <div class="col-12 col-sm-3">
-                    <label class="form-label small mb-0"><?= I18N::translate('Language code') ?></label>
-                    <input class="form-control form-control-sm" type="text" name="wikipediaLanguage[]" value="<?= e($link['language']) ?>" maxlength="20" placeholder="de" <?= $managed ? '' : 'disabled' ?>>
-                </div>
-                <div class="col">
-                    <label class="form-label small mb-0"><?= MoreI18N::xlate('URL') ?></label>
-                    <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" value="<?= e($link['url']) ?>" title="<?= e($link['url']) ?>" placeholder="https://de.wikipedia.org/wiki/Article_title" <?= $managed ? '' : 'disabled' ?>>
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>" <?= $managed ? '' : 'disabled' ?>>
-                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                        <span class="visually-hidden"><?= I18N::translate('Remove Wikipedia link') ?></span>
-                    </button>
-                </div>
-            </div>
-        <?php endforeach ?>
+    <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="w-25"><?= I18N::translate('Language code') ?></th>
+                    <th><?= MoreI18N::xlate('URL') ?></th>
+                    <th class="text-end"><span class="visually-hidden"><?= MoreI18N::xlate('Actions') ?></span></th>
+                </tr>
+            </thead>
+            <tbody data-wikipedia-rows>
+                <?php if ($displayLinks === []) : ?>
+                    <tr data-wikipedia-empty>
+                        <td class="small text-muted" colspan="3">
+                            <?= I18N::translate('No Wikipedia links are available yet.') ?>
+                        </td>
+                    </tr>
+                <?php endif ?>
+                <?php foreach ($displayLinks as $link) : ?>
+                    <tr data-wikipedia-row>
+                        <td>
+                            <input class="form-control form-control-sm" type="text" name="wikipediaLanguage[]" value="<?= e($link['language']) ?>" maxlength="20" placeholder="de" aria-label="<?= e(I18N::translate('Language code')) ?>" <?= $managed ? '' : 'disabled' ?>>
+                        </td>
+                        <td>
+                            <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" value="<?= e($link['url']) ?>" title="<?= e($link['url']) ?>" placeholder="https://de.wikipedia.org/wiki/Article_title" aria-label="<?= e(MoreI18N::xlate('URL')) ?>" <?= $managed ? '' : 'disabled' ?>>
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>" <?= $managed ? '' : 'disabled' ?>>
+                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                <span class="visually-hidden"><?= I18N::translate('Remove Wikipedia link') ?></span>
+                            </button>
+                        </td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
     </div>
 
     <button class="btn btn-outline-secondary btn-sm mt-2" type="button" data-wikipedia-add <?= $managed ? '' : 'disabled' ?>>
@@ -61,22 +72,20 @@ $displayLinks = $links !== [] ? $links : ($managed ? [['language' => '', 'url' =
     </button>
 
     <template data-wikipedia-template>
-        <div class="row g-2 align-items-end" data-wikipedia-row>
-            <div class="col-12 col-sm-3">
-                <label class="form-label small mb-0"><?= I18N::translate('Language code') ?></label>
-                <input class="form-control form-control-sm" type="text" name="wikipediaLanguage[]" maxlength="20" placeholder="de">
-            </div>
-            <div class="col">
-                <label class="form-label small mb-0"><?= MoreI18N::xlate('URL') ?></label>
-                <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" placeholder="https://de.wikipedia.org/wiki/Article_title">
-            </div>
-            <div class="col-auto">
+        <tr data-wikipedia-row>
+            <td>
+                <input class="form-control form-control-sm" type="text" name="wikipediaLanguage[]" maxlength="20" placeholder="de" aria-label="<?= e(I18N::translate('Language code')) ?>">
+            </td>
+            <td>
+                <input class="form-control form-control-sm" type="url" name="wikipediaUrl[]" placeholder="https://de.wikipedia.org/wiki/Article_title" aria-label="<?= e(MoreI18N::xlate('URL')) ?>">
+            </td>
+            <td class="text-end">
                 <button class="btn btn-outline-danger btn-sm" type="button" data-wikipedia-remove title="<?= e(I18N::translate('Remove Wikipedia link')) ?>">
                     <i class="fa-solid fa-trash" aria-hidden="true"></i>
                     <span class="visually-hidden"><?= I18N::translate('Remove Wikipedia link') ?></span>
                 </button>
-            </div>
-        </div>
+            </td>
+        </tr>
     </template>
 </fieldset>
 
@@ -104,7 +113,8 @@ if (!window.hhWikipediaEditorInitialized) {
             control.disabled = !enabled;
         });
 
-        editor.querySelector('[data-wikipedia-empty]')?.classList.toggle('d-none', enabled);
+        const hasRows = rows.querySelector('[data-wikipedia-row]') !== null;
+        editor.querySelector('[data-wikipedia-empty]')?.classList.toggle('d-none', enabled || hasRows);
     });
 
     document.addEventListener('click', (event) => {
