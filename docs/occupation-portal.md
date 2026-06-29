@@ -74,6 +74,10 @@ synchronization requires a Wikidata identifier and never overwrites a manually
 maintained list. Its result message reports checked and updated terms, missing
 Wikidata identifiers, terms without Wikipedia sitelinks, protected manual
 lists, and external-service errors.
+If Wikidata responds successfully but no Wikipedia sitelinks can be extracted,
+the synchronization feedback lists the affected Wikidata identifiers. Wikidata
+identifiers are normalized to uppercase, and sitelink URLs can be derived from
+the language wiki key and page title when the response omits a ready-made URL.
 
 External requests identify the module through a descriptive HTTP user agent.
 Failed requests retain their technical error message. Administrators see these

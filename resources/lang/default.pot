@@ -951,6 +951,11 @@ msgstr ""
 msgid "External service errors: %s"
 msgstr ""
 
+#: src/OccupationStandardizerModule.php
+#, php-format
+msgid "No Wikipedia sitelinks were found for these Wikidata IDs: %s"
+msgstr ""
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr ""
