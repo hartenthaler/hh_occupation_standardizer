@@ -11,6 +11,10 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 - Added per-term and bulk administrator actions to synchronize automatic Wikipedia language links from Wikidata.
 
+### Changed
+
+- Display Wikipedia language links in a compact striped table with one shared header row.
+
 ### Fixed
 
 - Normalize Wikidata identifiers, derive Wikipedia URLs from sitelink titles when necessary, and report identifiers for which no Wikipedia sitelinks were found.
