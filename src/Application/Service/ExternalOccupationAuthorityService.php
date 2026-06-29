@@ -13,6 +13,7 @@ use function is_array;
 use function is_string;
 use function ksort;
 use function mb_strtolower;
+use function mb_strtoupper;
 use function preg_match;
 use function rawurlencode;
 use function str_replace;
@@ -56,6 +57,8 @@ final class ExternalOccupationAuthorityService
      */
     private function wikidataRow(string $id, string $language_tag): array|null
     {
+        $id = mb_strtoupper(trim($id));
+
         if ($id === '') {
             return null;
         }
@@ -197,14 +200,35 @@ final class ExternalOccupationAuthorityService
 
         $links = [];
 
-        foreach ($sitelinks as $sitelink) {
-            $url = is_array($sitelink) ? ($sitelink['url'] ?? null) : null;
-
-            if (!is_string($url) || preg_match('~^https://([a-z0-9-]+)\.wikipedia\.org/wiki/~iu', $url, $match) !== 1) {
+        foreach ($sitelinks as $site => $sitelink) {
+            if (!is_array($sitelink)) {
                 continue;
             }
 
-            $language = mb_strtolower($match[1]);
+            $url = $sitelink['url'] ?? null;
+
+            if (is_string($url)) {
+                if (preg_match('~^https://([a-z0-9-]+)\.wikipedia\.org/wiki/~iu', $url, $match) !== 1) {
+                    continue;
+                }
+
+                $language = mb_strtolower($match[1]);
+            } else {
+                $title = $sitelink['title'] ?? null;
+
+                if (!is_string($site)
+                    || !is_string($title)
+                    || trim($title) === ''
+                    || preg_match('/^([a-z0-9_]+)wiki$/i', $site, $site_match) !== 1
+                ) {
+                    continue;
+                }
+
+                $language = mb_strtolower(str_replace('_', '-', $site_match[1]));
+                $url = 'https://' . $language . '.wikipedia.org/wiki/'
+                    . rawurlencode(str_replace(' ', '_', trim($title)));
+            }
+
             $links[$language] = [
                 'language' => $language,
                 'url'      => $url,

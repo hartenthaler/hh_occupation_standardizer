@@ -1185,6 +1185,11 @@ msgstr "Der externe Dienst ist nicht verfügbar."
 msgid "External service errors: %s"
 msgstr "Fehler externer Dienste: %s"
 
+#: src/OccupationStandardizerModule.php
+#, php-format
+msgid "No Wikipedia sitelinks were found for these Wikidata IDs: %s"
+msgstr "Für diese Wikidata-IDs wurden keine Wikipedia-Sitelinks gefunden: %s"
+
 #: resources/views/occupation-portal.phtml
 msgid "Available languages"
 msgstr "Verfügbare Sprachen"

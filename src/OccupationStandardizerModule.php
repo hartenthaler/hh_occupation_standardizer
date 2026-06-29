@@ -3691,6 +3691,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $updated = 0;
         $missing_wikidata = 0;
         $without_links = 0;
+        $without_link_ids = [];
         $errors = 0;
         $error_details = [];
         $manual = 0;
@@ -3736,6 +3737,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
             if ($links === []) {
                 $without_links++;
+                $without_link_ids[] = $wikidata_id;
                 continue;
             }
 
@@ -3764,6 +3766,13 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             I18N::number($errors)
         );
         FlashMessages::addMessage($message, $errors > 0 ? 'warning' : 'success');
+
+        if ($without_link_ids !== []) {
+            FlashMessages::addMessage(
+                I18N::translate('No Wikipedia sitelinks were found for these Wikidata IDs: %s', implode(', ', array_unique($without_link_ids))),
+                'warning'
+            );
+        }
 
         if ($error_details !== []) {
             FlashMessages::addMessage(

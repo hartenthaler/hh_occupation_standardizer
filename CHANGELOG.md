@@ -13,6 +13,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Normalize Wikidata identifiers, derive Wikipedia URLs from sitelink titles when necessary, and report identifiers for which no Wikipedia sitelinks were found.
 - Added a Wikimedia-compatible user agent and exposed concrete external-service errors for Wikipedia synchronization and profile summaries.
 - Fixed saving manually maintained Wikipedia link lists for normalized terms and replaced misleading empty URL placeholders with an explicit no-links status.
 
