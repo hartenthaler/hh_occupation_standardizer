@@ -176,6 +176,57 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         return strtr(__DIR__ . '/../resources/', DIRECTORY_SEPARATOR, '/');
     }
 
+    /**
+     * Privacy information consumed by hh_legal_notice.
+     *
+     * @return array{third_party_services:list<array{name:string,url:string,country:string,privacy_url:string,description:string,data:list<string>}>,security_measures:list<string>}
+     */
+    public function privacyNotices(): array
+    {
+        $technical_request_data = I18N::translate('The server IP address and technical request metadata required for the HTTPS request.');
+
+        return [
+            'third_party_services' => [
+                [
+                    'name'        => 'Wikimedia Foundation (Wikidata and Wikipedia)',
+                    'url'         => 'https://www.wikimedia.org/',
+                    'country'     => 'United States',
+                    'privacy_url' => 'https://foundation.wikimedia.org/wiki/Policy:Privacy_policy',
+                    'description' => I18N::translate('The Occupation Standardizer retrieves occupation labels, descriptions, Wikipedia language links, and introductory article text from Wikidata and Wikipedia when they are not available in the local cache. These server-side requests do not transmit genealogical personal data.'),
+                    'data'        => [
+                        I18N::translate('Wikidata identifiers, Wikipedia article titles, and the requested interface language.'),
+                        $technical_request_data,
+                    ],
+                ],
+                [
+                    'name'        => 'FactGrid',
+                    'url'         => 'https://database.factgrid.de/',
+                    'country'     => 'Germany',
+                    'privacy_url' => 'https://www.uni-erfurt.de/datenschutzerklaerung',
+                    'description' => I18N::translate('The Occupation Standardizer retrieves labels and descriptions for occupation and OhdAB identifiers from FactGrid when they are not available in the local cache. These server-side requests do not transmit genealogical personal data.'),
+                    'data'        => [
+                        I18N::translate('FactGrid identifiers and the requested interface language.'),
+                        $technical_request_data,
+                    ],
+                ],
+                [
+                    'name'        => 'lobid-gnd',
+                    'url'         => 'https://lobid.org/gnd',
+                    'country'     => 'Germany',
+                    'privacy_url' => 'https://www.hbz-nrw.de/de/datenschutz/',
+                    'description' => I18N::translate('The Occupation Standardizer retrieves labels and descriptions for GND identifiers from the lobid-gnd API of the North Rhine-Westphalian Library Service Centre when they are not available in the local cache. These server-side requests do not transmit genealogical personal data.'),
+                    'data'        => [
+                        I18N::translate('GND identifiers.'),
+                        $technical_request_data,
+                    ],
+                ],
+            ],
+            'security_measures' => [
+                I18N::translate('External authority responses are cached locally to reduce data transfers and requests to third-party services; most responses are refreshed after 24 hours and Wikipedia introductory text after 30 days.'),
+            ],
+        ];
+    }
+
     public function boot(): void
     {
         (new OccupationSchema())->ensureSchema();
