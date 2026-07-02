@@ -4145,10 +4145,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             }
         }
 
+        $major_group_count = (int) DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->count();
+        $minor_group_count = (int) DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->count();
+        $unit_group_count = (int) DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->count();
+
         $table_counts = [
-            ['table' => I18N::translate('HISCO major groups'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MAJOR_GROUPS)->count()],
-            ['table' => I18N::translate('HISCO minor groups'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_MINOR_GROUPS)->count()],
-            ['table' => I18N::translate('HISCO unit groups'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_UNIT_GROUPS)->count()],
+            ['table' => I18N::plural('HISCO major group', 'HISCO major groups', $major_group_count), 'count' => $major_group_count],
+            ['table' => I18N::plural('HISCO minor group', 'HISCO minor groups', $minor_group_count), 'count' => $minor_group_count],
+            ['table' => I18N::plural('HISCO unit group', 'HISCO unit groups', $unit_group_count), 'count' => $unit_group_count],
             ['table' => MoreI18N::xlate('Occupations'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->count()],
         ];
 

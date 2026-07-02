@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Occupation Standardizer for webtrees 2.2.6.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 20:22+0200\n"
+"POT-Creation-Date: 2026-07-02 23:32+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Hermann Hartenthaler <hermann@hartenthaler.de>\n"
 "Language-Team: \n"
@@ -55,190 +55,270 @@ msgid "HISCO hierarchy"
 msgstr "HISCO-Hierarchie"
 
 #: src/Application/Service/OccupationLabelService.php:205
-#: src/OccupationStandardizerModule.php:845
+#: src/OccupationStandardizerModule.php:944
 msgid "recognized"
 msgstr "erkannt"
 
 #: src/Application/Service/OccupationLabelService.php:206
-#: src/OccupationStandardizerModule.php:846
+#: src/OccupationStandardizerModule.php:945
 msgid "unclear"
 msgstr "unklar"
 
 #: src/Application/Service/OccupationLabelService.php:207
-#: src/OccupationStandardizerModule.php:847
+#: src/OccupationStandardizerModule.php:946
 msgid "ignored"
 msgstr "ignoriert"
 
-#: src/OccupationStandardizerModule.php:135
+#: src/OccupationStandardizerModule.php:137
 msgid "Occupation Standardizer"
 msgstr "Vereinheitlichung von Berufsangaben"
 
-#: src/OccupationStandardizerModule.php:140
+#: src/OccupationStandardizerModule.php:142
 msgid ""
 "Helps standardize historical occupation entries in genealogical sources."
 msgstr ""
 "Hilft, historische Berufsangaben in genealogischen Quellen zu "
 "vereinheitlichen."
 
-#: src/OccupationStandardizerModule.php:280
+#: src/OccupationStandardizerModule.php:188
+msgid ""
+"The server IP address and technical request metadata required for the HTTPS "
+"request."
+msgstr ""
+"Die IP-Adresse des Servers und die für die HTTPS-Anfrage erforderlichen "
+"technischen Metadaten."
+
+#: src/OccupationStandardizerModule.php:197
+msgid ""
+"The Occupation Standardizer retrieves occupation labels, descriptions, "
+"Wikipedia language links, and introductory article text from Wikidata and "
+"Wikipedia when they are not available in the local cache. These server-side "
+"requests do not transmit genealogical personal data."
+msgstr ""
+"Der „Occupation Standardizer“ ruft Berufsbezeichnungen, Beschreibungen, "
+"Wikipedia-Sprachlinks und Einführungstexte aus Wikidata und Wikipedia ab, "
+"wenn diese nicht im lokalen Cache verfügbar sind. Bei diesen serverseitigen "
+"Abfragen werden keine genealogischen personenbezogenen Daten übertragen."
+
+#: src/OccupationStandardizerModule.php:199
+msgid ""
+"Wikidata identifiers, Wikipedia article titles, and the requested interface "
+"language."
+msgstr ""
+"Wikidata-Identifikatoren, Titel von Wikipedia-Artikeln und die gewünschte "
+"Sprache der Benutzungsoberfläche."
+
+#: src/OccupationStandardizerModule.php:208
+msgid ""
+"The Occupation Standardizer retrieves labels and descriptions for occupation "
+"and OhdAB identifiers from FactGrid when they are not available in the local "
+"cache. These server-side requests do not transmit genealogical personal data."
+msgstr ""
+"Der „Occupation Standardizer“ ruft Bezeichnungen und Beschreibungen für "
+"Berufsbezeichnungen und OhdAB-Kennungen aus FactGrid ab, wenn diese im "
+"lokalen Cache nicht verfügbar sind. Bei diesen serverseitigen Anfragen "
+"werden keine genealogischen personenbezogenen Daten übertragen."
+
+#: src/OccupationStandardizerModule.php:210
+msgid "FactGrid identifiers and the requested interface language."
+msgstr "FactGrid-Identifikatoren und die gewünschte Schnittstellensprache."
+
+#: src/OccupationStandardizerModule.php:219
+msgid ""
+"The Occupation Standardizer retrieves labels and descriptions for GND "
+"identifiers from the lobid-gnd API of the North Rhine-Westphalian Library "
+"Service Centre when they are not available in the local cache. These server-"
+"side requests do not transmit genealogical personal data."
+msgstr ""
+"Der „Occupation Standardizer“ ruft Bezeichnungen und Beschreibungen für GND-"
+"Identifikatoren über die lobid-gnd-API des Bibliotheksdienstzentrums "
+"Nordrhein-Westfalen ab, sofern diese nicht im lokalen Cache verfügbar sind. "
+"Bei diesen serverseitigen Abfragen werden keine genealogischen "
+"personenbezogenen Daten übertragen."
+
+#: src/OccupationStandardizerModule.php:221
+msgid "GND identifiers."
+msgstr "GND-Bezeichner."
+
+#: src/OccupationStandardizerModule.php:227
+msgid ""
+"External authority responses are cached locally to reduce data transfers and "
+"requests to third-party services; most responses are refreshed after 24 "
+"hours and Wikipedia introductory text after 30 days."
+msgstr ""
+"Antworten externer Quellen werden lokal zwischengespeichert, um "
+"Datenübertragungen und Anfragen an Dienste von Drittanbietern zu reduzieren; "
+"die meisten Antworten werden nach 24 Stunden aktualisiert, der Wikipedia-"
+"Einführungstext nach 30 Tagen."
+
+#: src/OccupationStandardizerModule.php:379
 msgid "No OhdAB special database file was received."
 msgstr "Es wurde keine Datei für die OhdAB-Spezialdatenbank empfangen."
 
-#: src/OccupationStandardizerModule.php:286
+#: src/OccupationStandardizerModule.php:385
 msgid "The OhdAB special database file could not be uploaded."
 msgstr ""
 "Die Datei für die OhdAB-Spezialdatenbank konnte nicht hochgeladen werden."
 
-#: src/OccupationStandardizerModule.php:294
+#: src/OccupationStandardizerModule.php:393
 msgid "The uploaded file could not be prepared for import."
 msgstr "Die hochgeladene Datei konnte nicht für den Import vorbereitet werden."
 
-#: src/OccupationStandardizerModule.php:305
+#: src/OccupationStandardizerModule.php:404
 #, php-format
 msgid "%s row was processed."
 msgid_plural "%s rows were processed."
 msgstr[0] "%s Zeile wurde verarbeitet."
 msgstr[1] "%s Zeilen wurden verarbeitet."
 
-#: src/OccupationStandardizerModule.php:414
+#: src/OccupationStandardizerModule.php:513
 msgid "Occupation hierarchy (OhdAB)"
 msgstr "Berufe-Hierarchie (OhdAB)"
 
-#: src/OccupationStandardizerModule.php:430
+#: src/OccupationStandardizerModule.php:529
 msgid "Occupation hierarchy (HISCO)"
 msgstr "Berufe-Hierarchie (HISCO)"
 
-#: src/OccupationStandardizerModule.php:438
+#: src/OccupationStandardizerModule.php:537
 msgid "Frequency analysis"
 msgstr "Häufigkeitsanalyse"
 
-#: src/OccupationStandardizerModule.php:459
+#: src/OccupationStandardizerModule.php:558
 msgid "Occupation and social-status inheritance"
 msgstr "Vererbung von Beruf und Stand"
 
-#: src/OccupationStandardizerModule.php:505
+#: src/OccupationStandardizerModule.php:604
 msgid "Normalized occupation"
 msgstr "Normierter Beruf"
 
-#: src/OccupationStandardizerModule.php:721
-#: src/OccupationStandardizerModule.php:2257
+#: src/OccupationStandardizerModule.php:820
+#: src/OccupationStandardizerModule.php:2356
 msgid "Unknown occupation"
 msgstr "Unbekannter Beruf"
 
-#: src/OccupationStandardizerModule.php:792
+#: src/OccupationStandardizerModule.php:891
 msgid "Normalized entry"
 msgstr "Normierter Eintrag"
 
-#: src/OccupationStandardizerModule.php:793
+#: src/OccupationStandardizerModule.php:892
 msgid "OhdAB level 1"
 msgstr "OhdAB-Ebene 1"
 
-#: src/OccupationStandardizerModule.php:794
+#: src/OccupationStandardizerModule.php:893
 msgid "OhdAB level 2"
 msgstr "OhdAB-Ebene 2"
 
-#: src/OccupationStandardizerModule.php:795
+#: src/OccupationStandardizerModule.php:894
 msgid "OhdAB level 3"
 msgstr "OhdAB-Ebene 3"
 
-#: src/OccupationStandardizerModule.php:796
+#: src/OccupationStandardizerModule.php:895
 msgid "OhdAB level 4"
 msgstr "OhdAB-Ebene 4"
 
-#: src/OccupationStandardizerModule.php:797
+#: src/OccupationStandardizerModule.php:896
 msgid "OhdAB level 5"
 msgstr "OhdAB-Ebene 5"
 
-#: src/OccupationStandardizerModule.php:802
+#: src/OccupationStandardizerModule.php:901
+#: src/OccupationStandardizerModule.php:4153
 msgid "HISCO major group"
-msgstr "HISCO-Hauptgruppe"
+msgid_plural "HISCO major groups"
+msgstr[0] "HISCO-Hauptgruppe"
+msgstr[1] "HISCO-Hauptgruppen"
 
-#: src/OccupationStandardizerModule.php:803
+#: src/OccupationStandardizerModule.php:902
+#: src/OccupationStandardizerModule.php:4154
 msgid "HISCO minor group"
-msgstr "HISCO-Untergruppe"
+msgid_plural "HISCO minor groups"
+msgstr[0] "HISCO-Untergruppe"
+msgstr[1] "HISCO-Untergruppen"
 
-#: src/OccupationStandardizerModule.php:804
+#: src/OccupationStandardizerModule.php:903
+#: src/OccupationStandardizerModule.php:4155
 msgid "HISCO unit group"
-msgstr "HISCO-Untergruppe"
+msgid_plural "HISCO unit groups"
+msgstr[0] "HISCO-Einheitsgruppe"
+msgstr[1] "HISCO-Einheitsgruppen"
 
-#: src/OccupationStandardizerModule.php:1939
+#: src/OccupationStandardizerModule.php:2038
 msgid "GND Explorer"
 msgstr "GND-Explorer"
 
-#: src/OccupationStandardizerModule.php:2029
+#: src/OccupationStandardizerModule.php:2128
 msgid "Most common normalized occupations"
 msgstr "Häufigste normierte Berufe"
 
-#: src/OccupationStandardizerModule.php:2034
+#: src/OccupationStandardizerModule.php:2133
 msgid "Most common normalized social statuses"
 msgstr "Häufigste normierte Stände"
 
-#: src/OccupationStandardizerModule.php:2379
+#: src/OccupationStandardizerModule.php:2478
 msgid "Earliest year"
 msgstr "Frühestes Jahr"
 
-#: src/OccupationStandardizerModule.php:2380
+#: src/OccupationStandardizerModule.php:2479
 msgid "Latest year"
 msgstr "Spätestes Jahr"
 
-#: src/OccupationStandardizerModule.php:2381
+#: src/OccupationStandardizerModule.php:2480
 msgid "Median year"
 msgstr "Medianjahr"
 
-#: src/OccupationStandardizerModule.php:2382
+#: src/OccupationStandardizerModule.php:2481
 msgid "Average year"
 msgstr "Mittelwertjahr"
 
-#: src/OccupationStandardizerModule.php:2854
+#: src/OccupationStandardizerModule.php:2953
 msgid "The normalization entry has been updated."
 msgstr "Der Normalisierungseintrag wurde aktualisiert."
 
-#: src/OccupationStandardizerModule.php:2859
+#: src/OccupationStandardizerModule.php:2958
 msgid "The normalization entry could not be updated."
 msgstr "Der Normalisierungseintrag konnte nicht aktualisiert werden."
 
-#: src/OccupationStandardizerModule.php:3247
+#: src/OccupationStandardizerModule.php:3346
 msgid "Split multiple statements"
 msgstr "Mehrfache Angaben aufteilen"
 
-#: src/OccupationStandardizerModule.php:3248
+#: src/OccupationStandardizerModule.php:3347
 msgid "Splits occupation facts by separators and conjunctions."
 msgstr "Teilt Berufsangaben anhand von Trennzeichen und Bindewörtern auf."
 
-#: src/OccupationStandardizerModule.php:3251
+#: src/OccupationStandardizerModule.php:3350
 msgid "Social status is not an occupation"
 msgstr "Stand ist kein Beruf"
 
-#: src/OccupationStandardizerModule.php:3252
+#: src/OccupationStandardizerModule.php:3351
 msgid ""
 "Recognizes social status terms such as citizen without counting them as "
 "occupations."
 msgstr "Erkennt Standesangaben wie Bürger, ohne sie als Beruf zu zählen."
 
-#: src/OccupationStandardizerModule.php:3255
+#: src/OccupationStandardizerModule.php:3354
 msgid "Widow compounds"
 msgstr "Witwen-Zusammensetzungen"
 
-#: src/OccupationStandardizerModule.php:3256
+#: src/OccupationStandardizerModule.php:3355
 msgid "Recognizes widow compounds as social status hints."
 msgstr "Erkennt Witwen-Zusammensetzungen als Hinweise auf den Stand."
 
-#: src/OccupationStandardizerModule.php:3259
+#: src/OccupationStandardizerModule.php:3358
 msgid "Kinship-derived compounds"
 msgstr "Familienbezogene Zusammensetzungen"
 
-#: src/OccupationStandardizerModule.php:3260
+#: src/OccupationStandardizerModule.php:3359
 msgid ""
 "Recognizes compounds such as daughter, son, or wife as social status hints."
 msgstr ""
 "Erkennt Zusammensetzungen wie Tochter, Sohn oder Gattin als Hinweise auf den "
 "Stand."
 
-#: src/OccupationStandardizerModule.php:3263
+#: src/OccupationStandardizerModule.php:3362
 msgid "Craft qualification after colon"
 msgstr "Handwerksgrad nach Doppelpunkt"
 
-#: src/OccupationStandardizerModule.php:3264
+#: src/OccupationStandardizerModule.php:3363
 msgid ""
 "Separates craft qualifications such as master, journeyman, or apprentice "
 "after a colon."
@@ -246,33 +326,33 @@ msgstr ""
 "Trennt Handwerksgrade wie Meister, Geselle oder Lehrling nach einem "
 "Doppelpunkt ab."
 
-#: src/OccupationStandardizerModule.php:3267
+#: src/OccupationStandardizerModule.php:3366
 msgid "Compound craft qualification"
 msgstr "Zusammengesetzter Handwerksgrad"
 
-#: src/OccupationStandardizerModule.php:3268
+#: src/OccupationStandardizerModule.php:3367
 msgid ""
 "Separates known compound craft qualifications from the normalized occupation."
 msgstr ""
 "Trennt bekannte zusammengesetzte Handwerksgrade von der normierten "
 "Berufsbezeichnung ab."
 
-#: src/OccupationStandardizerModule.php:3271
+#: src/OccupationStandardizerModule.php:3370
 msgid "Independent master compounds are not split"
 msgstr "Eigenständige Meister-Berufe nicht aufteilen"
 
-#: src/OccupationStandardizerModule.php:3272
+#: src/OccupationStandardizerModule.php:3371
 msgid ""
 "Keeps independent terms such as schoolmaster or mayor as one occupation."
 msgstr ""
 "Behält eigenständige Begriffe wie Schulmeister oder Bürgermeister als einen "
 "Beruf bei."
 
-#: src/OccupationStandardizerModule.php:3275
+#: src/OccupationStandardizerModule.php:3374
 msgid "Context-based occupation refinement"
 msgstr "Kontextbezogene Berufspräzisierung"
 
-#: src/OccupationStandardizerModule.php:3276
+#: src/OccupationStandardizerModule.php:3375
 msgid ""
 "Refines broad occupation terms using context from the occupation text or "
 "employer field."
@@ -280,11 +360,11 @@ msgstr ""
 "Präzisiert allgemeine Berufsbegriffe anhand des Kontextes im Berufstext oder "
 "Arbeitgeberfeld."
 
-#: src/OccupationStandardizerModule.php:3279
+#: src/OccupationStandardizerModule.php:3378
 msgid "Site-managed normalization mapping table"
 msgstr "Websiteweite Umsetzungstabelle"
 
-#: src/OccupationStandardizerModule.php:3280
+#: src/OccupationStandardizerModule.php:3379
 msgid ""
 "Applies the locally maintained mapping table for original and normalized "
 "occupation terms."
@@ -292,11 +372,11 @@ msgstr ""
 "Wendet die lokal gepflegte Umsetzungstabelle für originale und normierte "
 "Berufsangaben an."
 
-#: src/OccupationStandardizerModule.php:3283
+#: src/OccupationStandardizerModule.php:3382
 msgid "Normalize with external OhdAB special database"
 msgstr "Mit externer OhdAB-Spezialdatenbank normalisieren"
 
-#: src/OccupationStandardizerModule.php:3284
+#: src/OccupationStandardizerModule.php:3383
 msgid ""
 "Uses the imported German OhdAB special database for normalized occupation "
 "terms."
@@ -304,25 +384,25 @@ msgstr ""
 "Verwendet die importierte deutsche OhdAB-Spezialdatenbank für normierte "
 "Berufsbegriffe."
 
-#: src/OccupationStandardizerModule.php:3287
+#: src/OccupationStandardizerModule.php:3386
 msgid "Fallback for unknown terms"
 msgstr "Standardregel für unbekannte Begriffe"
 
-#: src/OccupationStandardizerModule.php:3288
+#: src/OccupationStandardizerModule.php:3387
 msgid "Keeps unknown terms as unclear normalized occupation proposals."
 msgstr ""
 "Übernimmt unbekannte Begriffe als unklare Vorschläge für die normierte "
 "Berufsangabe."
 
-#: src/OccupationStandardizerModule.php:3347
+#: src/OccupationStandardizerModule.php:3446
 msgid "The rule settings have been saved."
 msgstr "Die Regeleinstellungen wurden gespeichert."
 
-#: src/OccupationStandardizerModule.php:3444
+#: src/OccupationStandardizerModule.php:3543
 msgid "No normalized term"
 msgstr "Kein normierter Begriff"
 
-#: src/OccupationStandardizerModule.php:3565
+#: src/OccupationStandardizerModule.php:3664
 msgid ""
 "The normalization rule was not saved because language or original text is "
 "missing."
@@ -330,11 +410,11 @@ msgstr ""
 "Die Normalisierungsregel wurde nicht gespeichert, weil Sprache oder "
 "Originaltext fehlen."
 
-#: src/OccupationStandardizerModule.php:3595
+#: src/OccupationStandardizerModule.php:3694
 msgid "The normalization rule has been saved."
 msgstr "Die Normalisierungsregel wurde gespeichert."
 
-#: src/OccupationStandardizerModule.php:3610
+#: src/OccupationStandardizerModule.php:3709
 msgid ""
 "The normalized term was not saved because language or language-specific "
 "masculine form is missing."
@@ -342,7 +422,7 @@ msgstr ""
 "Der normierte Begriff wurde nicht gespeichert, weil die Sprache oder die "
 "sprachspezifische männliche Form fehlt."
 
-#: src/OccupationStandardizerModule.php:3624
+#: src/OccupationStandardizerModule.php:3723
 msgid ""
 "The normalized term was not saved because the combination of language and "
 "masculine form already exists."
@@ -350,19 +430,19 @@ msgstr ""
 "Der normierte Begriff wurde nicht gespeichert, weil die Kombination aus "
 "Sprache und männlicher Form bereits existiert."
 
-#: src/OccupationStandardizerModule.php:3665
+#: src/OccupationStandardizerModule.php:3764
 msgid "The normalized term has been saved."
 msgstr "Der normierte Begriff wurde gespeichert."
 
-#: src/OccupationStandardizerModule.php:3685
+#: src/OccupationStandardizerModule.php:3784
 msgid "No normalized occupation terms were found."
 msgstr "Es wurden keine normierten Berufsbegriffe gefunden."
 
-#: src/OccupationStandardizerModule.php:3730
+#: src/OccupationStandardizerModule.php:3829
 msgid "External service unavailable."
 msgstr "Der externe Dienst ist nicht verfügbar."
 
-#: src/OccupationStandardizerModule.php:3760
+#: src/OccupationStandardizerModule.php:3859
 #, php-format
 msgid ""
 "Wikipedia synchronization finished: %s checked, %s updated, %s without "
@@ -371,21 +451,21 @@ msgstr ""
 "Wikipedia-Synchronisierung abgeschlossen: %s geprüft, %s aktualisiert, %s "
 "ohne Wikidata-ID, %s ohne Wikipedia-Links, %s manuell gepflegt, %s Fehler."
 
-#: src/OccupationStandardizerModule.php:3772
+#: src/OccupationStandardizerModule.php:3871
 #, php-format
 msgid "No Wikipedia sitelinks were found for these Wikidata IDs: %s"
 msgstr "Für diese Wikidata-IDs wurden keine Wikipedia-Sitelinks gefunden: %s"
 
-#: src/OccupationStandardizerModule.php:3779
+#: src/OccupationStandardizerModule.php:3878
 #, php-format
 msgid "External service errors: %s"
 msgstr "Fehler externer Dienste: %s"
 
-#: src/OccupationStandardizerModule.php:3814
+#: src/OccupationStandardizerModule.php:3913
 msgid "The normalization rule has been deleted."
 msgstr "Die Normalisierungsregel wurde gelöscht."
 
-#: src/OccupationStandardizerModule.php:3834
+#: src/OccupationStandardizerModule.php:3933
 msgid ""
 "The normalized term cannot be deleted because it is used by normalization "
 "rules."
@@ -393,33 +473,21 @@ msgstr ""
 "Der normierte Begriff kann nicht gelöscht werden, weil er von "
 "Normalisierungsregeln verwendet wird."
 
-#: src/OccupationStandardizerModule.php:3844
+#: src/OccupationStandardizerModule.php:3943
 msgid "The normalized term has been deleted."
 msgstr "Der normierte Begriff wurde gelöscht."
 
-#: src/OccupationStandardizerModule.php:3913
+#: src/OccupationStandardizerModule.php:4012
 msgid "The family tree occupation languages have been saved."
 msgstr "Die Berufssprachen der Stammbäume wurden gespeichert."
 
-#: src/OccupationStandardizerModule.php:4050
-msgid "HISCO major groups"
-msgstr "HISCO-Hauptgruppen"
-
-#: src/OccupationStandardizerModule.php:4051
-msgid "HISCO minor groups"
-msgstr "HISCO-Untergruppen"
-
-#: src/OccupationStandardizerModule.php:4052
-msgid "HISCO unit groups"
-msgstr "HISCO-Einheitsgruppen"
-
-#: src/OccupationStandardizerModule.php:4150
+#: src/OccupationStandardizerModule.php:4249
 msgid "There is no occupation standardization table to re-normalize."
 msgstr ""
 "Es gibt keine Tabelle zur Vereinheitlichung von Berufsangaben, die neu "
 "normalisiert werden kann."
 
-#: src/OccupationStandardizerModule.php:4163
+#: src/OccupationStandardizerModule.php:4262
 msgid ""
 "The table was not re-normalized because the confirmation was missing or the "
 "selected tree was invalid."
@@ -427,7 +495,7 @@ msgstr ""
 "Die Tabelle wurde nicht neu normalisiert, weil die Bestätigung fehlt oder "
 "der ausgewählte Stammbaum ungültig ist."
 
-#: src/OccupationStandardizerModule.php:4181
+#: src/OccupationStandardizerModule.php:4280
 #, php-format
 msgid ""
 "Re-normalization has been run for %s automatic occupation standardization "
@@ -442,13 +510,13 @@ msgstr[1] ""
 "Die Neu-Normalisierung wurde für %s automatisch verwaltete Einträge zur "
 "Vereinheitlichung von Berufsangaben ausgeführt."
 
-#: src/OccupationStandardizerModule.php:4194
+#: src/OccupationStandardizerModule.php:4293
 msgid "There is no occupation standardization table to delete."
 msgstr ""
 "Es gibt keine Tabelle zur Vereinheitlichung von Berufsangaben, die gelöscht "
 "werden kann."
 
-#: src/OccupationStandardizerModule.php:4207
+#: src/OccupationStandardizerModule.php:4306
 msgid ""
 "The table was not deleted because the confirmation was missing or the "
 "selected tree was invalid."
@@ -456,7 +524,7 @@ msgstr ""
 "Die Tabelle wurde nicht gelöscht, weil die Bestätigung fehlt oder der "
 "ausgewählte Stammbaum ungültig ist."
 
-#: src/OccupationStandardizerModule.php:4223
+#: src/OccupationStandardizerModule.php:4322
 #, php-format
 msgid "Deleted %s occupation standardization entry."
 msgid_plural "Deleted %s occupation standardization entries."
