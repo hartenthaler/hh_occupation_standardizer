@@ -57,6 +57,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+use function array_keys;
 use function array_map;
 use function array_key_exists;
 use function array_search;
@@ -640,10 +641,6 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             }
 
             foreach ($parent_xrefs as $parent_xref) {
-                if ($parent_xref === null) {
-                    continue;
-                }
-
                 $parent_values = $values_by_individual[$parent_xref] ?? [];
 
                 if ($parent_values === []) {
@@ -908,7 +905,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     }
 
     /**
-     * @return array<string,array{0:string|null,1:string|null}>
+     * @return array<string,list<string>>
      */
     private function parentMap(Tree $tree): array
     {
@@ -921,6 +918,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ];
         }
 
+        /** @var array<string,array<string,true>> $parent_of */
         $parent_of = [];
 
         foreach (DBManager::table('link')->where('l_file', '=', $tree->id())->where('l_type', '=', 'FAMC')->select(['l_from', 'l_to'])->get() as $row) {
@@ -928,11 +926,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $family = (string) $row->l_to;
 
             if ($child !== '' && isset($family_parents[$family])) {
-                $parent_of[$child] = $family_parents[$family];
+                foreach ($family_parents[$family] as $parent) {
+                    if ($parent !== null) {
+                        $parent_of[$child][$parent] = true;
+                    }
+                }
             }
         }
 
-        return $parent_of;
+        return array_map(static fn (array $parents): array => array_keys($parents), $parent_of);
     }
 
     /**
