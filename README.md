@@ -68,6 +68,7 @@ The module currently provides:
 * a graphical and tabular inheritance analysis for normalized occupation and social-status entries between parents and children
 * links to external identifiers such as OhdAB, FactGrid, GND, Wikidata, and HISCO
 * module settings for rules, tree languages, normalization mappings, norm-data import, and maintenance
+* a documented public read-only API for occupation normalization by other webtrees modules
 
 The module currently focuses on individual `INDI:OCCU` facts.
 Other possible places for occupation-related information, such as military rank, education, offices, or custom GEDCOM structures, are tracked separately.
@@ -268,6 +269,12 @@ The module exposes this information through its public `privacyNotices()`
 method. `hh_legal_notice` can use this method to include the third-party
 services and caching measure in a generated privacy policy. The lightweight
 method-based contract keeps both modules independently installable.
+
+Other webtrees modules can obtain the active module through `ModuleService` and
+its public `OccupationStandardizerInterface`. The API resolves individual or
+batched raw `OCCU` values without exposing the module's database schema. See
+[`docs/public-api.md`](docs/public-api.md) for the contract and an integration
+example.
 
 <a name="DataSources"></a>
 ## 🔗 Data Sources

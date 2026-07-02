@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Occupation Standardizer for webtrees 2.2.6.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 03:35+0200\n"
+"POT-Creation-Date: 2026-06-29 20:37+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Hermann Hartenthaler <hermann@hartenthaler.de>\n"
 "Language-Team: \n"
@@ -44,8 +44,6 @@ msgid "English neutral form"
 msgstr ""
 
 #: src/Application/Service/OccupationLabelService.php:153
-#: resources/views/occupation-list.phtml:186
-#: resources/views/settings.phtml:563 resources/views/settings.phtml:622
 msgid "Qualification"
 msgstr ""
 
@@ -57,474 +55,689 @@ msgstr ""
 msgid "HISCO hierarchy"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:122
+#: src/Application/Service/OccupationLabelService.php:205 src/OccupationStandardizerModule.php:845
+msgid "recognized"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:206 src/OccupationStandardizerModule.php:846
+msgid "unclear"
+msgstr ""
+
+#: src/Application/Service/OccupationLabelService.php:207 src/OccupationStandardizerModule.php:847
+msgid "ignored"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:135
 msgid "Occupation Standardizer"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:127
+#: src/OccupationStandardizerModule.php:140
 msgid "Helps standardize historical occupation entries in genealogical sources."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:258
+#: src/OccupationStandardizerModule.php:280
 msgid "No OhdAB special database file was received."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:264
+#: src/OccupationStandardizerModule.php:286
 msgid "The OhdAB special database file could not be uploaded."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:272
+#: src/OccupationStandardizerModule.php:294
 msgid "The uploaded file could not be prepared for import."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:283
+#: src/OccupationStandardizerModule.php:305
 #, php-format
 msgid "%s row was processed."
 msgid_plural "%s rows were processed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/OccupationStandardizerModule.php:389
+#: src/OccupationStandardizerModule.php:414
 msgid "Occupation hierarchy (OhdAB)"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:408
-#: resources/views/occupation-landing.phtml:83
+#: src/OccupationStandardizerModule.php:430
 msgid "Occupation hierarchy (HISCO)"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:414
+#: src/OccupationStandardizerModule.php:438
+msgid "Frequency analysis"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:459
+msgid "Occupation and social-status inheritance"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:505
 msgid "Normalized occupation"
 msgstr ""
 
-#: src/Application/Service/OccupationLabelService.php:191
-#: src/OccupationStandardizerModule.php:434
-msgid "recognized"
-msgstr ""
-
-#: src/Application/Service/OccupationLabelService.php:192
-#: src/OccupationStandardizerModule.php:435
-msgid "unclear"
-msgstr ""
-
-#: src/Application/Service/OccupationLabelService.php:193
-#: src/OccupationStandardizerModule.php:436
-msgid "ignored"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:974
-msgid "GND Explorer"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:1124
+#: src/OccupationStandardizerModule.php:721 src/OccupationStandardizerModule.php:2257
 msgid "Unknown occupation"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1204
+#: src/OccupationStandardizerModule.php:792
+msgid "Normalized entry"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:793
+msgid "OhdAB level 1"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:794
+msgid "OhdAB level 2"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:795
+msgid "OhdAB level 3"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:796
+msgid "OhdAB level 4"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:797
+msgid "OhdAB level 5"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:802
+msgid "HISCO major group"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:803
+msgid "HISCO minor group"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:804
+msgid "HISCO unit group"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:1939
+msgid "GND Explorer"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:2029
+msgid "Most common normalized occupations"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:2034
+msgid "Most common normalized social statuses"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:2379
 msgid "Earliest year"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1205
+#: src/OccupationStandardizerModule.php:2380
 msgid "Latest year"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1206
+#: src/OccupationStandardizerModule.php:2381
 msgid "Median year"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1207
+#: src/OccupationStandardizerModule.php:2382
 msgid "Average year"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1454
+#: src/OccupationStandardizerModule.php:2854
 msgid "The normalization entry has been updated."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1459
+#: src/OccupationStandardizerModule.php:2859
 msgid "The normalization entry could not be updated."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1819
+#: src/OccupationStandardizerModule.php:3247
 msgid "Split multiple statements"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1820
+#: src/OccupationStandardizerModule.php:3248
 msgid "Splits occupation facts by separators and conjunctions."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1823
+#: src/OccupationStandardizerModule.php:3251
 msgid "Social status is not an occupation"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1824
+#: src/OccupationStandardizerModule.php:3252
 msgid "Recognizes social status terms such as citizen without counting them as occupations."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1827
+#: src/OccupationStandardizerModule.php:3255
 msgid "Widow compounds"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1828
+#: src/OccupationStandardizerModule.php:3256
 msgid "Recognizes widow compounds as social status hints."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1831
+#: src/OccupationStandardizerModule.php:3259
 msgid "Kinship-derived compounds"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1832
+#: src/OccupationStandardizerModule.php:3260
 msgid "Recognizes compounds such as daughter, son, or wife as social status hints."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1835
+#: src/OccupationStandardizerModule.php:3263
 msgid "Craft qualification after colon"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1836
+#: src/OccupationStandardizerModule.php:3264
 msgid "Separates craft qualifications such as master, journeyman, or apprentice after a colon."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1839
+#: src/OccupationStandardizerModule.php:3267
 msgid "Compound craft qualification"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1840
+#: src/OccupationStandardizerModule.php:3268
 msgid "Separates known compound craft qualifications from the normalized occupation."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1843
+#: src/OccupationStandardizerModule.php:3271
 msgid "Independent master compounds are not split"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1844
+#: src/OccupationStandardizerModule.php:3272
 msgid "Keeps independent terms such as schoolmaster or mayor as one occupation."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1847
+#: src/OccupationStandardizerModule.php:3275
 msgid "Context-based occupation refinement"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1848
+#: src/OccupationStandardizerModule.php:3276
 msgid "Refines broad occupation terms using context from the occupation text or employer field."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1851
+#: src/OccupationStandardizerModule.php:3279
 msgid "Site-managed normalization mapping table"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1852
+#: src/OccupationStandardizerModule.php:3280
 msgid "Applies the locally maintained mapping table for original and normalized occupation terms."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1855
+#: src/OccupationStandardizerModule.php:3283
 msgid "Normalize with external OhdAB special database"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1856
+#: src/OccupationStandardizerModule.php:3284
 msgid "Uses the imported German OhdAB special database for normalized occupation terms."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1859
+#: src/OccupationStandardizerModule.php:3287
 msgid "Fallback for unknown terms"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1860
+#: src/OccupationStandardizerModule.php:3288
 msgid "Keeps unknown terms as unclear normalized occupation proposals."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:1919
+#: src/OccupationStandardizerModule.php:3347
 msgid "The rule settings have been saved."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2014
+#: src/OccupationStandardizerModule.php:3444
 msgid "No normalized term"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2135
+#: src/OccupationStandardizerModule.php:3565
 msgid "The normalization rule was not saved because language or original text is missing."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2165
+#: src/OccupationStandardizerModule.php:3595
 msgid "The normalization rule has been saved."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2180
+#: src/OccupationStandardizerModule.php:3610
 msgid "The normalized term was not saved because language or language-specific masculine form is missing."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2194
+#: src/OccupationStandardizerModule.php:3624
 msgid "The normalized term was not saved because the combination of language and masculine form already exists."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2228
+#: src/OccupationStandardizerModule.php:3665
 msgid "The normalized term has been saved."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2260
+#: src/OccupationStandardizerModule.php:3685
+msgid "No normalized occupation terms were found."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:3730
+msgid "External service unavailable."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:3760
+#, php-format
+msgid "Wikipedia synchronization finished: %s checked, %s updated, %s without Wikidata ID, %s without Wikipedia links, %s manually maintained, %s errors."
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:3772
+#, php-format
+msgid "No Wikipedia sitelinks were found for these Wikidata IDs: %s"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:3779
+#, php-format
+msgid "External service errors: %s"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:3814
 msgid "The normalization rule has been deleted."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2280
+#: src/OccupationStandardizerModule.php:3834
 msgid "The normalized term cannot be deleted because it is used by normalization rules."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2290
+#: src/OccupationStandardizerModule.php:3844
 msgid "The normalized term has been deleted."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2359
+#: src/OccupationStandardizerModule.php:3913
 msgid "The family tree occupation languages have been saved."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2558
+#: src/OccupationStandardizerModule.php:4050
+msgid "HISCO major groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:4051
+msgid "HISCO minor groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:4052
+msgid "HISCO unit groups"
+msgstr ""
+
+#: src/OccupationStandardizerModule.php:4150
 msgid "There is no occupation standardization table to re-normalize."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2571
+#: src/OccupationStandardizerModule.php:4163
 msgid "The table was not re-normalized because the confirmation was missing or the selected tree was invalid."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2587
+#: src/OccupationStandardizerModule.php:4181
 #, php-format
 msgid "Re-normalization has been run for %s automatic occupation standardization entry."
 msgid_plural "Re-normalization has been run for %s automatic occupation standardization entries."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/OccupationStandardizerModule.php:2558
+#: src/OccupationStandardizerModule.php:4194
 msgid "There is no occupation standardization table to delete."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2571
+#: src/OccupationStandardizerModule.php:4207
 msgid "The table was not deleted because the confirmation was missing or the selected tree was invalid."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:2587
+#: src/OccupationStandardizerModule.php:4223
 #, php-format
 msgid "Deleted %s occupation standardization entry."
 msgid_plural "Deleted %s occupation standardization entries."
 msgstr[0] ""
 msgstr[1] ""
 
-#: resources/views/occupation-hierarchy.phtml:37 resources/views/settings.phtml:150
-msgid "No OhdAB special database has been imported yet."
+#: resources/views/occupation-frequencies.phtml:30
+#, php-format
+msgid "This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized entry is counted."
+msgid_plural "This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized entries are counted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: resources/views/occupation-frequencies.phtml:34
+msgid "No normalized entries are available."
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:72
-msgid "No OhdAB hierarchy entries were found."
+#: resources/views/occupation-frequencies.phtml:117 resources/views/occupation-hierarchy.phtml:47 resources/views/occupation-hisco-hierarchy.phtml:49
+#: resources/views/occupation-landing.phtml:99 resources/views/occupation-list.phtml:44 resources/views/occupation-portal.phtml:85
+msgid "Inheritance analysis"
 msgstr ""
 
-#: resources/views/occupation-hisco-hierarchy.phtml:73
-msgid "No HISCO hierarchy entries were found."
-msgstr ""
-
-#: resources/views/occupation-hierarchy.phtml:79
-msgid "Subcategories"
-msgstr ""
-
-#: resources/views/occupation-hierarchy.phtml:95
+#: resources/views/occupation-hierarchy.phtml:24 resources/views/occupation-hisco-hierarchy.phtml:23
 msgid "the top level"
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:96
+#: resources/views/occupation-hierarchy.phtml:28
 msgid "this main category"
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:97
+#: resources/views/occupation-hierarchy.phtml:29
 #, php-format
 msgid "this hierarchy level %s"
 msgstr ""
 
-#: resources/views/occupation-hisco-hierarchy.phtml:96
-msgid "this major group"
+#: resources/views/occupation-hierarchy.phtml:53 resources/views/settings.phtml:150
+msgid "No OhdAB special database has been imported yet."
 msgstr ""
 
-#: resources/views/occupation-hisco-hierarchy.phtml:97
-msgid "this minor group"
+#: resources/views/occupation-hierarchy.phtml:88
+msgid "No OhdAB hierarchy entries were found."
 msgstr ""
 
-#: resources/views/occupation-hisco-hierarchy.phtml:98
-msgid "this unit group"
+#: resources/views/occupation-hierarchy.phtml:95 resources/views/occupation-hisco-hierarchy.phtml:97
+msgid "Subcategories"
 msgstr ""
 
-#: resources/views/occupation-hisco-hierarchy.phtml:99
-msgid "this hierarchy entry"
-msgstr ""
-
-#: resources/views/occupation-hierarchy.phtml:108
+#: resources/views/occupation-hierarchy.phtml:111 resources/views/occupation-hisco-hierarchy.phtml:113
 msgid "There are no lower hierarchy levels for this entry."
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:113
+#: resources/views/occupation-hierarchy.phtml:116 resources/views/occupation-hisco-hierarchy.phtml:118
 #, php-format
 msgid "The subcategories shown for %s contain %s occupation entry for %s individual."
 msgid_plural "The subcategories shown for %s contain %s occupation entries for %s individuals."
 msgstr[0] ""
 msgstr[1] ""
 
-#: resources/views/occupation-hierarchy.phtml:111
+#: resources/views/occupation-hierarchy.phtml:128 resources/views/occupation-hisco-hierarchy.phtml:130
 msgid "Code"
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:112
+#: resources/views/occupation-hierarchy.phtml:129 resources/views/occupation-hisco-hierarchy.phtml:131
 msgid "Hierarchy entry"
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:113 resources/views/settings.phtml:211 resources/views/settings.phtml:304
+#: resources/views/occupation-hierarchy.phtml:130 resources/views/occupation-hisco-hierarchy.phtml:132 resources/views/settings.phtml:219
+#: resources/views/settings.phtml:312
 msgid "Occupation entries"
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:142
+#: resources/views/occupation-hierarchy.phtml:159 resources/views/occupation-hisco-hierarchy.phtml:161
 msgid "Select a hierarchy entry to see the matching individuals."
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:146
+#: resources/views/occupation-hierarchy.phtml:163 resources/views/occupation-hisco-hierarchy.phtml:165
 msgid "No individuals were found for this hierarchy entry."
 msgstr ""
 
-#: resources/views/occupation-hierarchy.phtml:156 resources/views/occupation-portal.phtml:305
+#: resources/views/occupation-hierarchy.phtml:173 resources/views/occupation-hisco-hierarchy.phtml:175 resources/views/occupation-portal.phtml:422
 msgid "Original occupation"
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:68 resources/views/occupation-list.phtml:37
+#: resources/views/occupation-hisco-hierarchy.phtml:27
+msgid "this major group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:28
+msgid "this minor group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:29
+msgid "this unit group"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:30
+msgid "this hierarchy entry"
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:55 resources/views/settings.phtml:253
+msgid "No HISCO catalog tables are available yet."
+msgstr ""
+
+#: resources/views/occupation-hisco-hierarchy.phtml:90
+msgid "No HISCO hierarchy entries were found."
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:102
+msgid "Analysis type"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:107
+msgid "Social status"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:112 resources/views/occupation-inheritance.phtml:113
+msgid "Analysis level"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:123
+msgid "This table compares normalized entries for parents and children in the active family tree."
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:124
+msgid "The graphic above the table shows the strongest flows for quick orientation."
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:129
+msgid "No parent-child pairs with matching entries were found in this family tree."
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:134 resources/views/occupation-inheritance.phtml:142
+msgid "Top-10 inheritance flows"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:138
+msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:143 resources/views/occupation-inheritance.phtml:192
+msgid "Parent entry"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:144 resources/views/occupation-inheritance.phtml:193
+msgid "Child entry"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:194
+msgid "Parent-child pairs"
+msgstr ""
+
+#: resources/views/occupation-inheritance.phtml:195
+msgid "Parents"
+msgstr ""
+
+#: resources/views/occupation-landing.phtml:72 resources/views/occupation-list.phtml:49
 msgid "This list shows the original occupation facts."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:75
+#: resources/views/occupation-landing.phtml:79
 msgid "Show occupations grouped by OhdAB hierarchy."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:82
+#: resources/views/occupation-landing.phtml:86
 msgid "Show occupations grouped by HISCO hierarchy."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:82
-msgid "Most common normalized social statuses"
+#: resources/views/occupation-landing.phtml:93
+msgid "Show top-10 charts for normalized occupations and social statuses."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:82
-msgid "Most common normalized occupations"
+#: resources/views/occupation-landing.phtml:100
+msgid "Compare occupation or social-status entries between parents and children."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml
+#: resources/views/occupation-landing.phtml:109
 msgid "The word cloud shows the 20 most common visible normalized occupations in the active family tree."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml
+#: resources/views/occupation-landing.phtml:118
 #, php-format
 msgid "%s occurrence"
 msgid_plural "%s occurrences"
 msgstr[0] ""
 msgstr[1] ""
 
-#: resources/views/occupation-landing.phtml:86
-#, php-format
-msgid ""
-"This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized "
-"entry is counted."
-msgid_plural ""
-"This top-10 chart shows the most common visible normalized entries in the active family tree. In total, %s visible normalized "
-"entries are counted."
-msgstr[0] ""
-msgstr[1] ""
-
-#: resources/views/occupation-landing.phtml:86
-#, php-format
-msgid ""
-"This top-10 chart shows the most common visible normalized occupation entries in the active family tree. In total, %s visible normalized "
-"occupation entry is counted."
-msgid_plural ""
-"This top-10 chart shows the most common visible normalized occupation entries in the active family tree. In total, %s visible normalized "
-"occupation entries are counted."
-msgstr[0] ""
-msgstr[1] ""
-
-#: resources/views/occupation-landing.phtml:90
-msgid "No normalized entries are available."
-msgstr ""
-
-#: resources/views/occupation-landing.phtml:90
-msgid "No normalized occupation entries are available."
-msgstr ""
-
-#: resources/views/occupation-list.phtml:42
+#: resources/views/occupation-list.phtml:54
 msgid "No occupation facts were found in this family tree."
 msgstr ""
 
-#: resources/views/occupation-list.phtml:47
+#: resources/views/occupation-list.phtml:59
 msgid "Loading occupation list..."
 msgstr ""
 
-#: resources/views/occupation-list.phtml:64
+#: resources/views/occupation-list.phtml:76
 msgid "Normalization"
 msgstr ""
 
-#: resources/views/occupation-list.phtml:110
+#: resources/views/occupation-list.phtml:122
 msgid "Original part"
 msgstr ""
 
-#: resources/views/occupation-list.phtml:118
+#: resources/views/occupation-list.phtml:130
 msgid "Copied OCCU context fields"
 msgstr ""
 
-#: resources/views/occupation-list.phtml:121
+#: resources/views/occupation-list.phtml:133
 msgid "These values are copied into the module table only. Editing them does not change GEDCOM data."
 msgstr ""
 
-#: resources/views/occupation-list.phtml:137
+#: resources/views/occupation-list.phtml:149
 msgid "Location hierarchy"
 msgstr ""
 
-#: resources/views/occupation-list.phtml:153
+#: resources/views/occupation-list.phtml:165
 msgid "Source XREFs"
 msgstr ""
 
-#: resources/views/occupation-portal-counts.phtml:19 resources/views/occupation-portal.phtml:354
+#: resources/views/occupation-portal-counts.phtml:36 resources/views/occupation-portal.phtml:474 resources/views/occupation-portal.phtml:531
 msgid "No entries are available."
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:58
+#: resources/views/occupation-portal-counts.phtml:41 resources/views/occupation-portal.phtml:479
+msgid "List"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:46 resources/views/occupation-portal.phtml:489
+msgid "Histogram"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:51 resources/views/occupation-portal-counts.phtml:116
+msgid "Map"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:62
+msgid "Place"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:63
+msgid "Latitude"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:64
+msgid "Longitude"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:65
+msgid "Count"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:93
+msgid "The chart shows the most frequent places for this occupation."
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:111
+msgid "No coordinates are available for these places."
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml:114
+msgid "The map uses coordinates from linked _LOC records."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:93
+msgid "External data status"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:99
+msgid "This technical information is visible only to managers and administrators."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:107
+msgid "Last successful retrieval"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:120
+msgid "current"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:121
+msgid "stale"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:122
+msgid "partly unavailable"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:123
+msgid "unavailable"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:137
+msgid "If a source is temporarily unavailable, the most recently cached data is shown and marked as stale."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:146
 msgid "The normalized occupation could not be found."
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:115
+#: resources/views/occupation-portal.phtml:203
 msgid "External identifiers and source data"
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:119
+#: resources/views/occupation-portal.phtml:207
 msgid "No external identifiers are available."
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:214
+#: resources/views/occupation-portal.phtml:304
+#, php-format
+msgid "Text licensed under %s."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:309
+msgid "Available languages"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:331
 msgid "No OhdAB hierarchy is available for this occupation."
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:233
+#: resources/views/occupation-portal.phtml:350
 msgid "Level"
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:267
+#: resources/views/occupation-portal.phtml:384
 msgid "Unit group"
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:271
+#: resources/views/occupation-portal.phtml:388
 msgid "Minor group"
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:275
+#: resources/views/occupation-portal.phtml:392
 msgid "Major group"
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:295
+#: resources/views/occupation-portal.phtml:412
 msgid "No visible individuals were found for this occupation."
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:337
+#: resources/views/occupation-portal.phtml:454
 msgid "Original occupations"
 msgstr ""
 
-#: resources/views/occupation-portal.phtml:350
+#: resources/views/occupation-portal.phtml:470
 msgid "Period"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:484
+msgid "Timeline"
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:510
+msgid "The line marks the earliest and latest year; the markers show the median and average year."
+msgstr ""
+
+#: resources/views/occupation-portal.phtml:534
+msgid "The histogram groups the occupation dates into time buckets."
 msgstr ""
 
 #: resources/views/settings.phtml:71
@@ -574,425 +787,194 @@ msgstr[1] ""
 msgid "XLSX file"
 msgstr ""
 
-#: resources/views/settings.phtml:164
+#: resources/views/settings.phtml:165
 msgid "Choose file"
 msgstr ""
 
-#: resources/views/settings.phtml:168 resources/views/settings.phtml:825
+#: resources/views/settings.phtml:168 resources/views/settings.phtml:763
 msgid "No file selected"
 msgstr ""
 
-#: resources/views/settings.phtml:173 resources/views/settings.phtml:204
+#: resources/views/settings.phtml:181 resources/views/settings.phtml:212
 msgid "OhdAB category statistics"
 msgstr ""
 
-#: resources/views/settings.phtml:175 resources/views/settings.phtml:268
+#: resources/views/settings.phtml:183 resources/views/settings.phtml:276
 msgid "Original occupation facts"
 msgstr ""
 
-#: resources/views/settings.phtml:177 resources/views/settings.phtml:270
+#: resources/views/settings.phtml:185 resources/views/settings.phtml:278
 msgid "split occupation entries"
 msgstr ""
 
-#: resources/views/settings.phtml:179 resources/views/settings.phtml:272
+#: resources/views/settings.phtml:187 resources/views/settings.phtml:280
 msgid "assigned occupation entries"
 msgstr ""
 
-#: resources/views/settings.phtml:183 resources/views/settings.phtml:276
+#: resources/views/settings.phtml:191 resources/views/settings.phtml:284
 msgid "This statistic is calculated across all family trees from active module-owned occupation entries."
 msgstr ""
 
-#: resources/views/settings.phtml:188
+#: resources/views/settings.phtml:196
 msgid "No assigned OhdAB categories are available yet."
 msgstr ""
 
-#: resources/views/settings.phtml:210
+#: resources/views/settings.phtml:218
 msgid "OhdAB top category"
 msgstr ""
 
-#: resources/views/settings.phtml:237
+#: resources/views/settings.phtml:245
 msgid "HISCO catalog"
 msgstr ""
 
-#: resources/views/settings.phtml:239
+#: resources/views/settings.phtml:247
 msgid "The bundled HISCO catalog is imported into module-owned database tables and used to show hierarchy details for HISCO identifiers."
 msgstr ""
 
-#: resources/views/settings.phtml:242
+#: resources/views/settings.phtml:250
 msgid "HISCO database tables"
 msgstr ""
 
-#: resources/views/settings.phtml:245
-msgid "No HISCO catalog tables are available yet."
-msgstr ""
-
-#: resources/views/settings.phtml:251
+#: resources/views/settings.phtml:259
 msgid "Database table"
 msgstr ""
 
-#: resources/views/settings.phtml:252
+#: resources/views/settings.phtml:260
 msgid "Rows"
 msgstr ""
 
-#: resources/views/settings.phtml:266 resources/views/settings.phtml:297
+#: resources/views/settings.phtml:274 resources/views/settings.phtml:305
 msgid "HISCO category statistics"
 msgstr ""
 
-#: resources/views/settings.phtml:281
+#: resources/views/settings.phtml:289
 msgid "No assigned HISCO categories are available yet."
 msgstr ""
 
-#: resources/views/settings.phtml:303
-msgid "HISCO major group"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:3666
-msgid "HISCO major groups"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:3667
-msgid "HISCO minor groups"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:3668
-msgid "HISCO unit groups"
-msgstr ""
-
-#: resources/views/settings.phtml:330
+#: resources/views/settings.phtml:338
 msgid "Normalized occupation terms"
 msgstr ""
 
-#: resources/views/settings.phtml:332
+#: resources/views/settings.phtml:340
 msgid "Normalized terms contain the shared labels and external identifiers used by one or more mapping rules."
 msgstr ""
 
-#: resources/views/settings.phtml:333
+#: resources/views/settings.phtml:341
 msgid "The language and the language-specific masculine form identify the normalized term."
 msgstr ""
 
-#: resources/views/settings.phtml:454
+#: resources/views/settings.phtml:349
+msgid "Update all Wikipedia links from Wikidata"
+msgstr ""
+
+#: resources/views/settings.phtml:470
+msgid "Update Wikipedia links from Wikidata"
+msgstr ""
+
+#: resources/views/settings.phtml:473
+msgid "Update Wikipedia links"
+msgstr ""
+
+#: resources/views/settings.phtml:488
 msgid "Add a normalized term"
 msgstr ""
 
-#: resources/views/settings.phtml:522
+#: resources/views/settings.phtml:562
 msgid "Normalization mapping rules"
 msgstr ""
 
-#: resources/views/settings.phtml:524
+#: resources/views/settings.phtml:564
 msgid "These site-wide rules map language-specific original texts to normalized occupation terms."
 msgstr ""
 
-#: resources/views/settings.phtml:535 resources/views/settings.phtml:594
+#: resources/views/settings.phtml:575 resources/views/settings.phtml:634
 msgid "Original text"
 msgstr ""
 
-#: resources/views/settings.phtml:549 resources/views/settings.phtml:608
+#: resources/views/settings.phtml:589 resources/views/settings.phtml:648
 msgid "Normalized term"
 msgstr ""
 
-#: resources/views/settings.phtml:591
+#: resources/views/settings.phtml:631
 msgid "Add a normalization rule"
 msgstr ""
 
-#: resources/views/settings.phtml:647
+#: resources/views/settings.phtml:687
 msgid "Family tree languages"
 msgstr ""
 
-#: resources/views/settings.phtml:654
+#: resources/views/settings.phtml:694
 msgid "Define the default language in which occupations are described for each family tree."
 msgstr ""
 
-#: resources/views/settings.phtml:729
+#: resources/views/settings.phtml:780
 msgid "Occupation standardization tables"
 msgstr ""
 
-#: resources/views/settings.phtml:733
+#: resources/views/settings.phtml:784
 msgid "No occupation standardization table data exists yet."
 msgstr ""
 
-#: resources/views/settings.phtml:737
+#: resources/views/settings.phtml:813 resources/views/settings.phtml:853
 msgid "Re-run normalization"
 msgstr ""
 
-#: resources/views/settings.phtml:741
+#: resources/views/settings.phtml:816
 msgid "Managers can re-run normalization for one family tree after rule changes or updated external mappings. Reviewed and manually changed entries are preserved."
 msgstr ""
 
-#: resources/views/settings.phtml:744
+#: resources/views/settings.phtml:819
 msgid "Do you really want to re-run automatic normalization for the selected family tree?"
 msgstr ""
 
-#: resources/views/settings.phtml:770
-msgid "Yes, re-run automatic normalization for the selected family tree."
-msgstr ""
-
-#: resources/views/settings.phtml:737
-msgid "Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed."
-msgstr ""
-
-#: resources/views/settings.phtml:766
-msgid "Do you really want to delete the occupation standardization table data for the selected family tree?"
-msgstr ""
-
-#: resources/views/settings.phtml:779
+#: resources/views/settings.phtml:832 resources/views/settings.phtml:878
 #, php-format
 msgid "%s entry"
 msgid_plural "%s entries"
 msgstr[0] ""
 msgstr[1] ""
 
-#: resources/views/settings.phtml:791
-msgid "Yes, delete the occupation standardization table data for the selected family tree."
+#: resources/views/settings.phtml:844
+msgid "Yes, re-run automatic normalization for the selected family tree."
 msgstr ""
 
-#: resources/views/settings.phtml:800
+#: resources/views/settings.phtml:859 resources/views/settings.phtml:899
 msgid "Delete table data"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:410
-msgid "Occupation and social-status inheritance"
+#: resources/views/settings.phtml:862
+msgid "Managers can delete the occupation standardization table data for one family tree. GEDCOM data is not changed."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:137
-msgid "Inheritance analysis"
+#: resources/views/settings.phtml:865
+msgid "Do you really want to delete the occupation standardization table data for the selected family tree?"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php:417
-#: resources/views/occupation-landing.phtml:130
-#: resources/views/occupation-frequencies.phtml:101
-msgid "Frequency analysis"
+#: resources/views/settings.phtml:890
+msgid "Yes, delete the occupation standardization table data for the selected family tree."
 msgstr ""
 
-#: resources/views/occupation-landing.phtml:131
-msgid "Show top-10 charts for normalized occupations and social statuses."
-msgstr ""
-
-#: resources/views/occupation-landing.phtml:138
-msgid "Compare occupation or social-status entries between parents and children."
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:38
-msgid "Analysis type"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:743
-#: resources/views/occupation-inheritance.phtml:52
-msgid "Analysis level"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:731
-msgid "Normalized entry"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:732
-msgid "OhdAB level 1"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:733
-msgid "OhdAB level 2"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:734
-msgid "OhdAB level 3"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:735
-msgid "OhdAB level 4"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php:736
-msgid "OhdAB level 5"
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:50
-msgid "This table compares normalized entries for parents and children in the active family tree."
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:51
-msgid "The graphic above the table shows the strongest flows for quick orientation."
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:56
-msgid "No parent-child pairs with matching entries were found in this family tree."
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:65
-msgid "Parent entry"
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:66
-msgid "Child entry"
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:67
-msgid "Parent-child pairs"
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:68
-msgid "Parents"
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:91
-msgid "Top-10 inheritance flows"
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:96
-msgid "The graphic shows the ten strongest parent-child flows for the selected analysis type and level."
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:29
-#: resources/views/occupation-portal.phtml:380
-msgid "List"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:56
-msgid "The chart shows the most frequent places for this occupation."
-msgstr ""
-
-#: resources/views/occupation-portal.phtml:386
-msgid "Timeline"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml:407
-msgid "The line marks the earliest and latest year; the markers show the median and average year."
-msgstr ""
-
-#: resources/views/occupation-inheritance.phtml:107
-msgid "Social status"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:43
-msgid "Map"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:61
-msgid "Place"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:63
-msgid "Latitude"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:64
-msgid "Longitude"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:65
-msgid "Count"
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:122
-msgid "No coordinates are available for these places."
-msgstr ""
-
-#: resources/views/occupation-portal-counts.phtml:125
-msgid "The map uses coordinates from linked _LOC records."
-msgstr ""
-
-#: resources/views/occupation-portal.phtml:397
-msgid "Histogram"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml:433
-msgid "The histogram groups the occupation dates into time buckets."
-msgstr ""
-
-#: resources/views/wikipedia-link-editor.phtml
+#: resources/views/wikipedia-link-editor.phtml:24
 msgid "Maintain Wikipedia links manually"
 msgstr ""
 
-#: resources/views/wikipedia-link-editor.phtml
+#: resources/views/wikipedia-link-editor.phtml:29
 msgid "When manual maintenance is disabled, Wikipedia links are obtained automatically from Wikidata."
 msgstr ""
 
-#: resources/views/wikipedia-link-editor.phtml
+#: resources/views/wikipedia-link-editor.phtml:36 resources/views/wikipedia-link-editor.phtml:52 resources/views/wikipedia-link-editor.phtml:77
 msgid "Language code"
 msgstr ""
 
-#: resources/views/wikipedia-link-editor.phtml
-msgid "Remove Wikipedia link"
-msgstr ""
-
-#: resources/views/wikipedia-link-editor.phtml
-msgid "Add Wikipedia link"
-msgstr ""
-
-#: resources/views/wikipedia-link-editor.phtml
+#: resources/views/wikipedia-link-editor.phtml:45
 msgid "No Wikipedia links are available yet."
 msgstr ""
 
-#: src/OccupationStandardizerModule.php
-msgid "No normalized occupation terms were found."
+#: resources/views/wikipedia-link-editor.phtml:58 resources/views/wikipedia-link-editor.phtml:60 resources/views/wikipedia-link-editor.phtml:83
+#: resources/views/wikipedia-link-editor.phtml:85
+msgid "Remove Wikipedia link"
 msgstr ""
 
-#: src/OccupationStandardizerModule.php
-#, php-format
-msgid "Wikipedia synchronization finished: %s checked, %s updated, %s without Wikidata ID, %s without Wikipedia links, %s manually maintained, %s errors."
-msgstr ""
-
-#: resources/views/settings.phtml
-msgid "Update all Wikipedia links from Wikidata"
-msgstr ""
-
-#: resources/views/settings.phtml
-msgid "Update Wikipedia links from Wikidata"
-msgstr ""
-
-#: resources/views/settings.phtml
-msgid "Update Wikipedia links"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php
-msgid "External service unavailable."
-msgstr ""
-
-#: src/OccupationStandardizerModule.php
-#, php-format
-msgid "External service errors: %s"
-msgstr ""
-
-#: src/OccupationStandardizerModule.php
-#, php-format
-msgid "No Wikipedia sitelinks were found for these Wikidata IDs: %s"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "Available languages"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-#, php-format
-msgid "Text licensed under %s."
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "External data status"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "This technical information is visible only to managers and administrators."
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "Last successful retrieval"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "current"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "stale"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "partly unavailable"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "unavailable"
-msgstr ""
-
-#: resources/views/occupation-portal.phtml
-msgid "If a source is temporarily unavailable, the most recently cached data is shown and marked as stale."
+#: resources/views/wikipedia-link-editor.phtml:71
+msgid "Add Wikipedia link"
 msgstr ""
