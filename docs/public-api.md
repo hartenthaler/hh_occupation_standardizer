@@ -19,11 +19,27 @@ public function standardize(string $raw_occupation, ?string $language = null): ?
 public function standardizeMany(iterable $raw_occupations, ?string $language = null): array;
 ```
 
+Parameters:
+
+- `raw_occupation` is one original occupation value as recorded in a GEDCOM
+  `INDI:OCCU` fact.
+- `raw_occupations` is an iterable collection of such original occupation
+  values. Duplicate strings share one result because the returned array is
+  keyed by the input string.
+- `language` optionally identifies the language in which the original
+  occupation term is written. It accepts a BCP-47 language tag such as `de` or
+  `de-DE` and helps distinguish otherwise ambiguous terms. It does not select
+  the language of the returned canonical label. In `standardizeMany()`, the
+  language applies to every supplied term.
+
+`standardize()` returns one `StandardizedOccupation` or `null`.
+`standardizeMany()` returns an array keyed by the distinct original input
+strings; each value is either a `StandardizedOccupation` or `null`.
+
 The result exposes `canonicalLabel()`, `hiscoCode()`, `hisclass()`, and
 `hiscamScore()`. HISCLASS and HISCAM currently return `null` because the module
 does not yet store these classifications.
 
-The optional language is a BCP-47 language hint such as `de` or `de-DE`.
 Unknown terms, ignored terms, and values containing only a social status return
 `null`. If a raw value contains several recognized occupations, the singular
 method returns the first recognized occupation in source order.
@@ -45,7 +61,7 @@ $standardizer = Registry::container()
     ->first();
 
 if ($standardizer instanceof OccupationStandardizerInterface) {
-    $occupation = $standardizer->standardize('Kieffer', 'de');
+    $occupation = $standardizer->standardize('Ärztin', 'de');
     $label = $occupation?->canonicalLabel();
 }
 ```
