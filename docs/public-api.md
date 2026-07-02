@@ -19,11 +19,47 @@ public function standardize(string $raw_occupation, ?string $language = null): ?
 public function standardizeMany(iterable $raw_occupations, ?string $language = null): array;
 ```
 
-The result exposes `canonicalLabel()`, `hiscoCode()`, `hisclass()`, and
-`hiscamScore()`. HISCLASS and HISCAM currently return `null` because the module
-does not yet store these classifications.
+Parameters:
 
-The optional language is a BCP-47 language hint such as `de` or `de-DE`.
+- `raw_occupation` is one original occupation value as recorded in a GEDCOM
+  `INDI:OCCU` fact.
+- `raw_occupations` is an iterable collection of such original occupation
+  values. Duplicate strings share one result because the returned array is
+  keyed by the input string.
+- `language` optionally identifies the language in which the original
+  occupation term is written. It accepts a BCP-47 language tag such as `de` or
+  `de-DE` and helps distinguish otherwise ambiguous terms. It does not select
+  the language of the returned canonical label. In `standardizeMany()`, the
+  language applies to every supplied term.
+
+`standardize()` returns one immutable `StandardizedOccupation` value object or
+`null`. `standardizeMany()` returns an array keyed by the distinct original
+input strings; each value is either a `StandardizedOccupation` or `null`.
+
+## Result and labels
+
+Normalization and display are deliberately separate:
+
+- `canonicalLabel()` returns the normalized grouping term, for example `Arzt`.
+  It is not a person-specific display label.
+- `canonicalKey()` returns the normalization-language and canonical-label
+  combination, for example `de:Arzt`. Consumers should prefer this key over a
+  display label when grouping results from the same normalization vocabulary.
+- `labelForms()` returns the available masculine, feminine, and neutral forms
+  in German and English.
+- `displayLabel($language, $sex)` selects a display form for a concrete user
+  language and GEDCOM sex value. `F` prefers the feminine form, `M` the
+  masculine form, and `X`, `U`, an empty value, or any other value the neutral
+  form. Missing forms fall back within the requested language, then to the
+  other supported language, and finally to `canonicalLabel()`.
+- `hiscoCode()`, `hisclass()`, and `hiscamScore()` expose optional
+  classifications. HISCLASS and HISCAM currently return `null` because the
+  module does not yet store these classifications.
+
+The language passed to `displayLabel()` is independent of the language passed
+to `standardize()`: the former selects an output label, while the latter
+describes the original input term.
+
 Unknown terms, ignored terms, and values containing only a social status return
 `null`. If a raw value contains several recognized occupations, the singular
 method returns the first recognized occupation in source order.
@@ -45,8 +81,12 @@ $standardizer = Registry::container()
     ->first();
 
 if ($standardizer instanceof OccupationStandardizerInterface) {
-    $occupation = $standardizer->standardize('Kieffer', 'de');
-    $label = $occupation?->canonicalLabel();
+    $occupation = $standardizer->standardize('Ärztin', 'de');
+
+    $grouping_key = $occupation?->canonicalKey();       // de:Arzt
+    $canonical = $occupation?->canonicalLabel();        // Arzt
+    $german_label = $occupation?->displayLabel('de', 'F');
+    $english_label = $occupation?->displayLabel('en', 'F');
 }
 ```
 

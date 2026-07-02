@@ -258,8 +258,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 }
 
                 $results[$raw_occupation] = new StandardizedOccupation(
-                    $entry['occupation_normalized'],
-                    $entry['code_hisco'] !== '' ? $entry['code_hisco'] : null
+                    canonical_label: $entry['occupation_normalized'],
+                    canonical_key: ($entry['language'] !== '' ? $entry['language'] : 'und') . ':' . $entry['occupation_normalized'],
+                    occupation_de_male: $entry['occupation_de_male'],
+                    occupation_de_female: $entry['occupation_de_female'],
+                    occupation_de_neutral: $entry['occupation_de_neutral'],
+                    occupation_en_male: $entry['occupation_en_male'],
+                    occupation_en_female: $entry['occupation_en_female'],
+                    occupation_en_neutral: $entry['occupation_en_neutral'],
+                    hisco_code: $entry['code_hisco'] !== '' ? $entry['code_hisco'] : null
                 );
                 break;
             }

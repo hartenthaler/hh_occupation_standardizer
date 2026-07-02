@@ -272,7 +272,9 @@ method-based contract keeps both modules independently installable.
 
 Other webtrees modules can obtain the active module through `ModuleService` and
 its public `OccupationStandardizerInterface`. The API resolves individual or
-batched raw `OCCU` values without exposing the module's database schema. See
+batched raw `OCCU` values without exposing the module's database schema. Its
+result separates the canonical grouping term from language- and
+gender-dependent display labels. See
 [`docs/public-api.md`](docs/public-api.md) for the contract and an integration
 example.
 
