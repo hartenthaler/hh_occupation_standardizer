@@ -10,6 +10,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 ### Added
 
 - Added per-term and bulk administrator actions to synchronize automatic Wikipedia language links from Wikidata.
+- Added structured privacy notices for Wikimedia, FactGrid, and lobid-gnd together with documentation of server-side data transfers and local caching.
 - Added a documented public read-only API for single and batched occupation normalization by other webtrees modules.
 
 ### Changed

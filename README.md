@@ -20,6 +20,7 @@ This is a beta version. Do not use it in a productive system without careful tes
 * [Occupation profile pages](#OccupationProfiles)
 * [Occupation hierarchies](#OccupationHierarchies)
 * [Administration](#Administration)
+* [Privacy](#Privacy)
 * [Data sources](#DataSources)
 * [Screenshots](#Screenshots)
 * [Documentation](#Documentation)
@@ -230,6 +231,44 @@ The control-panel settings provide:
 
 Managers and administrators can edit normalization rows in the occupation list.
 Administrators configure reusable rules and norm data in the control panel.
+
+<a name="Privacy"></a>
+## 🔒 Privacy
+
+The module stores normalized interpretations and copied `OCCU` context in
+module-owned database tables. It does not modify GEDCOM data automatically.
+
+Occupation profile pages and hierarchy labels can retrieve public authority
+information through server-side HTTPS requests from:
+
+* **Wikimedia Foundation** for Wikidata labels and descriptions, Wikipedia
+  language links, and introductory article text
+* **FactGrid** for labels and descriptions associated with FactGrid and OhdAB
+  identifiers
+* **lobid-gnd**, operated by the North Rhine-Westphalian Library Service Centre
+  (hbz), for GND labels and descriptions
+
+These requests contain the relevant public authority identifier, where needed
+the requested interface language or Wikipedia article title, and ordinary
+technical request metadata such as the web server's IP address and user agent.
+They do not contain genealogical personal data or the visitor's IP address.
+Visitors can indirectly cause such a server-side request when they open a page
+whose cached authority data is missing or stale.
+
+Responses are cached locally to minimize external requests. Most authority
+responses are refreshed after 24 hours; Wikipedia introductory text is cached
+for 30 days. If a current request fails, previously cached authority data may
+be displayed as stale data.
+
+The bundled HISCO catalog, imported OhdAB extracts, and bundled GenWiki link
+table are processed locally. Links to GenWiki, GND Explorer, HISCO, and other
+external pages cause a direct connection only when a visitor follows the link;
+they are not automatic API transfers by this module.
+
+The module exposes this information through its public `privacyNotices()`
+method. `hh_legal_notice` can use this method to include the third-party
+services and caching measure in a generated privacy policy. The lightweight
+method-based contract keeps both modules independently installable.
 
 Other webtrees modules can obtain the active module through `ModuleService` and
 its public `OccupationStandardizerInterface`. The API resolves individual or
