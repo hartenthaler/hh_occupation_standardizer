@@ -47,6 +47,8 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\Exte
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\GenwikiOccupationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Infrastructure\Persistence\Schema\OccupationSchema;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\PublicApi\OccupationStandardizerInterface;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\PublicApi\StandardizedOccupation;
 use Illuminate\Database\Capsule\Manager as DBManager;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -100,7 +102,7 @@ use function usort;
 use const UPLOAD_ERR_NO_FILE;
 use const UPLOAD_ERR_OK;
 
-final class OccupationStandardizerModule extends AbstractModule implements ModuleCustomInterface, ModuleConfigInterface, ModuleGlobalInterface, ModuleListInterface, RequestHandlerInterface
+final class OccupationStandardizerModule extends AbstractModule implements ModuleCustomInterface, ModuleConfigInterface, ModuleGlobalInterface, ModuleListInterface, OccupationStandardizerInterface, RequestHandlerInterface
 {
     use ModuleCustomTrait;
     use ModuleConfigTrait;
@@ -174,6 +176,45 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     public function resourcesFolder(): string
     {
         return strtr(__DIR__ . '/../resources/', DIRECTORY_SEPARATOR, '/');
+    }
+
+    public function standardize(string $raw_occupation, ?string $language = null): ?StandardizedOccupation
+    {
+        $results = $this->standardizeMany([$raw_occupation], $language);
+
+        return $results[$raw_occupation];
+    }
+
+    public function standardizeMany(iterable $raw_occupations, ?string $language = null): array
+    {
+        $normalizer = new OccupationNormalizationService(
+            $this->normalizationRules(),
+            $this->activeBuiltinRuleOrder(),
+            $this->ohdabSpecialMappings()
+        );
+        $results = [];
+
+        foreach ($raw_occupations as $raw_occupation) {
+            $raw_occupation = (string) $raw_occupation;
+            $results[$raw_occupation] = null;
+
+            foreach ($normalizer->normalize($raw_occupation, $language ?? '') as $entry) {
+                if (
+                    $entry['status'] !== OccupationNormalizationService::STATUS_RECOGNIZED
+                    || $entry['occupation_normalized'] === ''
+                ) {
+                    continue;
+                }
+
+                $results[$raw_occupation] = new StandardizedOccupation(
+                    $entry['occupation_normalized'],
+                    $entry['code_hisco'] !== '' ? $entry['code_hisco'] : null
+                );
+                break;
+            }
+        }
+
+        return $results;
     }
 
     public function boot(): void
