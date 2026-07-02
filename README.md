@@ -110,6 +110,8 @@ These charts are based on active module-owned normalization rows for the selecte
 
 The inheritance analysis shows the ten strongest parent-child flows as a compact graphic and keeps the full aggregated data table below it.
 The graphic is intentionally limited to the top 10 flows for readability.
+All families in which a person is linked as a child are included, regardless of the recorded relationship type.
+Repeated links between the same parent and child are counted only once.
 It can be switched between occupation inheritance and social-status inheritance.
 For occupations, the analysis level can be switched between normalized terms, OhdAB hierarchy levels, and HISCO hierarchy levels.
 For social statuses, normalized entries and OhdAB hierarchy levels are available.
