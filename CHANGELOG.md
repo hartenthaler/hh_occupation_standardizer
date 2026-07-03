@@ -17,6 +17,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Changed
 
+- Documented the source, version, CC BY-SA 4.0 license, attribution, and module-specific modifications of the bundled HISCO classification data.
 - Display Wikipedia language links in a compact striped table with one shared header row.
 
 ### Fixed

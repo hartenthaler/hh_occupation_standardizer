@@ -295,20 +295,14 @@ The rule "Normalize with external OhdAB special database" applies only to German
 
 **HISCO**
 
-The bundled HISCO catalog is based on:
+The HISCO classification is described by Marco H. D. van Leeuwen, Ineke Maas,
+and Andrew Miles, *HISCO: Historical International Standard Classification of
+Occupations*, Leuven University Press, 2002.
 
-```bibtex
-@data{JA9B8O_2016,
-author = {Van Leeuwen},
-publisher = {IISH Data Collection},
-title = {{Files from HISCO database}},
-UNF = {UNF:6:P/x7e56FlwNkplEB7kJWiQ==},
-year = {2016},
-version = {V2},
-doi = {10622/JA9B8O},
-url = {https://hdl.handle.net/10622/JA9B8O}
-}
-```
+The bundled catalog and classification crosswalks are derived from Kees
+Mandemakers et al., *Standardized, HISCO-coded and classified occupational
+titles, release 2018.01*, version 3.1, IISG Amsterdam, 2018:
+https://datasets.iisg.amsterdam/dataset.xhtml?persistentId=hdl:10622/MUZMAL
 
 The English source labels and descriptions are preserved.
 Upper hierarchy levels are prepared for translated labels.
@@ -420,3 +414,19 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 at your option, any later version.
+
+The software license does not replace the licenses and attribution requirements
+of bundled third-party data.
+
+The bundled HISCO, HISCLASS, HISCAM, and OCC1950 tables are derived from
+Mandemakers et al., *Standardized, HISCO-coded and classified occupational
+titles, release 2018.01*, version 3.1, IISG Amsterdam, 2018, available at
+https://datasets.iisg.amsterdam/dataset.xhtml?persistentId=hdl:10622/MUZMAL.
+They are distributed under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+The source tables were normalized and split for this module; mappings were
+made unambiguous per HISCO identifier, and German hierarchy translations were
+added. Derived data remains subject to the same CC BY-SA 4.0 license.
+
+Detailed attribution, literature, and modification notes are documented in
+[`resources/data/hisco/README.md`](resources/data/hisco/README.md).

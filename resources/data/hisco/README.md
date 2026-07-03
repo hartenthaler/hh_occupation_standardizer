@@ -3,23 +3,30 @@
 This directory contains a normalized copy of the English HISCO catalog used by
 the module for local lookup of HISCO identifiers.
 
-## Source
+## Dataset source and license
 
-```bibtex
-@data{JA9B8O_2016,
-author = {Van Leeuwen},
-publisher = {IISH Data Collection},
-title = {{Files from HISCO database}},
-UNF = {UNF:6:P/x7e56FlwNkplEB7kJWiQ==},
-year = {2016},
-version = {V2},
-doi = {10622/JA9B8O},
-url = {https://hdl.handle.net/10622/JA9B8O}
-}
-```
+The bundled tables are derived from:
 
-The source data was downloaded from the IISH Data Collection and normalized
-into separate CSV files before being added to this module.
+Kees Mandemakers, Rick J. Mourits, Sanne Muurling, Corinne Boter, Ingrid K. van
+Dijk, Ineke Maas, Bart Van de Putte, Richard L. Zijdeman, Paul Lambert, Marco
+H. D. van Leeuwen, Frans van Poppel, and Andrew Miles, *Standardized,
+HISCO-coded and classified occupational titles, release 2018.01*, version 3.1,
+IISG Amsterdam, 2018:
+https://datasets.iisg.amsterdam/dataset.xhtml?persistentId=hdl:10622/MUZMAL
+
+The dataset is licensed under
+[Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
+
+Changes were made for this module. The downloaded source tables were
+normalized and split into the CSV and XLSX files listed below. Crosswalk rows
+were normalized to provide an unambiguous mapping per HISCO identifier. German
+hierarchy labels and descriptions were added as a derived translation.
+
+The HISCO classification is described in:
+
+Marco H. D. van Leeuwen, Ineke Maas, and Andrew Miles, *HISCO: Historical
+International Standard Classification of Occupations*, Leuven University
+Press, 2002.
 
 ## Files
 

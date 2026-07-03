@@ -2,8 +2,10 @@
 -- This SQL file documents the module-specific structure. The tables are
 -- created by src/Infrastructure/Persistence/Schema/OccupationSchema.php.
 --
--- Source: Van Leeuwen, IISH Data Collection, Files from HISCO database,
--- version V2, 2016, doi 10622/JA9B8O, https://hdl.handle.net/10622/JA9B8O
+-- Source: Mandemakers et al., Standardized, HISCO-coded and classified
+-- occupational titles, release 2018.01, version 3.1, IISG Amsterdam, 2018,
+-- https://datasets.iisg.amsterdam/dataset.xhtml?persistentId=hdl:10622/MUZMAL
+-- License: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
 
 CREATE TABLE occupation_standardizer_hisco_major_groups (
     major_id       TINYINT UNSIGNED NOT NULL,
