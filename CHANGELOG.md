@@ -22,6 +22,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Use consistent plural-aware gettext calls for all HISCO hierarchy group labels so translation catalogs can be synchronized without duplicate msgid conflicts.
 - Include all families in which a person is linked as a child in the inheritance analysis and deduplicate repeated parent-child links.
 - Normalize Wikidata identifiers, derive Wikipedia URLs from sitelink titles when necessary, and report identifiers for which no Wikipedia sitelinks were found.
 - Added a Wikimedia-compatible user agent and exposed concrete external-service errors for Wikipedia synchronization and profile summaries.
