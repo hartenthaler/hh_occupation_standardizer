@@ -112,7 +112,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     use ModuleListTrait;
 
     private const MODULE_TITLE = 'Occupation Standardizer';
-    private const VERSION = '2.2.6.5';
+    private const VERSION = '2.2.6.6';
     private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/hartenthaler/hh_occupation_standardizer/main/latest-version.txt';
     private const SUPPORT_URL = 'https://github.com/hartenthaler/hh_occupation_standardizer';
     private const ROUTE_URL = '/tree/{tree}/occupation-standardizer';
