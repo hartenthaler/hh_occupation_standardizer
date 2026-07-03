@@ -238,8 +238,8 @@ msgstr[1] "HISCO-Untergruppen"
 #: src/OccupationStandardizerModule.php:4155
 msgid "HISCO unit group"
 msgid_plural "HISCO unit groups"
-msgstr[0] "HISCO-Einheitsgruppe"
-msgstr[1] "HISCO-Einheitsgruppen"
+msgstr[0] "HISCO-Berufsgruppe"
+msgstr[1] "HISCO-Berufsgruppen"
 
 #: src/OccupationStandardizerModule.php:2038
 msgid "GND Explorer"

@@ -906,9 +906,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         if ($type === 'occupation') {
             $options += [
-                'hisco-major' => I18N::translate('HISCO major group'),
-                'hisco-minor' => I18N::translate('HISCO minor group'),
-                'hisco-unit'  => I18N::translate('HISCO unit group'),
+                'hisco-major' => I18N::plural('HISCO major group', 'HISCO major groups', 1),
+                'hisco-minor' => I18N::plural('HISCO minor group', 'HISCO minor groups', 1),
+                'hisco-unit'  => I18N::plural('HISCO unit group', 'HISCO unit groups', 1),
             ];
         }
 
