@@ -345,7 +345,7 @@ final class HiscoCatalogService
         $headers = [];
         $rows = [];
 
-        while (($values = fgetcsv($handle)) !== false) {
+        while (($values = fgetcsv($handle, null, ',', '"', '')) !== false) {
             $values = array_map(static fn (string|null $value): string => trim((string) $value), $values);
 
             if ($headers === []) {
