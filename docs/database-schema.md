@@ -172,27 +172,20 @@ The module ships normalized HISCO CSV files in `resources/data/hisco`.
 They are imported into module-owned tables on first use and re-imported when
 their bundled CSV fingerprint changes.
 
-Source:
-
-```bibtex
-@data{JA9B8O_2016,
-author = {Van Leeuwen},
-publisher = {IISH Data Collection},
-title = {{Files from HISCO database}},
-UNF = {UNF:6:P/x7e56FlwNkplEB7kJWiQ==},
-year = {2016},
-version = {V2},
-doi = {10622/JA9B8O},
-url = {https://hdl.handle.net/10622/JA9B8O}
-}
-```
+Source: Kees Mandemakers et al., *Standardized, HISCO-coded and classified
+occupational titles, release 2018.01*, version 3.1, IISG Amsterdam, 2018:
+https://datasets.iisg.amsterdam/dataset.xhtml?persistentId=hdl:10622/MUZMAL.
+The source data is licensed under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 The cited source provides the HISCO data as a downloaded source table. For this
 module, that table was normalized into separate CSV files in
 `resources/data/hisco` (in this case with assistance from Claude). During this
 preparation step the single source table was split into major groups, minor
 groups, unit groups, and occupation rows, and the corresponding module-owned
-database schema was derived from that structure.
+database schema was derived from that structure. Classification crosswalks
+were normalized to provide one unambiguous row per HISCO identifier, and German
+hierarchy translations were added.
 
 ### `occupation_standardizer_hisco_major_groups`
 
