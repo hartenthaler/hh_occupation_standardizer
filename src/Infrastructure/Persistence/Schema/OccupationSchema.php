@@ -23,6 +23,7 @@ final class OccupationSchema
     public const TABLE_HISCO_MINOR_GROUPS = 'occupation_standardizer_hisco_minor_groups';
     public const TABLE_HISCO_UNIT_GROUPS = 'occupation_standardizer_hisco_unit_groups';
     public const TABLE_HISCO_OCCUPATIONS = 'occupation_standardizer_hisco_occupations';
+    public const TABLE_HISCO_CLASSIFICATIONS = 'occupation_standardizer_hisco_classifications';
     public const TABLE_GENWIKI_OCCUPATIONS = 'occupation_standardizer_genwiki_occupations';
 
     public function ensureSchema(): void
@@ -264,6 +265,17 @@ final class OccupationSchema
 
                 $table->index('hisco_pretty', 'idx_occ_std_hisco_pretty');
                 $table->index('unit_id', 'idx_occ_std_hisco_occupation_unit');
+            });
+        }
+
+        if (!DB::schema()->hasTable(self::TABLE_HISCO_CLASSIFICATIONS)) {
+            DB::schema()->create(self::TABLE_HISCO_CLASSIFICATIONS, static function ($table): void {
+                $table->unsignedMediumInteger('hisco_id')->primary();
+                $table->decimal('hiscam_u1', 5, 2)->nullable();
+                $table->decimal('hiscam_nl', 5, 2)->nullable();
+                $table->unsignedSmallInteger('occ1950')->nullable();
+                $table->unsignedTinyInteger('hisclass')->nullable();
+                $table->unsignedTinyInteger('hisclass_5')->nullable();
             });
         }
 

@@ -29,10 +29,13 @@ into separate CSV files before being added to this module.
 - `hisco_occupation.csv`: individual HISCO occupations
 - `hisco_hierarchy_de.csv`: curated German labels and descriptions for major, minor, and unit groups
 - `hisco_hierarchy_de_notes.md`: translation notes for the German hierarchy file
-- `build_de.py`: helper script used to create the German hierarchy translation file
+- `hisco_hiscam_occ1950.xlsx`: unique HISCO mappings to HISCAM U1, HISCAM NL, and OCC1950
+- `hisco_hisclass.xlsx`: unique HISCO mappings to HISCLASS and HISCLASS 5
 - `hisco_schema.sql`: documentation of the module-specific database structure
 
 The module imports these files into its own database tables on first use. The
 English original labels and descriptions are preserved. German hierarchy labels
 and descriptions are stored separately and are reimported only when the checksum
-of `hisco_hierarchy_de.csv` changes.
+of `hisco_hierarchy_de.csv` changes. The two classification workbooks have a
+separate combined fingerprint and are reimported whenever either workbook
+changes. The source value `-9` is treated as missing.

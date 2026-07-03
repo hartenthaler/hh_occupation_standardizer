@@ -51,3 +51,13 @@ CREATE TABLE occupation_standardizer_hisco_occupations (
     KEY idx_occ_std_hisco_pretty (hisco_pretty),
     KEY idx_occ_std_hisco_occupation_unit (unit_id)
 );
+
+CREATE TABLE occupation_standardizer_hisco_classifications (
+    hisco_id   MEDIUMINT UNSIGNED NOT NULL,
+    hiscam_u1  DECIMAL(5, 2) NULL,
+    hiscam_nl  DECIMAL(5, 2) NULL,
+    occ1950    SMALLINT UNSIGNED NULL,
+    hisclass   TINYINT UNSIGNED NULL,
+    hisclass_5 TINYINT UNSIGNED NULL,
+    PRIMARY KEY (hisco_id)
+);

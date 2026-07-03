@@ -37,6 +37,7 @@ The page can show:
 - external identifiers and source data
 - OhdAB hierarchy
 - HISCO hierarchy
+- HISCAM U1, HISCAM NL, OCC1950, HISCLASS, and HISCLASS 5 values resolved from the bundled HISCO crosswalks
 - visible individuals in the active tree who exercised this occupation
 - original occupation variants mapped to this normalized occupation
 - places
@@ -94,7 +95,8 @@ the applicable CC BY-SA 4.0 license notice.
 GND identifiers are also linked to the GND Explorer relation view.
 This is exposed as an external link, not embedded into the page.
 
-HISCO hierarchy details are resolved locally from the bundled HISCO catalog tables.
+HISCO hierarchy and social-classification details are resolved locally from
+the bundled HISCO catalog and crosswalk tables.
 OhdAB hierarchy details are resolved locally from the imported tailored OhdAB extract.
 Where an imported OhdAB concept links to a FactGrid item, hierarchy labels may be resolved from the official FactGrid hierarchy items and cached with the same external authority cache.
 If FactGrid cannot be reached or no matching hierarchy item is found, the module falls back to the imported OhdAB label.

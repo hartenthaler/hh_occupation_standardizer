@@ -38,6 +38,7 @@ use Fisharebest\Webtrees\View;
 use Fisharebest\Webtrees\Webtrees;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationLabelService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OccupationNormalizationService;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\HiscoClassificationService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\HiscoCatalogService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\OhdabSpecialDatabaseService;
 use Hartenthaler\Webtrees\Module\OccupationStandardizer\Application\Service\WikipediaService;
@@ -244,6 +245,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             $this->activeBuiltinRuleOrder(),
             $this->ohdabSpecialMappings()
         );
+        $hisco_classifications = new HiscoClassificationService();
         $results = [];
 
         foreach ($raw_occupations as $raw_occupation) {
@@ -258,6 +260,9 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     continue;
                 }
 
+                $hisco_code = $entry['code_hisco'] !== '' ? $entry['code_hisco'] : null;
+                $classification = $hisco_code !== null ? $hisco_classifications->classification($hisco_code) : null;
+
                 $results[$raw_occupation] = new StandardizedOccupation(
                     canonical_label: $entry['occupation_normalized'],
                     canonical_key: ($entry['language'] !== '' ? $entry['language'] : 'und') . ':' . $entry['occupation_normalized'],
@@ -267,7 +272,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     occupation_en_male: $entry['occupation_en_male'],
                     occupation_en_female: $entry['occupation_en_female'],
                     occupation_en_neutral: $entry['occupation_en_neutral'],
-                    hisco_code: $entry['code_hisco'] !== '' ? $entry['code_hisco'] : null
+                    hisco_code: $hisco_code,
+                    hisclass: isset($classification['hisclass']) ? (string) $classification['hisclass'] : null,
+                    hiscam_score: $classification['hiscam_u1'] ?? null,
+                    hisclass_5: $classification['hisclass_5'] ?? null,
+                    hiscam_nl: $classification['hiscam_nl'] ?? null,
+                    occ1950: $classification['occ1950'] ?? null
                 );
                 break;
             }
@@ -280,6 +290,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     {
         (new OccupationSchema())->ensureSchema();
         (new HiscoCatalogService())->ensureImported($this->resourcesFolder() . 'data/hisco/');
+        (new HiscoClassificationService())->ensureImported($this->resourcesFolder() . 'data/hisco/');
         (new GenwikiOccupationService())->ensureImported($this->resourcesFolder() . 'data/GenWiki/Berufe_GenWiki.xlsx');
 
         View::registerNamespace($this->name(), $this->resourcesFolder() . 'views/');
@@ -2102,17 +2113,19 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * @param array<string,list<string>> $identifiers
      *
-     * @return list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}>
+     * @return list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string},classification:array{hiscam_u1:float|null,hiscam_nl:float|null,occ1950:int|null,hisclass:int|null,hisclass_5:int|null}|null}>
      */
     private function occupationPortalHiscoCatalogRows(array $identifiers): array
     {
         $service = new HiscoCatalogService();
+        $classification_service = new HiscoClassificationService();
         $rows = [];
 
         foreach ($identifiers['hisco'] ?? [] as $code) {
             $row = $service->occupation($code, I18N::languageTag());
 
             if ($row !== null) {
+                $row['classification'] = $classification_service->classification($code);
                 $rows[] = $row;
             }
         }
@@ -4141,6 +4154,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             OccupationSchema::TABLE_HISCO_MINOR_GROUPS,
             OccupationSchema::TABLE_HISCO_UNIT_GROUPS,
             OccupationSchema::TABLE_HISCO_OCCUPATIONS,
+            OccupationSchema::TABLE_HISCO_CLASSIFICATIONS,
         ] as $table) {
             if (!DBManager::schema()->hasTable($table)) {
                 return $empty_statistics;
@@ -4156,6 +4170,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             ['table' => I18N::plural('HISCO minor group', 'HISCO minor groups', $minor_group_count), 'count' => $minor_group_count],
             ['table' => I18N::plural('HISCO unit group', 'HISCO unit groups', $unit_group_count), 'count' => $unit_group_count],
             ['table' => MoreI18N::xlate('Occupations'), 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)->count()],
+            ['table' => 'HISCAM / OCC1950 / HISCLASS', 'count' => (int) DBManager::table(OccupationSchema::TABLE_HISCO_CLASSIFICATIONS)->count()],
         ];
 
         $active_entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
