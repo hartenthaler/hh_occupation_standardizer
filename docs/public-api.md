@@ -30,7 +30,10 @@ Parameters:
   occupation term is written. It accepts a BCP-47 language tag such as `de` or
   `de-DE` and helps distinguish otherwise ambiguous terms. It does not select
   the language of the returned canonical label. In `standardizeMany()`, the
-  language applies to every supplied term.
+  language applies to every supplied term. Consumers processing a family tree
+  should pass the tree's occupation-language setting from this module. An empty
+  or unsuitable language hint may prevent language-specific mappings, such as
+  the tailored German OhdAB mappings, from matching.
 
 `standardize()` returns one immutable `StandardizedOccupation` value object or
 `null`. `standardizeMany()` returns an array keyed by the distinct original
@@ -52,9 +55,17 @@ Normalization and display are deliberately separate:
   masculine form, and `X`, `U`, an empty value, or any other value the neutral
   form. Missing forms fall back within the requested language, then to the
   other supported language, and finally to `canonicalLabel()`.
-- `hiscoCode()`, `hisclass()`, and `hiscamScore()` expose optional
-  classifications. HISCLASS and HISCAM currently return `null` because the
-  module does not yet store these classifications.
+- `hiscoCode()` exposes the HISCO identifier.
+- `hisclass()` and `hisclass5()` expose the twelve-class and aggregated
+  five-class HISCLASS values.
+- `hiscamU1()` and `hiscamNl()` expose the universal and Netherlands-specific
+  HISCAM scores. The existing `hiscamScore()` method remains an alias for
+  `hiscamU1()` for compatibility.
+- `occ1950()` exposes the optional OCC1950 classification code.
+
+The classification methods return `null` when no HISCO identifier is known or
+the bundled crosswalk contains no value for that identifier. The source value
+`-9` is treated as missing.
 
 The language passed to `displayLabel()` is independent of the language passed
 to `standardize()`: the former selects an output label, while the latter
@@ -68,7 +79,10 @@ method returns the first recognized occupation in source order.
 
 Consumers should find the active module through webtrees `ModuleService` and
 the public interface instead of constructing an internal service or reading
-module tables:
+module tables. The public interface deliberately does not extend
+`ModuleInterface`. Strictly typed consumers should therefore inspect
+`ModuleService::all()` and filter with `instanceof`; using
+`findByInterface()` would violate that method's PHPStan generic bound:
 
 ```php
 use Fisharebest\Webtrees\Registry;
@@ -77,8 +91,10 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\PublicApi\OccupationStan
 
 $standardizer = Registry::container()
     ->get(ModuleService::class)
-    ->findByInterface(OccupationStandardizerInterface::class, true, true)
-    ->first();
+    ->all()
+    ->first(
+        static fn ($module): bool => $module instanceof OccupationStandardizerInterface
+    );
 
 if ($standardizer instanceof OccupationStandardizerInterface) {
     $occupation = $standardizer->standardize('Ärztin', 'de');
@@ -87,6 +103,11 @@ if ($standardizer instanceof OccupationStandardizerInterface) {
     $canonical = $occupation?->canonicalLabel();        // Arzt
     $german_label = $occupation?->displayLabel('de', 'F');
     $english_label = $occupation?->displayLabel('en', 'F');
+    $hisclass = $occupation?->hisclass();
+    $hisclass5 = $occupation?->hisclass5();
+    $hiscam_u1 = $occupation?->hiscamU1();
+    $hiscam_nl = $occupation?->hiscamNl();
+    $occ1950 = $occupation?->occ1950();
 }
 ```
 

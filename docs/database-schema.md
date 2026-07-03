@@ -241,6 +241,23 @@ database schema was derived from that structure.
 | `description_en` | `text` | Original English occupation description. |
 | `updated_at` | timestamp nullable | Last import/update time. |
 
+### `occupation_standardizer_hisco_classifications`
+
+The normalized workbooks `hisco_hiscam_occ1950.xlsx` and
+`hisco_hisclass.xlsx` provide one optional classification row per HISCO
+identifier. Their combined fingerprint is stored as
+`hisco_classifications_hash`; either file changing causes the table to be
+refreshed. The source value `-9` is imported as `null`.
+
+| Column | Type | Meaning |
+| --- | --- | --- |
+| `hisco_id` | unsigned medium integer primary key | HISCO identifier used to join the catalog occupation. |
+| `hiscam_u1` | `decimal(5,2)` nullable | Universal HISCAM scale value. |
+| `hiscam_nl` | `decimal(5,2)` nullable | Netherlands-specific HISCAM scale value. |
+| `occ1950` | unsigned small integer nullable | OCC1950 classification code. |
+| `hisclass` | unsigned tiny integer nullable | Twelve-class HISCLASS value. |
+| `hisclass_5` | unsigned tiny integer nullable | Aggregated five-class HISCLASS value. |
+
 ## Bundled GenWiki Occupation Links
 
 The workbook `resources/data/GenWiki/Berufe_GenWiki.xlsx` contains links to

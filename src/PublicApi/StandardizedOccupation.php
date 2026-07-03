@@ -24,6 +24,9 @@ final class StandardizedOccupation
         private ?string $hisco_code = null,
         private ?string $hisclass = null,
         private ?float $hiscam_score = null,
+        private ?int $hisclass_5 = null,
+        private ?float $hiscam_nl = null,
+        private ?int $occ1950 = null,
     ) {
     }
 
@@ -86,6 +89,26 @@ final class StandardizedOccupation
     public function hiscamScore(): ?float
     {
         return $this->hiscam_score;
+    }
+
+    public function hisclass5(): ?int
+    {
+        return $this->hisclass_5;
+    }
+
+    public function hiscamU1(): ?float
+    {
+        return $this->hiscam_score;
+    }
+
+    public function hiscamNl(): ?float
+    {
+        return $this->hiscam_nl;
+    }
+
+    public function occ1950(): ?int
+    {
+        return $this->occ1950;
     }
 
     /**

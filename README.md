@@ -178,6 +178,7 @@ It can show:
 * multilingual Wikipedia links and a language-appropriate introductory paragraph
 * OhdAB hierarchy
 * HISCO hierarchy, when a HISCO code is available
+* locally resolved HISCAM U1, HISCAM NL, OCC1950, HISCLASS, and HISCLASS 5 values
 * visible individuals in the active tree who exercised this occupation
 * original occupation variants mapped to this normalized occupation
 * places
@@ -210,6 +211,8 @@ A persons tab lists visible individuals for the selected hierarchy entry.
 
 The module ships a normalized English HISCO catalog in `resources/data/hisco`.
 It is imported into local module tables on first use and is used to resolve HISCO identifiers without calling an external service.
+Bundled crosswalk workbooks add HISCAM U1, HISCAM NL, OCC1950, HISCLASS, and
+HISCLASS 5 values and are reimported whenever either workbook changes.
 The HISCO hierarchy browser shows major groups, minor groups, unit groups, and occupations.
 For each selected level, matching persons are listed if their normalized occupation entries contain a HISCO identifier.
 

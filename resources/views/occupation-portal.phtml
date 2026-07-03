@@ -47,7 +47,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
  * @var list<array{source:string,status:string,fetched_at:string,error:string}> $externalDataStatusRows
  * @var list<array{source:string,code:string,url:string,extra_links:list<array{label:string,url:string}>}> $externalIdentifierRows
  * @var list<array{text:string,url:string}> $genwikiRows
- * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string}}> $hiscoCatalogRows
+ * @var list<array{hisco_id:string,hisco_pretty:string,label:string,description:string,unit:array{code:string,label:string,description:string},minor:array{code:string,label:string,description:string},major:array{code:string,label:string,description:string},classification:array{hiscam_u1:float|null,hiscam_nl:float|null,occ1950:int|null,hisclass:int|null,hisclass_5:int|null}|null}> $hiscoCatalogRows
  * @var list<array{code:string,label:string}> $ohdabHierarchyRows
  * @var string $hierarchyPath
  * @var callable(array<string,bool|int|string|array<string>|null>):string $listUrl
@@ -392,6 +392,22 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                             <th class="text-muted w-25" scope="row"><?= I18N::translate('Major group') ?></th>
                                             <td><bdi><?= e($row['major']['code']) ?> <?= e($row['major']['label']) ?></bdi></td>
                                         </tr>
+                                        <?php if ($row['classification'] !== null) : ?>
+                                            <?php foreach ([
+                                                'HISCAM U1' => $row['classification']['hiscam_u1'],
+                                                'HISCAM NL' => $row['classification']['hiscam_nl'],
+                                                'OCC1950' => $row['classification']['occ1950'],
+                                                'HISCLASS' => $row['classification']['hisclass'],
+                                                'HISCLASS 5' => $row['classification']['hisclass_5'],
+                                            ] as $classificationLabel => $classificationValue) : ?>
+                                                <?php if ($classificationValue !== null) : ?>
+                                                    <tr>
+                                                        <th class="text-muted w-25" scope="row"><?= e($classificationLabel) ?></th>
+                                                        <td><bdi><?= e((string) $classificationValue) ?></bdi></td>
+                                                    </tr>
+                                                <?php endif ?>
+                                            <?php endforeach ?>
+                                        <?php endif ?>
                                     </tbody>
                                 </table>
                             <?php endforeach ?>
