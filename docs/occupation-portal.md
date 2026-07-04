@@ -40,7 +40,7 @@ The page can show:
 - HISCAM U1, HISCAM NL, OCC1950, HISCLASS, and HISCLASS 5 values resolved from the bundled HISCO crosswalks
 - visible individuals in the active tree who exercised this occupation
 - original occupation variants mapped to this normalized occupation
-- places
+- places as a list, histogram, and interactive Leaflet map
 - time span statistics
 - source references
 - multilingual Wikipedia links and a language-appropriate introductory paragraph
@@ -100,6 +100,12 @@ the bundled HISCO catalog and crosswalk tables.
 OhdAB hierarchy details are resolved locally from the imported tailored OhdAB extract.
 Where an imported OhdAB concept links to a FactGrid item, hierarchy labels may be resolved from the official FactGrid hierarchy items and cached with the same external authority cache.
 If FactGrid cannot be reached or no matching hierarchy item is found, the module falls back to the imported OhdAB label.
+
+The place map uses Leaflet and MarkerCluster from the webtrees asset bundle.
+It is initialized only when its tab is opened, then retrieves raster tiles from
+`tile.openstreetmap.de`. Markers are clustered and the initial viewport covers
+all places with coordinates. The browser-side tile requests are not part of the
+server-side authority cache.
 
 ## Cache Strategy
 

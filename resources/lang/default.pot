@@ -1042,3 +1042,20 @@ msgstr ""
 #: resources/views/wikipedia-link-editor.phtml:71
 msgid "Add Wikipedia link"
 msgstr ""
+msgid "The map could not be loaded."
+msgstr ""
+
+msgid ""
+"When a visitor opens the map on an occupation profile, the browser retrieves "
+"map tiles from OpenStreetMap Deutschland. The request is made directly by "
+"the visitor's browser and is required to display the interactive map."
+msgstr ""
+
+msgid ""
+"The visitor's IP address, browser request metadata, and the coordinates and "
+"zoom levels of the requested map tiles."
+msgstr ""
+
+msgid ""
+"OpenStreetMap tiles are requested only after a visitor opens the map tab."
+msgstr ""

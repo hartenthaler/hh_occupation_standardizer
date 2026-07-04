@@ -270,6 +270,13 @@ table are processed locally. Links to GenWiki, GND Explorer, HISCO, and other
 external pages cause a direct connection only when a visitor follows the link;
 they are not automatic API transfers by this module.
 
+The place card on an occupation profile contains an interactive Leaflet map.
+It uses Leaflet and MarkerCluster from the webtrees asset bundle and loads map
+tiles from OpenStreetMap Deutschland (`tile.openstreetmap.de`) only after a
+visitor opens the map tab. This creates a direct browser connection to FOSSGIS
+e.V. that can transmit the visitor's IP address, browser request metadata, and
+the requested tile coordinates and zoom levels.
+
 The module exposes this information through its public `privacyNotices()`
 method. `hh_legal_notice` can use this method to include the third-party
 services and caching measure in a generated privacy policy. The lightweight

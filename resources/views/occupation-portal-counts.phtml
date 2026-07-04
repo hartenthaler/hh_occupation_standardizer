@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\View;
 
 /**
  * @var array<string,int> $counts
@@ -17,14 +18,10 @@ $showChart ??= false;
 $chartCounts = array_slice($counts, 0, 12, true);
 $maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
 $mapRows = array_values(array_filter($placeRows, static fn (array $row): bool => $row['latitude'] !== null && $row['longitude'] !== null));
-$latitudes = array_column($mapRows, 'latitude');
-$longitudes = array_column($mapRows, 'longitude');
-$minimumLatitude = $latitudes !== [] ? min($latitudes) : 0.0;
-$maximumLatitude = $latitudes !== [] ? max($latitudes) : 0.0;
-$minimumLongitude = $longitudes !== [] ? min($longitudes) : 0.0;
-$maximumLongitude = $longitudes !== [] ? max($longitudes) : 0.0;
-$latitudeRange = max(0.01, $maximumLatitude - $minimumLatitude);
-$longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
+$mapData = json_encode(
+    $mapRows,
+    JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+);
 ?>
 
 <section class="card h-100">
@@ -113,19 +110,106 @@ $longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
                         <p class="small text-muted">
                             <?= I18N::translate('The map uses coordinates from linked _LOC records.') ?>
                         </p>
-                        <svg viewBox="0 0 320 180" role="img" aria-label="<?= e(I18N::translate('Map')) ?>" style="width: 100%; height: auto; background: var(--bs-tertiary-bg, #f8f9fa); border: 1px solid var(--bs-border-color, #dee2e6);">
-                            <rect x="0" y="0" width="320" height="180" fill="transparent"></rect>
-                            <?php foreach ($mapRows as $row) : ?>
-                                <?php
-                                $x = 20 + (280 * ((float) $row['longitude'] - $minimumLongitude) / $longitudeRange);
-                                $y = 160 - (140 * ((float) $row['latitude'] - $minimumLatitude) / $latitudeRange);
-                                $radius = min(14, 4 + $row['count']);
-                                ?>
-                                <circle cx="<?= e((string) $x) ?>" cy="<?= e((string) $y) ?>" r="<?= e((string) $radius) ?>" fill="#4f6f52" fill-opacity="0.55" stroke="#2f4b35">
-                                    <title><?= e($row['place'] . ' (' . $row['location_xref'] . '): ' . I18N::number($row['count'])) ?></title>
-                                </circle>
-                            <?php endforeach ?>
-                        </svg>
+                        <div
+                            id="<?= e($chartId) ?>-leaflet"
+                            role="region"
+                            aria-label="<?= e(I18N::translate('Map')) ?>"
+                            style="height: 360px; border: 1px solid var(--bs-border-color, #dee2e6);"
+                        ></div>
+
+                        <?php View::push('javascript') ?>
+                        <script>
+                        (() => {
+                            const mapElement = document.getElementById(<?= json_encode($chartId . '-leaflet', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
+                            const mapTab = document.getElementById(<?= json_encode($chartId . '-map-tab', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
+                            const rows = <?= $mapData ?>;
+                            const countLabel = <?= json_encode(I18N::translate('Count'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                            const loadError = <?= json_encode(I18N::translate('The map could not be loaded.'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                            let map = null;
+
+                            function escapeHtml(value) {
+                                const element = document.createElement('span');
+                                element.textContent = value;
+
+                                return element.innerHTML;
+                            }
+
+                            function markerIcon(count) {
+                                const size = Math.min(34, Math.max(20, Math.sqrt(count) * 8));
+
+                                return L.divIcon({
+                                    className: '',
+                                    html: `<div style="
+                                        width:${size}px;height:${size}px;
+                                        background:#0d6efd;border-radius:50%;
+                                        border:2px solid #fff;
+                                        box-shadow:0 1px 3px rgba(0,0,0,.45);
+                                        display:flex;align-items:center;justify-content:center;
+                                        color:#fff;font-size:${Math.round(size * .42)}px;font-weight:bold;">
+                                        ${count}
+                                    </div>`,
+                                    iconSize: [size, size],
+                                    iconAnchor: [size / 2, size / 2],
+                                });
+                            }
+
+                            function initializeMap() {
+                                if (map !== null) {
+                                    map.invalidateSize();
+                                    return;
+                                }
+
+                                if (mapElement === null || typeof L === 'undefined') {
+                                    if (mapElement !== null) {
+                                        mapElement.innerHTML = `<p class="p-3 text-muted">${escapeHtml(loadError)}</p>`;
+                                    }
+                                    return;
+                                }
+
+                                map = L.map(mapElement, { preferCanvas: true });
+                                L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
+                                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://www.openstreetmap.de">OSM Deutschland</a>',
+                                    maxZoom: 18,
+                                }).addTo(map);
+
+                                const markers = [];
+                                const markerLayer = typeof L.markerClusterGroup === 'function'
+                                    ? L.markerClusterGroup({
+                                        maxClusterRadius: 50,
+                                        showCoverageOnHover: false,
+                                        chunkedLoading: true,
+                                    })
+                                    : L.layerGroup();
+
+                                rows.forEach(row => {
+                                    const marker = L.marker([row.latitude, row.longitude], {
+                                        icon: markerIcon(row.count),
+                                        title: row.place,
+                                        alt: row.place,
+                                    });
+                                    marker.bindPopup(
+                                        `<strong>${escapeHtml(row.place)}</strong><br>${escapeHtml(countLabel)}: ${row.count}`,
+                                        { maxWidth: 260 }
+                                    );
+                                    markerLayer.addLayer(marker);
+                                    markers.push(marker);
+                                });
+
+                                markerLayer.addTo(map);
+                                map.fitBounds(L.featureGroup(markers).getBounds().pad(.1), { maxZoom: 13 });
+                            }
+
+                            mapTab?.addEventListener('shown.bs.tab', () => {
+                                initializeMap();
+                                window.setTimeout(() => map?.invalidateSize(), 0);
+                            });
+
+                            if (mapTab?.classList.contains('active')) {
+                                initializeMap();
+                            }
+                        })();
+                        </script>
+                        <?php View::endpush() ?>
                     <?php endif ?>
                 </div>
             </div>
