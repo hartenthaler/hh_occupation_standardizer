@@ -3,28 +3,51 @@
 declare(strict_types=1);
 
 use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\View;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 
 /**
  * @var array<string,int> $counts
  * @var string|null $chartId
  * @var list<array{place:string,location_xref:string,latitude:float|null,longitude:float|null,count:int}>|null $placeRows
  * @var bool|null $showChart
+ * @var bool|null $showPie
  * @var string $title
  */
 $chartId ??= 'occupation-portal-counts';
 $placeRows ??= [];
 $showChart ??= false;
+$showPie ??= false;
 $chartCounts = array_slice($counts, 0, 12, true);
 $maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
+$pieRows = [];
+
+foreach (array_slice($counts, 0, 11, true) as $label => $count) {
+    $pieRows[] = ['label' => $label, 'count' => $count];
+}
+
+$remainingPieCount = array_sum(array_slice($counts, 11, null, true));
+
+if ($remainingPieCount > 0) {
+    $pieRows[] = ['label' => MoreI18N::xlate('Other'), 'count' => $remainingPieCount];
+}
+
+$pieTotal = array_sum(array_column($pieRows, 'count'));
+$pieColors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#0dcaf0', '#fd7e14', '#20c997', '#d63384', '#6c757d', '#6610f2', '#adb5bd'];
+$pieSegments = [];
+$pieStart = 0.0;
+
+foreach (array_column($pieRows, 'count') as $index => $count) {
+    $pieEnd = $pieTotal > 0 ? $pieStart + 100 * $count / $pieTotal : $pieStart;
+    $pieSegments[] = $pieColors[$index % count($pieColors)] . ' ' . $pieStart . '% ' . $pieEnd . '%';
+    $pieStart = $pieEnd;
+}
+
 $mapRows = array_values(array_filter($placeRows, static fn (array $row): bool => $row['latitude'] !== null && $row['longitude'] !== null));
-$latitudes = array_column($mapRows, 'latitude');
-$longitudes = array_column($mapRows, 'longitude');
-$minimumLatitude = $latitudes !== [] ? min($latitudes) : 0.0;
-$maximumLatitude = $latitudes !== [] ? max($latitudes) : 0.0;
-$minimumLongitude = $longitudes !== [] ? min($longitudes) : 0.0;
-$maximumLongitude = $longitudes !== [] ? max($longitudes) : 0.0;
-$latitudeRange = max(0.01, $maximumLatitude - $minimumLatitude);
-$longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
+$mapData = json_encode(
+    $mapRows,
+    JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR
+);
 ?>
 
 <section class="card h-100">
@@ -43,7 +66,7 @@ $longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="<?= e($chartId) ?>-chart-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-chart" type="button" role="tab" aria-controls="<?= e($chartId) ?>-chart" aria-selected="true">
-                        <?= I18N::translate('Histogram') ?>
+                        <?= I18N::translate('Bar chart') ?>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -113,20 +136,154 @@ $longitudeRange = max(0.01, $maximumLongitude - $minimumLongitude);
                         <p class="small text-muted">
                             <?= I18N::translate('The map uses coordinates from linked _LOC records.') ?>
                         </p>
-                        <svg viewBox="0 0 320 180" role="img" aria-label="<?= e(I18N::translate('Map')) ?>" style="width: 100%; height: auto; background: var(--bs-tertiary-bg, #f8f9fa); border: 1px solid var(--bs-border-color, #dee2e6);">
-                            <rect x="0" y="0" width="320" height="180" fill="transparent"></rect>
-                            <?php foreach ($mapRows as $row) : ?>
-                                <?php
-                                $x = 20 + (280 * ((float) $row['longitude'] - $minimumLongitude) / $longitudeRange);
-                                $y = 160 - (140 * ((float) $row['latitude'] - $minimumLatitude) / $latitudeRange);
-                                $radius = min(14, 4 + $row['count']);
-                                ?>
-                                <circle cx="<?= e((string) $x) ?>" cy="<?= e((string) $y) ?>" r="<?= e((string) $radius) ?>" fill="#4f6f52" fill-opacity="0.55" stroke="#2f4b35">
-                                    <title><?= e($row['place'] . ' (' . $row['location_xref'] . '): ' . I18N::number($row['count'])) ?></title>
-                                </circle>
-                            <?php endforeach ?>
-                        </svg>
+                        <div
+                            id="<?= e($chartId) ?>-leaflet"
+                            role="region"
+                            aria-label="<?= e(I18N::translate('Map')) ?>"
+                            style="height: 360px; border: 1px solid var(--bs-border-color, #dee2e6);"
+                        ></div>
+
+                        <?php View::push('javascript') ?>
+                        <script>
+                        (() => {
+                            const mapElement = document.getElementById(<?= json_encode($chartId . '-leaflet', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
+                            const mapTab = document.getElementById(<?= json_encode($chartId . '-map-tab', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
+                            const rows = <?= $mapData ?>;
+                            const countLabel = <?= json_encode(I18N::translate('Count'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                            const loadError = <?= json_encode(I18N::translate('The map could not be loaded.'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                            let map = null;
+
+                            function escapeHtml(value) {
+                                const element = document.createElement('span');
+                                element.textContent = value;
+
+                                return element.innerHTML;
+                            }
+
+                            function markerIcon(count) {
+                                const size = Math.min(34, Math.max(20, Math.sqrt(count) * 8));
+
+                                return L.divIcon({
+                                    className: '',
+                                    html: `<div style="
+                                        width:${size}px;height:${size}px;
+                                        background:#0d6efd;border-radius:50%;
+                                        border:2px solid #fff;
+                                        box-shadow:0 1px 3px rgba(0,0,0,.45);
+                                        display:flex;align-items:center;justify-content:center;
+                                        color:#fff;font-size:${Math.round(size * .42)}px;font-weight:bold;">
+                                        ${count}
+                                    </div>`,
+                                    iconSize: [size, size],
+                                    iconAnchor: [size / 2, size / 2],
+                                });
+                            }
+
+                            function initializeMap() {
+                                if (map !== null) {
+                                    map.invalidateSize();
+                                    return;
+                                }
+
+                                if (mapElement === null || typeof L === 'undefined') {
+                                    if (mapElement !== null) {
+                                        mapElement.innerHTML = `<p class="p-3 text-muted">${escapeHtml(loadError)}</p>`;
+                                    }
+                                    return;
+                                }
+
+                                map = L.map(mapElement, { preferCanvas: true });
+                                L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
+                                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://www.openstreetmap.de">OSM Deutschland</a>',
+                                    maxZoom: 18,
+                                }).addTo(map);
+
+                                const markers = [];
+                                const markerLayer = typeof L.markerClusterGroup === 'function'
+                                    ? L.markerClusterGroup({
+                                        maxClusterRadius: 50,
+                                        showCoverageOnHover: false,
+                                        chunkedLoading: true,
+                                    })
+                                    : L.layerGroup();
+
+                                rows.forEach(row => {
+                                    const marker = L.marker([row.latitude, row.longitude], {
+                                        icon: markerIcon(row.count),
+                                        title: row.place,
+                                        alt: row.place,
+                                    });
+                                    marker.bindPopup(
+                                        `<strong>${escapeHtml(row.place)}</strong><br>${escapeHtml(countLabel)}: ${row.count}`,
+                                        { maxWidth: 260 }
+                                    );
+                                    markerLayer.addLayer(marker);
+                                    markers.push(marker);
+                                });
+
+                                markerLayer.addTo(map);
+                                map.fitBounds(L.featureGroup(markers).getBounds().pad(.1), { maxZoom: 13 });
+                            }
+
+                            mapTab?.addEventListener('shown.bs.tab', () => {
+                                initializeMap();
+                                window.setTimeout(() => map?.invalidateSize(), 0);
+                            });
+
+                            if (mapTab?.classList.contains('active')) {
+                                initializeMap();
+                            }
+                        })();
+                        </script>
+                        <?php View::endpush() ?>
                     <?php endif ?>
+                </div>
+            </div>
+        <?php elseif ($showPie) : ?>
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="<?= e($chartId) ?>-list-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-list" type="button" role="tab" aria-controls="<?= e($chartId) ?>-list" aria-selected="true">
+                        <?= I18N::translate('List') ?>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="<?= e($chartId) ?>-pie-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-pie" type="button" role="tab" aria-controls="<?= e($chartId) ?>-pie" aria-selected="false">
+                        <?= I18N::translate('Pie chart') ?>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="<?= e($chartId) ?>-list" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-list-tab" tabindex="0">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <?php foreach ($counts as $label => $count) : ?>
+                                <tr>
+                                    <td><bdi><?= e($label) ?></bdi></td>
+                                    <td class="text-end"><?= I18N::number($count) ?></td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="<?= e($chartId) ?>-pie" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-pie-tab" tabindex="0">
+                    <div
+                        class="mx-auto mb-3 rounded-circle"
+                        role="img"
+                        aria-label="<?= e(I18N::translate('Pie chart')) ?>"
+                        style="width: min(15rem, 75vw); aspect-ratio: 1; background: conic-gradient(<?= e(implode(', ', $pieSegments)) ?>);"
+                    ></div>
+                    <div class="small">
+                        <?php foreach ($pieRows as $colorIndex => $row) : ?>
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                <span class="text-truncate">
+                                    <span class="d-inline-block me-1" style="width: .75rem; height: .75rem; background: <?= e($pieColors[$colorIndex % count($pieColors)]) ?>;"></span>
+                                    <bdi><?= e($row['label']) ?></bdi>
+                                </span>
+                                <span><?= I18N::number($row['count']) ?></span>
+                            </div>
+                        <?php endforeach ?>
+                    </div>
                 </div>
             </div>
         <?php else : ?>

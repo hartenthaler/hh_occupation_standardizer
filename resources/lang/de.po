@@ -1393,3 +1393,36 @@ msgstr "Wikipedia-Link hinzufügen"
 
 #~ msgid "Normalized key"
 #~ msgstr "Normschlüssel"
+msgid "The map could not be loaded."
+msgstr "Die Karte konnte nicht geladen werden."
+
+msgid ""
+"When a visitor opens the map on an occupation profile, the browser retrieves "
+"map tiles from OpenStreetMap Deutschland. The request is made directly by "
+"the visitor's browser and is required to display the interactive map."
+msgstr ""
+"Wenn ein Besucher die Karte auf einer Berufsprofilseite öffnet, ruft der "
+"Browser Kartenkacheln von OpenStreetMap Deutschland ab. Die Anfrage erfolgt "
+"direkt durch den Browser des Besuchers und ist für die Darstellung der "
+"interaktiven Karte erforderlich."
+
+msgid ""
+"The visitor's IP address, browser request metadata, and the coordinates and "
+"zoom levels of the requested map tiles."
+msgstr ""
+"Die IP-Adresse des Besuchers, technische Metadaten der Browseranfrage sowie "
+"Koordinaten und Zoomstufen der angeforderten Kartenkacheln."
+
+msgid ""
+"OpenStreetMap tiles are requested only after a visitor opens the map tab."
+msgstr ""
+"OpenStreetMap-Kacheln werden erst angefordert, nachdem ein Besucher den "
+"Kartenreiter geöffnet hat."
+
+#: resources/views/occupation-portal-counts.phtml
+msgid "Bar chart"
+msgstr "Balkendiagramm"
+
+#: resources/views/occupation-portal-counts.phtml
+msgid "Pie chart"
+msgstr "Tortendiagramm"

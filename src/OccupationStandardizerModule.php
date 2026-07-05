@@ -224,9 +224,20 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                         $technical_request_data,
                     ],
                 ],
+                [
+                    'name'        => 'OpenStreetMap Deutschland (FOSSGIS e.V.)',
+                    'url'         => 'https://tile.openstreetmap.de/',
+                    'country'     => 'Germany',
+                    'privacy_url' => 'https://www.fossgis.de/datenschutzerkl%C3%A4rung/',
+                    'description' => I18N::translate('When a visitor opens the map on an occupation profile, the browser retrieves map tiles from OpenStreetMap Deutschland. The request is made directly by the visitor\'s browser and is required to display the interactive map.'),
+                    'data'        => [
+                        I18N::translate('The visitor\'s IP address, browser request metadata, and the coordinates and zoom levels of the requested map tiles.'),
+                    ],
+                ],
             ],
             'security_measures' => [
                 I18N::translate('External authority responses are cached locally to reduce data transfers and requests to third-party services; most responses are refreshed after 24 hours and Wikipedia introductory text after 30 days.'),
+                I18N::translate('OpenStreetMap tiles are requested only after a visitor opens the map tab.'),
             ],
         ];
     }

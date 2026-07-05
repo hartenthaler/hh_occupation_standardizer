@@ -9,7 +9,12 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Added
 
+- Replaced the schematic occupation-place bubble plot with an interactive Leaflet/OpenStreetMap map using clustered markers and lazy tile loading.
+
 ### Changed
+
+- Highlight the Wikipedia language link that matches the current user interface language on occupation profile pages.
+- Add list and pie-chart views for original occupations, rename the place histogram to a bar chart, and open the period histogram by default.
 
 ### Fixed
 

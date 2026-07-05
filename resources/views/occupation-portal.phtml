@@ -28,6 +28,30 @@ $periodStats ??= [];
 $wikipediaIntroduction ??= null;
 $wikipediaLinks ??= [];
 $canManageExternalData ??= false;
+$interfaceLanguage = strtolower(str_replace('_', '-', I18N::languageTag()));
+$interfacePrimaryLanguage = explode('-', $interfaceLanguage)[0];
+$preferredWikipediaLanguage = null;
+
+foreach ($wikipediaLinks as $link) {
+    $linkLanguage = strtolower(str_replace('_', '-', $link['language']));
+
+    if ($linkLanguage === $interfaceLanguage) {
+        $preferredWikipediaLanguage = $linkLanguage;
+        break;
+    }
+}
+
+if ($preferredWikipediaLanguage === null) {
+    foreach ($wikipediaLinks as $link) {
+        $linkLanguage = strtolower(str_replace('_', '-', $link['language']));
+
+        if (explode('-', $linkLanguage)[0] === $interfacePrimaryLanguage) {
+            $preferredWikipediaLanguage = $linkLanguage;
+            break;
+        }
+    }
+}
+
 $periodYears = array_map(
     static fn (string $value): int => (int) preg_replace('/[^0-9-]/', '', $value),
     array_values($periodStats)
@@ -308,7 +332,14 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                             <div class="d-flex flex-wrap gap-2 align-items-center">
                                 <span class="small text-muted"><?= I18N::translate('Available languages') ?>:</span>
                                 <?php foreach ($wikipediaLinks as $link) : ?>
-                                    <a class="btn btn-outline-secondary btn-sm" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer">
+                                    <?php $isPreferredLanguage = strtolower(str_replace('_', '-', $link['language'])) === $preferredWikipediaLanguage ?>
+                                    <a
+                                        class="btn <?= $isPreferredLanguage ? 'btn-primary active' : 'btn-outline-secondary' ?> btn-sm"
+                                        href="<?= e($link['url']) ?>"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        <?= $isPreferredLanguage ? 'aria-current="true"' : '' ?>
+                                    >
                                         <?= e($link['language']) ?>
                                     </a>
                                 <?php endforeach ?>
@@ -469,6 +500,8 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                 <?= view('_hh_occupation_standardizer_::occupation-portal-counts', [
                     'title' => I18N::translate('Original occupations'),
                     'counts' => $textCounts,
+                    'chartId' => 'occupation-portal-original-occupations',
+                    'showPie' => true,
                 ]) ?>
             </div>
             <div class="col-12 col-xl-4">
@@ -496,12 +529,12 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="occupation-portal-period-chart-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-chart" type="button" role="tab" aria-controls="occupation-portal-period-chart" aria-selected="true">
+                                    <button class="nav-link" id="occupation-portal-period-chart-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-chart" type="button" role="tab" aria-controls="occupation-portal-period-chart" aria-selected="false">
                                         <?= I18N::translate('Timeline') ?>
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="occupation-portal-period-histogram-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-histogram" type="button" role="tab" aria-controls="occupation-portal-period-histogram" aria-selected="false">
+                                    <button class="nav-link active" id="occupation-portal-period-histogram-tab" data-bs-toggle="tab" data-bs-target="#occupation-portal-period-histogram" type="button" role="tab" aria-controls="occupation-portal-period-histogram" aria-selected="true">
                                         <?= I18N::translate('Histogram') ?>
                                     </button>
                                 </li>
@@ -521,7 +554,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                     </table>
                                 </div>
 
-                                <div class="tab-pane fade show active" id="occupation-portal-period-chart" role="tabpanel" aria-labelledby="occupation-portal-period-chart-tab" tabindex="0">
+                                <div class="tab-pane fade" id="occupation-portal-period-chart" role="tabpanel" aria-labelledby="occupation-portal-period-chart-tab" tabindex="0">
                                     <p class="small text-muted">
                                         <?= I18N::translate('The line marks the earliest and latest year; the markers show the median and average year.') ?>
                                     </p>
@@ -542,7 +575,7 @@ $maximumPeriodBucketCount = $periodHistogramRows !== [] ? max(array_column($peri
                                     </div>
                                 </div>
 
-                                <div class="tab-pane fade" id="occupation-portal-period-histogram" role="tabpanel" aria-labelledby="occupation-portal-period-histogram-tab" tabindex="0">
+                                <div class="tab-pane fade show active" id="occupation-portal-period-histogram" role="tabpanel" aria-labelledby="occupation-portal-period-histogram-tab" tabindex="0">
                                     <?php if ($periodHistogramRows === []) : ?>
                                         <p class="mb-0 text-muted"><?= I18N::translate('No entries are available.') ?></p>
                                     <?php else : ?>
