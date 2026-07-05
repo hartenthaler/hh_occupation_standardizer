@@ -16,6 +16,9 @@ Recognized separators:
 - English conjunction: `and`
 
 Hyphenated compounds such as `Orgel- und Harmoniumbauer` are not split by `und` in this first implementation.
+Gender-neutral suffixes such as `Orgelbauer/in`, `Kolleg/innen`, and
+`Angestellte/r` are not split at the slash. A slash between complete occupation
+terms, such as `Bauer/Weingärtner`, remains a separator.
 
 ## M2-R010: Social status is not an occupation
 

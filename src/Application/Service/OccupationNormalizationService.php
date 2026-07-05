@@ -112,9 +112,15 @@ final class OccupationNormalizationService
     {
         // M2-R001: Split multiple statements by separators and standalone conjunctions.
         $parts = [];
+        $gender_slash_placeholder = "\x1F";
+        $occupation = preg_replace(
+            '/\/(?=(?:in(?:nen)?|r)(?:\b|-))/u',
+            $gender_slash_placeholder,
+            $occupation
+        ) ?? $occupation;
 
         foreach (preg_split('/\s*[,\/;]\s*/u', $occupation) ?: [] as $chunk) {
-            $chunk = trim($chunk);
+            $chunk = trim(str_replace($gender_slash_placeholder, '/', $chunk));
 
             if ($chunk === '') {
                 continue;
