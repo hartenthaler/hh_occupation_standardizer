@@ -18,6 +18,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Restrict database-backed occupation labels to the current individual and remove redundant automatically generated normalization rows.
+
 ## 2.2.6.6 - 2026-07-04
 
 ### Added

@@ -3161,8 +3161,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $rows = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
             ->where('tree_id', '=', $tree->id())
-            ->where('is_active', '=', true)
-            ->get(['id', 'individual_xref', 'fact_id', 'part_index', 'reviewed', 'manually_changed', 'last_seen_at', 'updated_at']);
+            ->get(['id', 'individual_xref', 'fact_id', 'part_index', 'reviewed', 'manually_changed', 'is_active', 'last_seen_at', 'updated_at']);
 
         $groups = [];
 
@@ -3176,9 +3175,11 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 continue;
             }
 
-            $keep = $group[0];
+            $active_group = array_values(array_filter($group, static fn (object $row): bool => (bool) $row->is_active));
+            $candidates = $active_group !== [] ? $active_group : $group;
+            $keep = $candidates[0];
 
-            foreach ($group as $row) {
+            foreach ($candidates as $row) {
                 if ($this->isBetterDuplicateNormalizationRow($row, $keep)) {
                     $keep = $row;
                 }
@@ -3192,6 +3193,16 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 (int) $keep->id,
                 $now
             );
+
+            DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+                ->where('tree_id', '=', $tree->id())
+                ->where('individual_xref', '=', (string) $keep->individual_xref)
+                ->where('fact_id', '=', (string) $keep->fact_id)
+                ->where('part_index', '=', (int) $keep->part_index)
+                ->where('id', '<>', (int) $keep->id)
+                ->where('reviewed', '=', false)
+                ->where('manually_changed', '=', false)
+                ->delete();
         }
     }
 

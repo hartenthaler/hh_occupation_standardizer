@@ -188,15 +188,17 @@ final class OccupationLabelService
             $title_parts[] = MoreI18N::xlate('Status') . ': ' . $this->statusLabel($entry['status']);
             $title_parts[] = MoreI18N::xlate('Rules') . ': ' . $entry['rule_numbers'];
 
-            $labels[] = [
+            $label = [
                 'label'           => $this->label($entry, $sex, $user_language),
                 'title'           => implode("\n", $title_parts),
                 'status'          => $entry['status'],
                 'norm_concept_id' => (int) ($entry['norm_concept_id'] ?? 0),
             ];
+            $label_key = implode("\0", [$label['label'], $label['title'], $label['status'], (string) $label['norm_concept_id']]);
+            $labels[$label_key] = $label;
         }
 
-        return $labels;
+        return array_values($labels);
     }
 
     private function statusLabel(string $status): string
@@ -272,6 +274,7 @@ final class OccupationLabelService
 
         return DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
             ->where('tree_id', '=', $fact->record()->tree()->id())
+            ->where('individual_xref', '=', $fact->record()->xref())
             ->where('fact_id', '=', $fact->id())
             ->where('is_active', '=', true)
             ->orderBy('part_index')
