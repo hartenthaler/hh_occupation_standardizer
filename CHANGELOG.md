@@ -13,6 +13,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Changed
 
+- Highlight the Wikipedia language link that matches the current user interface language on occupation profile pages.
+
 ### Fixed
 
 ## 2.2.6.6 - 2026-07-04
