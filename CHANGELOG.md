@@ -23,6 +23,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Do not split gender-neutral occupation suffixes such as `/in`, `/innen`, or `/r` into spurious occupation labels.
 - Extend existing separator, qualification, and context rules; add ordered shared-headword expansion and occurrence-specific former-occupation recognition.
 - Expose the new `occupation_status` field in stored entries, manager editing, label tooltips, and the public API.
+- Collapse Wikipedia link editors by default in module settings while keeping their link count visible.
 
 ## 2.2.6.6 - 2026-07-04
 

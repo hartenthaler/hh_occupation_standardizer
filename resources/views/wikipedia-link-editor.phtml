@@ -7,18 +7,25 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
 
 $links ??= [];
 $managed ??= false;
+$collapsed ??= false;
 $displayLinks = $links !== [] ? $links : ($managed ? [['language' => '', 'url' => '']] : []);
 
 /**
  * @var list<array{language:string,url:string}> $links
  * @var bool $managed
+ * @var bool $collapsed
  */
 ?>
 
-<fieldset class="border rounded p-2" data-wikipedia-editor>
-    <legend class="float-none w-auto px-1 fs-6 mb-1">Wikipedia</legend>
+<details class="border rounded p-2" data-wikipedia-editor <?= $collapsed ? '' : 'open' ?>>
+    <summary class="fw-semibold">
+        Wikipedia
+        <?php if ($links !== []) : ?>
+            <span class="badge bg-secondary ms-1"><?= I18N::number(count($links)) ?></span>
+        <?php endif ?>
+    </summary>
 
-    <div class="form-check mb-2">
+    <div class="form-check mt-2 mb-2">
         <label class="form-check-label">
             <input class="form-check-input" type="checkbox" name="wikipediaLinksManaged" value="1" data-wikipedia-managed <?= $managed ? 'checked' : '' ?>>
             <?= I18N::translate('Maintain Wikipedia links manually') ?>
@@ -87,7 +94,7 @@ $displayLinks = $links !== [] ? $links : ($managed ? [['language' => '', 'url' =
             </td>
         </tr>
     </template>
-</fieldset>
+</details>
 
 <script>
 if (!window.hhWikipediaEditorInitialized) {
