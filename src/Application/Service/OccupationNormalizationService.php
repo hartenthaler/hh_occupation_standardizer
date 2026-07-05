@@ -224,10 +224,12 @@ final class OccupationNormalizationService
 
             if ($rule_id === 'M2-R032' && in_array($lower, self::MASTER_COMPOUND_EXCEPTIONS, true)) {
                 // M2-R032: Independent master compounds are not split.
-                return $this->withRules($entry, [
+                $entry = $this->withRules($entry, [
                     'occupation_normalized' => $original,
                     'status'                => self::STATUS_RECOGNIZED,
                 ], [$rule_id]);
+
+                return $this->enrichMappedOccupation($entry, $original, $language, [$rule_id]);
             }
 
             if ($rule_id === 'M2-R040' && preg_match('/^arbeiter\s*:\s*fabrik$/iu', $original) === 1) {

@@ -47,6 +47,9 @@ The same pattern applies to `Geselle` and `Lehrling`.
 ## M2-R032: Independent master compounds are not split
 
 Independent compounds such as `Schulmeister`, `Bürgermeister`, and `Werkmeister` are not split into occupation plus qualification.
+The unchanged occupation term is subsequently passed to site-managed mappings
+and the external OhdAB special database, so these occupations can still receive
+classification identifiers and hierarchy links.
 
 ## M2-R031: Compound craft qualification
 

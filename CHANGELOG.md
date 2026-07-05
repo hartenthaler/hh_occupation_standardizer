@@ -19,6 +19,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 ### Fixed
 
 - Restrict database-backed occupation labels to the current individual and remove redundant automatically generated normalization rows.
+- Continue from independent master compounds such as `Bürgermeister` to site-managed and OhdAB classification rules.
 
 ## 2.2.6.6 - 2026-07-04
 
