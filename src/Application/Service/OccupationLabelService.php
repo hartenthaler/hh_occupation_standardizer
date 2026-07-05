@@ -121,6 +121,13 @@ final class OccupationLabelService
                 $title_parts[] = MoreI18N::xlate('Occupation') . ': ' . $entry['occupation_normalized'];
             }
 
+            if (($entry['occupation_status'] ?? '') !== '') {
+                $title_parts[] = I18N::translate('Occupation status') . ': ' . match ($entry['occupation_status']) {
+                    'former' => I18N::translate('Former'),
+                    default  => $entry['occupation_status'],
+                };
+            }
+
             if (($entry['occupation_de_male'] ?? '') !== '') {
                 $title_parts[] = I18N::translate('German masculine form') . ': ' . $entry['occupation_de_male'];
             }
@@ -291,6 +298,7 @@ final class OccupationLabelService
                 'occupation_en_male'    => (string) ($entry->occupation_en_male ?? ''),
                 'occupation_en_female'  => (string) ($entry->occupation_en_female ?? ''),
                 'occupation_en_neutral' => (string) ($entry->occupation_en_neutral ?? ''),
+                'occupation_status'     => (string) ($entry->occupation_status ?? ''),
                 'office'                => (string) ($entry->office ?? ''),
                 'qualification'         => (string) ($entry->qualification ?? ''),
                 'code_hisco'            => (string) ($entry->code_hisco ?? ''),

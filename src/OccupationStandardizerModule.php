@@ -283,6 +283,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     occupation_en_male: $entry['occupation_en_male'],
                     occupation_en_female: $entry['occupation_en_female'],
                     occupation_en_neutral: $entry['occupation_en_neutral'],
+                    occupation_status: $entry['occupation_status'] !== '' ? $entry['occupation_status'] : null,
                     hisco_code: $hisco_code,
                     hisclass: isset($classification['hisclass']) ? (string) $classification['hisclass'] : null,
                     hiscam_score: $classification['hiscam_u1'] ?? null,
@@ -1243,6 +1244,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.occupation_en_male',
                 'entries.occupation_en_female',
                 'entries.occupation_en_neutral',
+                'entries.occupation_status',
                 'entries.office',
                 'entries.qualification',
                 'entries.code_hisco',
@@ -1549,6 +1551,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'entries.occupation_en_male',
             'entries.occupation_en_female',
             'entries.occupation_en_neutral',
+            'entries.occupation_status',
             'entries.office',
             'entries.qualification',
             'entries.code_hisco',
@@ -1838,6 +1841,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'entries.occupation_en_male',
                 'entries.occupation_en_female',
                 'entries.occupation_en_neutral',
+                'entries.occupation_status',
                 'entries.office',
                 'entries.qualification',
                 'entries.code_hisco',
@@ -2679,6 +2683,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'occupation_en_male'    => (string) ($entry->occupation_en_male ?? ''),
             'occupation_en_female'  => (string) ($entry->occupation_en_female ?? ''),
             'occupation_en_neutral' => (string) ($entry->occupation_en_neutral ?? ''),
+            'occupation_status'     => (string) ($entry->occupation_status ?? ''),
             'office'                => (string) ($entry->office ?? ''),
             'qualification'         => (string) ($entry->qualification ?? ''),
             'code_hisco'            => (string) ($entry->code_hisco ?? ''),
@@ -2895,6 +2900,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                     'occupation_en_male'    => (string) ($entry->occupation_en_male ?? ''),
                     'occupation_en_female'  => (string) ($entry->occupation_en_female ?? ''),
                     'occupation_en_neutral' => (string) ($entry->occupation_en_neutral ?? ''),
+                    'occupation_status'     => (string) ($entry->occupation_status ?? ''),
                     'office'                => (string) ($entry->office ?? ''),
                     'qualification'         => (string) ($entry->qualification ?? ''),
                     'code_hisco'            => (string) ($entry->code_hisco ?? ''),
@@ -2931,6 +2937,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $wikipedia_service = new WikipediaService();
         $wikipedia_links_managed = (string) ($params['wikipediaLinksManaged'] ?? '') === '1';
+        $occupation_status = trim((string) ($params['occupationStatus'] ?? ''));
+
+        if (!in_array($occupation_status, ['', 'former'], true)) {
+            $occupation_status = '';
+        }
+
         $values = [
             'date'                  => trim((string) ($params['date'] ?? '')),
             'place'                 => trim((string) ($params['place'] ?? '')),
@@ -2950,6 +2962,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'occupation_en_male'    => '',
             'occupation_en_female'  => '',
             'occupation_en_neutral' => '',
+            'occupation_status'     => $occupation_status,
             'office'                => trim((string) ($params['office'] ?? '')),
             'qualification'         => trim((string) ($params['qualification'] ?? '')),
             'code_hisco'            => trim((string) ($params['codeHisco'] ?? '')),
@@ -3258,6 +3271,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'occupation_en_male'    => $entry['occupation_en_male'],
             'occupation_en_female'  => $entry['occupation_en_female'],
             'occupation_en_neutral' => $entry['occupation_en_neutral'],
+            'occupation_status'     => $entry['occupation_status'],
             'office'                => $entry['office'],
             'qualification'         => $entry['qualification'],
             'code_hisco'            => $entry['code_hisco'],
@@ -3383,6 +3397,14 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'label'       => I18N::translate('Split multiple statements'),
                 'description' => I18N::translate('Splits occupation facts by separators and conjunctions.'),
             ],
+            'M2-R002' => [
+                'label'       => I18N::translate('Expand shared occupation headwords'),
+                'description' => I18N::translate('Expands abbreviated coordinated occupations when both reconstructed terms are known.'),
+            ],
+            'M2-R060' => [
+                'label'       => I18N::translate('Former occupation'),
+                'description' => I18N::translate('Recognizes former or retired occupation statements and stores their occurrence status separately.'),
+            ],
             'M2-R010' => [
                 'label'       => I18N::translate('Social status is not an occupation'),
                 'description' => I18N::translate('Recognizes social status terms such as citizen without counting them as occupations.'),
@@ -3503,9 +3525,20 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
 
         $completed_order = array_values(array_unique($completed_order));
 
-        foreach ($default_order as $rule_id) {
+        foreach ($default_order as $default_index => $rule_id) {
             if (!in_array($rule_id, $completed_order, true)) {
-                $completed_order[] = $rule_id;
+                $insert_at = count($completed_order);
+
+                foreach (array_slice($default_order, $default_index + 1) as $following_rule_id) {
+                    $following_index = array_search($following_rule_id, $completed_order, true);
+
+                    if ($following_index !== false) {
+                        $insert_at = (int) $following_index;
+                        break;
+                    }
+                }
+
+                array_splice($completed_order, $insert_at, 0, [$rule_id]);
             }
         }
 

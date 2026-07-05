@@ -63,6 +63,7 @@ final class OccupationSchema
                 $table->string('occupation_en_male', 255)->nullable();
                 $table->string('occupation_en_female', 255)->nullable();
                 $table->string('occupation_en_neutral', 255)->nullable();
+                $table->string('occupation_status', 32)->nullable();
                 $table->string('office', 255)->nullable();
                 $table->string('qualification', 255)->nullable();
                 $table->string('code_hisco', 64)->nullable();
@@ -313,6 +314,7 @@ final class OccupationSchema
             'occupation_en_male'   => 255,
             'occupation_en_female' => 255,
             'occupation_en_neutral' => 255,
+            'occupation_status'     => 32,
         ] as $column => $length) {
             if (!DB::schema()->hasColumn(self::TABLE_NORMALIZED_ENTRIES, $column)) {
                 DB::schema()->table(self::TABLE_NORMALIZED_ENTRIES, static function ($table) use ($column, $length): void {

@@ -1067,3 +1067,21 @@ msgstr ""
 #: resources/views/occupation-portal-counts.phtml
 msgid "Pie chart"
 msgstr ""
+
+msgid "Expand shared occupation headwords"
+msgstr ""
+
+msgid "Expands abbreviated coordinated occupations when both reconstructed terms are known."
+msgstr ""
+
+msgid "Former occupation"
+msgstr ""
+
+msgid "Recognizes former or retired occupation statements and stores their occurrence status separately."
+msgstr ""
+
+msgid "Occupation status"
+msgstr ""
+
+msgid "Former"
+msgstr ""
