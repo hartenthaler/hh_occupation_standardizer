@@ -14,6 +14,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 ### Changed
 
 - Highlight the Wikipedia language link that matches the current user interface language on occupation profile pages.
+- Add list and pie-chart views for original occupations, rename the place histogram to a bar chart, and open the period histogram by default.
 
 ### Fixed
 

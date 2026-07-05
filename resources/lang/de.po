@@ -1418,3 +1418,11 @@ msgid ""
 msgstr ""
 "OpenStreetMap-Kacheln werden erst angefordert, nachdem ein Besucher den "
 "Kartenreiter geöffnet hat."
+
+#: resources/views/occupation-portal-counts.phtml
+msgid "Bar chart"
+msgstr "Balkendiagramm"
+
+#: resources/views/occupation-portal-counts.phtml
+msgid "Pie chart"
+msgstr "Tortendiagramm"

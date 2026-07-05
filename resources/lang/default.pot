@@ -1059,3 +1059,11 @@ msgstr ""
 msgid ""
 "OpenStreetMap tiles are requested only after a visitor opens the map tab."
 msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml
+msgid "Bar chart"
+msgstr ""
+
+#: resources/views/occupation-portal-counts.phtml
+msgid "Pie chart"
+msgstr ""

@@ -4,19 +4,45 @@ declare(strict_types=1);
 
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\View;
+use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\MoreI18N;
 
 /**
  * @var array<string,int> $counts
  * @var string|null $chartId
  * @var list<array{place:string,location_xref:string,latitude:float|null,longitude:float|null,count:int}>|null $placeRows
  * @var bool|null $showChart
+ * @var bool|null $showPie
  * @var string $title
  */
 $chartId ??= 'occupation-portal-counts';
 $placeRows ??= [];
 $showChart ??= false;
+$showPie ??= false;
 $chartCounts = array_slice($counts, 0, 12, true);
 $maximumCount = $chartCounts !== [] ? max($chartCounts) : 0;
+$pieRows = [];
+
+foreach (array_slice($counts, 0, 11, true) as $label => $count) {
+    $pieRows[] = ['label' => $label, 'count' => $count];
+}
+
+$remainingPieCount = array_sum(array_slice($counts, 11, null, true));
+
+if ($remainingPieCount > 0) {
+    $pieRows[] = ['label' => MoreI18N::xlate('Other'), 'count' => $remainingPieCount];
+}
+
+$pieTotal = array_sum(array_column($pieRows, 'count'));
+$pieColors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#0dcaf0', '#fd7e14', '#20c997', '#d63384', '#6c757d', '#6610f2', '#adb5bd'];
+$pieSegments = [];
+$pieStart = 0.0;
+
+foreach (array_column($pieRows, 'count') as $index => $count) {
+    $pieEnd = $pieTotal > 0 ? $pieStart + 100 * $count / $pieTotal : $pieStart;
+    $pieSegments[] = $pieColors[$index % count($pieColors)] . ' ' . $pieStart . '% ' . $pieEnd . '%';
+    $pieStart = $pieEnd;
+}
+
 $mapRows = array_values(array_filter($placeRows, static fn (array $row): bool => $row['latitude'] !== null && $row['longitude'] !== null));
 $mapData = json_encode(
     $mapRows,
@@ -40,7 +66,7 @@ $mapData = json_encode(
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="<?= e($chartId) ?>-chart-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-chart" type="button" role="tab" aria-controls="<?= e($chartId) ?>-chart" aria-selected="true">
-                        <?= I18N::translate('Histogram') ?>
+                        <?= I18N::translate('Bar chart') ?>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -211,6 +237,53 @@ $mapData = json_encode(
                         </script>
                         <?php View::endpush() ?>
                     <?php endif ?>
+                </div>
+            </div>
+        <?php elseif ($showPie) : ?>
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="<?= e($chartId) ?>-list-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-list" type="button" role="tab" aria-controls="<?= e($chartId) ?>-list" aria-selected="true">
+                        <?= I18N::translate('List') ?>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="<?= e($chartId) ?>-pie-tab" data-bs-toggle="tab" data-bs-target="#<?= e($chartId) ?>-pie" type="button" role="tab" aria-controls="<?= e($chartId) ?>-pie" aria-selected="false">
+                        <?= I18N::translate('Pie chart') ?>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="<?= e($chartId) ?>-list" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-list-tab" tabindex="0">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <?php foreach ($counts as $label => $count) : ?>
+                                <tr>
+                                    <td><bdi><?= e($label) ?></bdi></td>
+                                    <td class="text-end"><?= I18N::number($count) ?></td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="<?= e($chartId) ?>-pie" role="tabpanel" aria-labelledby="<?= e($chartId) ?>-pie-tab" tabindex="0">
+                    <div
+                        class="mx-auto mb-3 rounded-circle"
+                        role="img"
+                        aria-label="<?= e(I18N::translate('Pie chart')) ?>"
+                        style="width: min(15rem, 75vw); aspect-ratio: 1; background: conic-gradient(<?= e(implode(', ', $pieSegments)) ?>);"
+                    ></div>
+                    <div class="small">
+                        <?php foreach ($pieRows as $colorIndex => $row) : ?>
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                <span class="text-truncate">
+                                    <span class="d-inline-block me-1" style="width: .75rem; height: .75rem; background: <?= e($pieColors[$colorIndex % count($pieColors)]) ?>;"></span>
+                                    <bdi><?= e($row['label']) ?></bdi>
+                                </span>
+                                <span><?= I18N::number($row['count']) ?></span>
+                            </div>
+                        <?php endforeach ?>
+                    </div>
                 </div>
             </div>
         <?php else : ?>
