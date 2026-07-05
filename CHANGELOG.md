@@ -21,6 +21,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 - Restrict database-backed occupation labels to the current individual and remove redundant automatically generated normalization rows.
 - Continue from independent master compounds such as `Bürgermeister` to site-managed and OhdAB classification rules.
 - Do not split gender-neutral occupation suffixes such as `/in`, `/innen`, or `/r` into spurious occupation labels.
+- Extend existing separator, qualification, and context rules; add ordered shared-headword expansion and occurrence-specific former-occupation recognition.
+- Expose the new `occupation_status` field in stored entries, manager editing, label tooltips, and the public API.
 
 ## 2.2.6.6 - 2026-07-04
 

@@ -55,6 +55,9 @@ Normalization and display are deliberately separate:
   masculine form, and `X`, `U`, an empty value, or any other value the neutral
   form. Missing forms fall back within the requested language, then to the
   other supported language, and finally to `canonicalLabel()`.
+- `occupationStatus()` exposes an occurrence-specific status such as `former`.
+  It returns `null` when the original statement does not qualify the occupation
+  in this way.
 - `hiscoCode()` exposes the HISCO identifier.
 - `hisclass()` and `hisclass5()` expose the twelve-class and aggregated
   five-class HISCLASS values.
@@ -103,6 +106,7 @@ if ($standardizer instanceof OccupationStandardizerInterface) {
     $canonical = $occupation?->canonicalLabel();        // Arzt
     $german_label = $occupation?->displayLabel('de', 'F');
     $english_label = $occupation?->displayLabel('en', 'F');
+    $occupation_status = $occupation?->occupationStatus();
     $hisclass = $occupation?->hisclass();
     $hisclass5 = $occupation?->hisclass5();
     $hiscam_u1 = $occupation?->hiscamU1();

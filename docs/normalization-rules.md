@@ -12,13 +12,27 @@ Recognized separators:
 - comma: `,`
 - slash: `/`
 - semicolon: `;`
+- ampersand: `&`
+- plus sign: `+`
 - German conjunction: `und`
+- German conjunction: `sowie`
 - English conjunction: `and`
 
 Hyphenated compounds such as `Orgel- und Harmoniumbauer` are not split by `und` in this first implementation.
 Gender-neutral suffixes such as `Orgelbauer/in`, `Kolleg/innen`, and
 `Angestellte/r` are not split at the slash. A slash between complete occupation
 terms, such as `Bauer/Weingärtner`, remains a separator.
+
+## M2-R002: Expand shared occupation headwords
+
+Abbreviated coordinated occupations such as `Acker- und Weinbauer` are
+expanded before M2-R001 splits conjunctions. The rule reconstructs the omitted
+shared headword only when both resulting occupation expressions are known in
+the site-managed mapping table or the imported OhdAB special database.
+
+The default order places M2-R002 immediately before M2-R001 so shared
+headwords are resolved before general separator processing. Administrators can
+still change the order deliberately.
 
 ## M2-R010: Social status is not an occupation
 
@@ -56,7 +70,18 @@ classification identifiers and hierarchy links.
 
 ## M2-R031: Compound craft qualification
 
-`Orgelbaumeister` is normalized as:
+Compounds ending in `Geselle` or `Lehrling` are separated into occupation and
+qualification. `Junggeselle` is excluded because it is not an occupational
+qualification. The following selected master compounds are handled in the same
+way:
+
+- `Müllermeister`
+- `Schneidermeister`
+- `Schmiedemeister`
+- `Bäckermeister`
+- `Orgelbaumeister`
+
+For example, `Orgelbaumeister` is normalized as:
 
 - normalized occupation: `Orgelbauer`
 - qualification: `Meister`
@@ -70,9 +95,17 @@ Broad occupation terms can be refined when the occupation text or copied context
 The first implemented cases are intentionally narrow:
 
 - `Angestellter` or `Angestellte` with employer `Bank` or `Banken` is normalized as `Bankangestellter`.
-- `Arbeiter: Fabrik` is normalized as `Fabrikarbeiter`.
+- `Arbeiter: Fabrik` and `Arbeiter (Fabrik)` are normalized as `Fabrikarbeiter`.
 
 This rule uses context without changing GEDCOM. The original occupation text and copied context fields remain available for review.
+
+## M2-R060: Former occupation
+
+Statements such as `ehemaliger Lehrer`, `gewesene Lehrerin`, `Lehrer a. D.`,
+or `Lehrer i. R.` are normalized using the underlying occupation term. The
+occurrence-specific field `occupation_status` receives the stable value
+`former`. This status does not become part of the normalized occupation concept
+and therefore does not split statistics for the same occupation.
 
 ## M2-R050: Site-managed normalization mapping table
 

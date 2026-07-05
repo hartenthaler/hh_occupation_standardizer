@@ -27,6 +27,7 @@ final class StandardizedOccupation
         private ?int $hisclass_5 = null,
         private ?float $hiscam_nl = null,
         private ?int $occ1950 = null,
+        private ?string $occupation_status = null,
     ) {
     }
 
@@ -79,6 +80,11 @@ final class StandardizedOccupation
     public function hiscoCode(): ?string
     {
         return $this->hisco_code;
+    }
+
+    public function occupationStatus(): ?string
+    {
+        return $this->occupation_status;
     }
 
     public function hisclass(): ?string

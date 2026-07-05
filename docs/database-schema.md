@@ -80,6 +80,7 @@ written back to GEDCOM by the module.
 | `occupation_en_male` | `string(255)` nullable | English masculine form copied from the normalized term. |
 | `occupation_en_female` | `string(255)` nullable | English feminine form copied from the normalized term. |
 | `occupation_en_neutral` | `string(255)` nullable | English neutral form copied from the normalized term. This is preferred for sex `X` or `U`. |
+| `occupation_status` | `string(32)` nullable | Occurrence-specific status such as `former`; it is kept separate from the normalized occupation concept. |
 | `office` | `string(255)` nullable | Office or honorary office, separated from occupation. |
 | `qualification` | `string(255)` nullable | Qualification or craft grade such as `Meister`, `Geselle`, or `Lehrling`. |
 | `code_hisco` | `string(64)` nullable | HISCO code. |

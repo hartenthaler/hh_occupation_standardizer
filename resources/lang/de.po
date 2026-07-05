@@ -1426,3 +1426,25 @@ msgstr "Balkendiagramm"
 #: resources/views/occupation-portal-counts.phtml
 msgid "Pie chart"
 msgstr "Tortendiagramm"
+
+msgid "Expand shared occupation headwords"
+msgstr "Gemeinsame Grundwörter von Berufsangaben ergänzen"
+
+msgid "Expands abbreviated coordinated occupations when both reconstructed terms are known."
+msgstr ""
+"Ergänzt verkürzte verbundene Berufsangaben, wenn beide rekonstruierten "
+"Begriffe bekannt sind."
+
+msgid "Former occupation"
+msgstr "Ehemaliger Beruf"
+
+msgid "Recognizes former or retired occupation statements and stores their occurrence status separately."
+msgstr ""
+"Erkennt Angaben zu ehemaligen oder in den Ruhestand versetzten "
+"Berufstätigkeiten und speichert deren Status separat."
+
+msgid "Occupation status"
+msgstr "Status der Berufsangabe"
+
+msgid "Former"
+msgstr "Ehemalig"

@@ -39,6 +39,18 @@ final class OccupationNormalizationService
         'werkmeister',
     ];
 
+    private const MASTER_QUALIFICATION_COMPOUNDS = [
+        'bäckermeister'    => 'Bäcker',
+        'müllermeister'    => 'Müller',
+        'orgelbaumeister'  => 'Orgelbauer',
+        'schmiedemeister'  => 'Schmied',
+        'schneidermeister' => 'Schneider',
+    ];
+
+    private const QUALIFICATION_COMPOUND_EXCEPTIONS = [
+        'junggeselle',
+    ];
+
     /** @var list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}> */
     private array $normalization_rules;
 
@@ -66,7 +78,9 @@ final class OccupationNormalizationService
     public static function defaultBuiltinRuleOrder(): array
     {
         return [
+            'M2-R002',
             'M2-R001',
+            'M2-R060',
             'M2-R010',
             'M2-R020',
             'M2-R021',
@@ -88,21 +102,116 @@ final class OccupationNormalizationService
     public function normalize(string $occupation, string $language = '', array $context = []): array
     {
         $entries = [];
-        $parts = in_array('M2-R001', $this->builtin_rule_order, true) ? $this->splitOccupation($occupation) : [trim($occupation)];
-        $parts = array_values(array_filter($parts, static fn (string $part): bool => $part !== ''));
-        $split_triggered = in_array('M2-R001', $this->builtin_rule_order, true) && count($parts) > 1;
+        $parts = $this->preprocessOccupation($occupation, $language);
 
         foreach ($parts as $index => $part) {
-            $entry = ['part_index' => $index] + $this->normalizePart($part, $language, $context);
-
-            if ($split_triggered) {
-                $entry['rule_numbers'] = trim('M2-R001' . ($entry['rule_numbers'] !== '' ? ', ' . $entry['rule_numbers'] : ''));
-            }
+            $entry = ['part_index' => $index] + $this->normalizePart($part['text'], $language, $context);
+            $rules = [...$part['rules'], ...array_values(array_filter(array_map('trim', explode(',', $entry['rule_numbers']))))];
+            $entry['rule_numbers'] = implode(', ', array_values(array_unique($rules)));
 
             $entries[] = $entry;
         }
 
         return $entries;
+    }
+
+    /**
+     * @return list<array{text:string,rules:list<string>}>
+     */
+    private function preprocessOccupation(string $occupation, string $language): array
+    {
+        $parts = [['text' => trim($occupation), 'rules' => []]];
+
+        foreach ($this->builtin_rule_order as $rule_id) {
+            if ($rule_id === 'M2-R002') {
+                $expanded_parts = [];
+
+                foreach ($parts as $part) {
+                    $expanded = $this->expandSharedHeadword($part['text'], $language);
+                    $rules = count($expanded) > 1 ? [...$part['rules'], $rule_id] : $part['rules'];
+
+                    foreach ($expanded as $text) {
+                        $expanded_parts[] = ['text' => $text, 'rules' => $rules];
+                    }
+                }
+
+                $parts = $expanded_parts;
+            }
+
+            if ($rule_id === 'M2-R001') {
+                $split_parts = [];
+
+                foreach ($parts as $part) {
+                    $split = $this->splitOccupation($part['text']);
+                    $rules = count($split) > 1 ? [...$part['rules'], $rule_id] : $part['rules'];
+
+                    foreach ($split as $text) {
+                        $split_parts[] = ['text' => $text, 'rules' => $rules];
+                    }
+                }
+
+                $parts = $split_parts;
+            }
+        }
+
+        return array_values(array_filter($parts, static fn (array $part): bool => $part['text'] !== ''));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function expandSharedHeadword(string $occupation, string $language): array
+    {
+        if (
+            explode('-', $language)[0] !== 'de'
+            || preg_match('/^(.+?)-\s+(?:und|sowie)\s+(.+)$/iu', trim($occupation), $match) !== 1
+        ) {
+            return [trim($occupation)];
+        }
+
+        $first_stem = trim($match[1]);
+        $second_occupation = trim($match[2]);
+        $length = mb_strlen($second_occupation);
+
+        for ($offset = 1; $offset < $length; $offset++) {
+            $shared_headword = mb_substr($second_occupation, $offset);
+            $first_occupation = $first_stem . $shared_headword;
+
+            if (
+                $this->isKnownOccupationExpression($first_occupation, $language)
+                && $this->isKnownOccupationExpression($second_occupation, $language)
+            ) {
+                return [$first_occupation, $second_occupation];
+            }
+        }
+
+        return [trim($occupation)];
+    }
+
+    private function isKnownOccupationExpression(string $occupation, string $language): bool
+    {
+        $lower = mb_strtolower($occupation);
+
+        if (
+            isset(self::MASTER_QUALIFICATION_COMPOUNDS[$lower])
+            || preg_match('/^.+(?:geselle|lehrling)$/iu', $occupation) === 1
+        ) {
+            return true;
+        }
+
+        foreach ($this->normalization_rules as $rule) {
+            if ($this->ruleMatches($rule, $occupation, $language)) {
+                return true;
+            }
+        }
+
+        foreach ($this->ohdab_special_mappings as $mapping) {
+            if ($this->ohdabSpecialMappingMatches($mapping, $occupation, $language)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -119,19 +228,19 @@ final class OccupationNormalizationService
             $occupation
         ) ?? $occupation;
 
-        foreach (preg_split('/\s*[,\/;]\s*/u', $occupation) ?: [] as $chunk) {
+        foreach (preg_split('/\s*[,\/;&+]\s*/u', $occupation) ?: [] as $chunk) {
             $chunk = trim(str_replace($gender_slash_placeholder, '/', $chunk));
 
             if ($chunk === '') {
                 continue;
             }
 
-            if (preg_match('/-\s+(und|and)\s+/iu', $chunk) === 1) {
+            if (preg_match('/-\s+(und|and|sowie)\s+/iu', $chunk) === 1) {
                 $parts[] = $chunk;
                 continue;
             }
 
-            foreach (preg_split('/\s+(?:und|and)\s+/iu', $chunk) ?: [] as $part) {
+            foreach (preg_split('/\s+(?:und|and|sowie)\s+/iu', $chunk) ?: [] as $part) {
                 $part = trim($part);
 
                 if ($part !== '') {
@@ -164,6 +273,7 @@ final class OccupationNormalizationService
             'occupation_en_male'    => '',
             'occupation_en_female'  => '',
             'occupation_en_neutral' => '',
+            'occupation_status'     => '',
             'office'                => '',
             'qualification'         => '',
             'code_hisco'            => '',
@@ -177,6 +287,23 @@ final class OccupationNormalizationService
         ];
 
         foreach ($this->builtin_rule_order as $rule_id) {
+            if (
+                $rule_id === 'M2-R060'
+                && (
+                    preg_match('/^(?:ehemalig(?:e|er|es|en|em)?|gewesen(?:e|er|es|en|em)?)\s+(.+)$/iu', $original, $match) === 1
+                    || preg_match('/^(.+?)\s+(?:a\.\s*D\.|i\.\s*R\.)$/iu', $original, $match) === 1
+                )
+            ) {
+                // M2-R060: Former occupation.
+                $normalized = $this->normalizePart(trim($match[1]), $language, $context);
+                $normalized['original_part_text'] = $original;
+                $normalized['occupation_status'] = 'former';
+                $rules = array_values(array_filter(array_map('trim', explode(',', $normalized['rule_numbers']))));
+                $normalized['rule_numbers'] = implode(', ', array_values(array_unique([$rule_id, ...$rules])));
+
+                return $normalized;
+            }
+
             if ($rule_id === 'M2-R010' && isset(self::SOCIAL_STATUS[$lower])) {
                 // M2-R010: Social status is not an occupation.
                 return $this->withRules($entry, [
@@ -217,15 +344,28 @@ final class OccupationNormalizationService
                 return $this->enrichMappedOccupation($entry, $occupation, $language, [$rule_id]);
             }
 
-            if ($rule_id === 'M2-R031' && $lower === 'orgelbaumeister') {
+            if (
+                $rule_id === 'M2-R031'
+                && (
+                    isset(self::MASTER_QUALIFICATION_COMPOUNDS[$lower])
+                    || (
+                        !in_array($lower, self::QUALIFICATION_COMPOUND_EXCEPTIONS, true)
+                        && preg_match('/^(.+?)(geselle|lehrling)$/iu', $original, $match) === 1
+                    )
+                )
+            ) {
                 // M2-R031: Compound craft qualification.
+                $occupation = self::MASTER_QUALIFICATION_COMPOUNDS[$lower] ?? $this->normalizeOccupationName($match[1]);
+                $qualification = isset(self::MASTER_QUALIFICATION_COMPOUNDS[$lower])
+                    ? 'Meister'
+                    : self::QUALIFICATIONS[mb_strtolower($match[2])];
                 $entry = $this->withRules($entry, [
-                    'occupation_normalized' => 'Orgelbauer',
-                    'qualification'         => 'Meister',
+                    'occupation_normalized' => $occupation,
+                    'qualification'         => $qualification,
                     'status'                => self::STATUS_RECOGNIZED,
                 ], [$rule_id]);
 
-                return $this->enrichMappedOccupation($entry, 'Orgelbauer', $language, [$rule_id]);
+                return $this->enrichMappedOccupation($entry, $occupation, $language, [$rule_id]);
             }
 
             if ($rule_id === 'M2-R032' && in_array($lower, self::MASTER_COMPOUND_EXCEPTIONS, true)) {
@@ -238,7 +378,7 @@ final class OccupationNormalizationService
                 return $this->enrichMappedOccupation($entry, $original, $language, [$rule_id]);
             }
 
-            if ($rule_id === 'M2-R040' && preg_match('/^arbeiter\s*:\s*fabrik$/iu', $original) === 1) {
+            if ($rule_id === 'M2-R040' && preg_match('/^arbeiter\s*(?::\s*fabrik|\(\s*fabrik\s*\))$/iu', $original) === 1) {
                 // M2-R040: Context-based occupation refinement.
                 return $this->withRules($entry, [
                     'occupation_normalized' => 'Fabrikarbeiter',
