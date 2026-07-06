@@ -1144,3 +1144,54 @@ msgid ""
 "Active rules without a trigger are highlighted because they may be "
 "unnecessary for the selected family tree or may require review."
 msgstr ""
+msgid "Social status analysis"
+msgstr ""
+
+msgid ""
+"Analyze HISCLASS distributions and HISCAM U1 scores in this family tree."
+msgstr ""
+
+msgid "%s visible normalized occupation with a classification is included."
+msgid_plural ""
+"%s visible normalized occupations with a classification are included."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "No classified occupation entries are available."
+msgstr ""
+
+#, php-format
+msgid "%s class %s"
+msgstr ""
+
+msgid ""
+"The histograms count each visible classified normalized occupation once, "
+"independently of how many individuals have this occupation."
+msgstr ""
+
+msgid "HISCLASS distribution (12 classes)"
+msgstr ""
+
+msgid "HISCLASS distribution (5 classes)"
+msgstr ""
+
+msgid "HISCAM U1 score per individual"
+msgstr ""
+
+msgid ""
+"The score for an individual is the arithmetic mean of all visible "
+"occupation entries with an available HISCAM U1 value. Higher values indicate "
+"higher social status."
+msgstr ""
+
+msgid "Evaluated individuals"
+msgstr ""
+
+msgid "Mean score for the family tree"
+msgstr ""
+
+msgid "No individuals with a visible HISCAM U1 occupation value are available."
+msgstr ""
+
+msgid "HISCAM U1 score"
+msgstr ""

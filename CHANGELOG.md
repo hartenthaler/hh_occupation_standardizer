@@ -11,6 +11,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 - Replaced the schematic occupation-place bubble plot with an interactive Leaflet/OpenStreetMap map using clustered markers and lazy tile loading.
 - Added per-family-tree normalization diagnostics for missing OhdAB/HISCO assignments, unclear occupation terms, and unused active rules.
+- Added a tree-specific social-status analysis with HISCLASS 12/5 histograms and mean HISCAM U1 scores per visible individual.
 
 ### Changed
 
