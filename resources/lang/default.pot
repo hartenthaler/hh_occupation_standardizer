@@ -1195,3 +1195,10 @@ msgstr ""
 
 msgid "HISCAM U1 score"
 msgstr ""
+msgid "Assign HISCO code from English occupation label"
+msgstr ""
+
+msgid ""
+"Keeps an existing HISCO code or assigns one when the English masculine "
+"occupation label has exactly one match in the HISCO catalog."
+msgstr ""

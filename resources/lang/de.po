@@ -1577,3 +1577,13 @@ msgstr ""
 
 msgid "HISCAM U1 score"
 msgstr "HISCAM-U1-Wert"
+msgid "Assign HISCO code from English occupation label"
+msgstr "HISCO-Code anhand der englischen Berufsbezeichnung zuordnen"
+
+msgid ""
+"Keeps an existing HISCO code or assigns one when the English masculine "
+"occupation label has exactly one match in the HISCO catalog."
+msgstr ""
+"Behält einen vorhandenen HISCO-Code bei oder ordnet einen zu, wenn die "
+"englische männliche Berufsbezeichnung genau einen Treffer im HISCO-Katalog "
+"hat."
