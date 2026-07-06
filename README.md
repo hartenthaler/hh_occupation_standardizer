@@ -4,6 +4,8 @@
 
 ![webtrees major version](https://img.shields.io/badge/webtrees-v2.2.x-green)
 
+[![GitHub release downloads](https://img.shields.io/github/downloads/hartenthaler/hh_occupation_standardizer/total?label=downloads)](https://github.com/hartenthaler/hh_occupation_standardizer/releases)
+
 This [webtrees](https://www.webtrees.net) module helps analyze, normalize, classify, and display historical occupation entries in genealogical sources.
 
 This is a beta version. Do not use it in a productive system without careful testing.
