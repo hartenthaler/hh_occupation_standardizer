@@ -325,10 +325,20 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         $this->layout = Webtrees::LAYOUT_ADMINISTRATION;
+        $tree_statistics = $this->normalizationTableStatistics();
+        $params = array_merge($request->getQueryParams(), (array) $request->getParsedBody());
+        $diagnostic_tree_id = (int) ($params['diagnosticTreeId'] ?? ($tree_statistics[0]['tree_id'] ?? 0));
+        $known_tree_ids = array_column($tree_statistics, 'tree_id');
+
+        if (!in_array($diagnostic_tree_id, $known_tree_ids, true)) {
+            $diagnostic_tree_id = (int) ($tree_statistics[0]['tree_id'] ?? 0);
+        }
 
         return $this->viewResponse($this->name() . '::settings', [
             'builtinRules'       => $this->builtinRuleRows(),
             'description'        => $this->description(),
+            'diagnosticTreeId'   => $diagnostic_tree_id,
+            'normalizationDiagnostics' => $this->normalizationDiagnostics($diagnostic_tree_id),
             'languageOptions'    => $this->languageOptions(),
             'normalizationTerms' => $this->normalizationTermRows(),
             'normalizationTermOptions' => $this->normalizationTermOptions(),
@@ -338,7 +348,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'ohdabSpecialDatabase' => (new OhdabSpecialDatabaseService())->sourceInfo(),
             'title'              => $this->title(),
             'treeLanguages'      => $this->treeLanguageRows(),
-            'treeStatistics'     => $this->normalizationTableStatistics(),
+            'treeStatistics'     => $tree_statistics,
         ]);
     }
 
@@ -3385,6 +3395,133 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $counts;
+    }
+
+    /**
+     * @return array{
+     *     total:int,
+     *     complete:int,
+     *     missing_ohdab:int,
+     *     missing_hisco:int,
+     *     unclear:int,
+     *     terms:list<array{original_text:string,language:string,count:int,percentage:float,unclear:int,missing_ohdab:int,missing_hisco:int}>,
+     *     rules:list<array{id:string,label:string,enabled:bool,count:int}>
+     * }
+     */
+    private function normalizationDiagnostics(int $tree_id): array
+    {
+        $empty = [
+            'total'         => 0,
+            'complete'      => 0,
+            'missing_ohdab' => 0,
+            'missing_hisco' => 0,
+            'unclear'       => 0,
+            'terms'         => [],
+            'rules'         => [],
+        ];
+
+        if ($tree_id <= 0 || !DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)) {
+            return $empty;
+        }
+
+        $rows = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree_id)
+            ->where('is_active', '=', true)
+            ->get([
+                'original_part_text',
+                'language',
+                'occupation_normalized',
+                'status',
+                'code_ohdab',
+                'code_hisco',
+                'rule_numbers',
+            ]);
+        $terms = [];
+        $rule_counts = [];
+
+        foreach ($rows as $row) {
+            foreach (explode(',', (string) ($row->rule_numbers ?? '')) as $rule_id) {
+                $rule_id = trim($rule_id);
+
+                if ($rule_id !== '') {
+                    $rule_counts[$rule_id] = ($rule_counts[$rule_id] ?? 0) + 1;
+                }
+            }
+
+            if (trim((string) ($row->occupation_normalized ?? '')) === '') {
+                continue;
+            }
+
+            ++$empty['total'];
+            $missing_ohdab = trim((string) ($row->code_ohdab ?? '')) === '';
+            $missing_hisco = trim((string) ($row->code_hisco ?? '')) === '';
+            $unclear = (string) $row->status === OccupationNormalizationService::STATUS_UNCLEAR;
+
+            if (!$missing_ohdab && !$missing_hisco) {
+                ++$empty['complete'];
+            }
+
+            if ($missing_ohdab) {
+                ++$empty['missing_ohdab'];
+            }
+
+            if ($missing_hisco) {
+                ++$empty['missing_hisco'];
+            }
+
+            if ($unclear) {
+                ++$empty['unclear'];
+            }
+
+            if (!$missing_ohdab && !$missing_hisco && !$unclear) {
+                continue;
+            }
+
+            $original_text = trim((string) ($row->original_part_text ?? ''));
+            $language = trim((string) ($row->language ?? ''));
+            $key = $language . "\0" . $original_text;
+
+            $terms[$key] ??= [
+                'original_text' => $original_text,
+                'language'      => $language,
+                'count'         => 0,
+                'percentage'    => 0.0,
+                'unclear'       => 0,
+                'missing_ohdab' => 0,
+                'missing_hisco' => 0,
+            ];
+            ++$terms[$key]['count'];
+            $terms[$key]['unclear'] += $unclear ? 1 : 0;
+            $terms[$key]['missing_ohdab'] += $missing_ohdab ? 1 : 0;
+            $terms[$key]['missing_hisco'] += $missing_hisco ? 1 : 0;
+        }
+
+        foreach ($terms as &$term) {
+            $term['percentage'] = $empty['total'] > 0 ? $term['count'] / $empty['total'] : 0.0;
+        }
+        unset($term);
+
+        uasort($terms, static fn (array $left, array $right): int =>
+            $right['count'] <=> $left['count']
+            ?: strnatcasecmp($left['original_text'], $right['original_text'])
+            ?: strcmp($left['language'], $right['language'])
+        );
+
+        $definitions = $this->builtinRuleDefinitions();
+        $enabled_rules = $this->enabledBuiltinRuleIds();
+
+        $empty['terms'] = array_values($terms);
+        $empty['rules'] = array_map(
+            static fn (string $rule_id): array => [
+                'id'      => $rule_id,
+                'label'   => $definitions[$rule_id]['label'],
+                'enabled' => in_array($rule_id, $enabled_rules, true),
+                'count'   => $rule_counts[$rule_id] ?? 0,
+            ],
+            $this->storedBuiltinRuleOrder()
+        );
+
+        return $empty;
     }
 
     /**

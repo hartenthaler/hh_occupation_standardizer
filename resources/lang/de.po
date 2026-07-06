@@ -1448,3 +1448,72 @@ msgstr "Status der Berufsangabe"
 
 msgid "Former"
 msgstr "Ehemalig"
+msgid "Normalization diagnostics"
+msgstr "Normalisierungsdiagnose"
+
+msgid ""
+"This analysis identifies active occupation entries that are still unclear "
+"or have not yet been assigned to OhdAB or HISCO. Select one family tree to "
+"evaluate."
+msgstr ""
+"Diese Analyse ermittelt aktive Berufsangaben, die noch unklar sind oder "
+"noch nicht OhdAB beziehungsweise HISCO zugeordnet wurden. Wählen Sie einen "
+"Stammbaum für die Auswertung aus."
+
+msgid ""
+"The values are recalculated from the current module tables after "
+"synchronization or re-normalization."
+msgstr ""
+"Die Werte werden nach einer Synchronisierung oder erneuten Normalisierung "
+"aus den aktuellen Modultabellen neu berechnet."
+
+msgid "Analyze"
+msgstr "Analysieren"
+
+msgid "Active occupation entries"
+msgstr "Aktive Berufsangaben"
+
+msgid "Assigned to OhdAB and HISCO"
+msgstr "OhdAB und HISCO zugeordnet"
+
+msgid "Without OhdAB assignment"
+msgstr "Ohne OhdAB-Zuordnung"
+
+msgid "Without HISCO assignment"
+msgstr "Ohne HISCO-Zuordnung"
+
+msgid "Unclear entries"
+msgstr "Unklare Angaben"
+
+msgid "Occupations requiring further normalization"
+msgstr "Berufe mit weiterem Normalisierungsbedarf"
+
+msgid ""
+"All active occupation entries in this family tree are recognized and "
+"assigned to both OhdAB and HISCO."
+msgstr ""
+"Alle aktiven Berufsangaben dieses Stammbaums sind erkannt und sowohl OhdAB "
+"als auch HISCO zugeordnet."
+
+msgid "Share"
+msgstr "Anteil"
+
+msgid "Unclear"
+msgstr "Unklar"
+
+msgid "Without OhdAB"
+msgstr "Ohne OhdAB"
+
+msgid "Without HISCO"
+msgstr "Ohne HISCO"
+
+msgid "Rule triggers in the selected family tree"
+msgstr "Regelauslösungen im ausgewählten Stammbaum"
+
+msgid ""
+"Active rules without a trigger are highlighted because they may be "
+"unnecessary for the selected family tree or may require review."
+msgstr ""
+"Aktive Regeln ohne Auslösung werden hervorgehoben, da sie für den "
+"ausgewählten Stammbaum möglicherweise nicht benötigt werden oder überprüft "
+"werden sollten."
