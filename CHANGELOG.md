@@ -7,6 +7,8 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ## Unreleased
 
+## 2.2.6.7 - 2026-07-06
+
 ### Added
 
 - Replaced the schematic occupation-place bubble plot with an interactive Leaflet/OpenStreetMap map using clustered markers and lazy tile loading.
