@@ -28,6 +28,9 @@ final class HiscoCatalogService
     private const METADATA_HASH = 'hisco_catalog_hash';
     private const TRANSLATION_FILE = 'hisco_hierarchy_de.csv';
 
+    /** @var array<string,string|null>|null */
+    private static array|null $normalization_index = null;
+
     /**
      * @return array{imported:bool,row_count:int}
      */
@@ -75,6 +78,7 @@ final class HiscoCatalogService
             ['setting_name' => self::METADATA_HASH],
             ['setting_value' => $hash]
         );
+        self::$normalization_index = null;
 
         return ['imported' => true, 'row_count' => $row_count];
     }
@@ -149,6 +153,44 @@ final class HiscoCatalogService
                 'description' => $use_german && (string) ($row->major_description_de ?? '') !== '' ? (string) $row->major_description_de : (string) $row->major_description_en,
             ],
         ];
+    }
+
+    /**
+     * @return array<string,string|null>
+     */
+    public function normalizationIndex(): array
+    {
+        if (self::$normalization_index !== null) {
+            return self::$normalization_index;
+        }
+
+        if (!DB::schema()->hasTable(OccupationSchema::TABLE_HISCO_OCCUPATIONS)) {
+            return [];
+        }
+
+        $index = [];
+
+        foreach (DB::table(OccupationSchema::TABLE_HISCO_OCCUPATIONS)
+            ->orderBy('hisco_id')
+            ->get(['hisco_id', 'label_en'])
+            as $row) {
+            $key = $this->normalizationKey((string) $row->label_en);
+            $code = (string) $row->hisco_id;
+
+            if ($key === '' || $code === '') {
+                continue;
+            }
+
+            if (!array_key_exists($key, $index)) {
+                $index[$key] = $code;
+            } elseif ($index[$key] !== $code) {
+                $index[$key] = null;
+            }
+        }
+
+        self::$normalization_index = $index;
+
+        return self::$normalization_index;
     }
 
     private function hasTables(): bool
@@ -377,6 +419,14 @@ final class HiscoCatalogService
     private function useGerman(string $language_tag): bool
     {
         return $language_tag === 'de' || str_starts_with($language_tag, 'de-');
+    }
+
+    private function normalizationKey(string $value): string
+    {
+        $key = mb_strtolower(trim($value));
+        $key = preg_replace('/\s+/u', ' ', $key) ?? $key;
+
+        return str_replace('–', '-', $key);
     }
 
 }

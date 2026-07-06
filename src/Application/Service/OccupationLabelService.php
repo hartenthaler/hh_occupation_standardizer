@@ -55,7 +55,12 @@ final class OccupationLabelService
     public function labelsForOccupation(string $occupation, string $language = '', string $sex = 'U', string $user_language = '', array $context = []): array
     {
         return $this->labels(
-            (new OccupationNormalizationService($this->normalizationRules(), $this->builtin_rule_order, $this->ohdab_special_database_service->mappings()))->normalize($occupation, $language, $context),
+            (new OccupationNormalizationService(
+                $this->normalizationRules(),
+                $this->builtin_rule_order,
+                $this->ohdab_special_database_service->mappings(),
+                $this->hisco_catalog_service->normalizationIndex()
+            ))->normalize($occupation, $language, $context),
             $sex,
             $user_language
         );

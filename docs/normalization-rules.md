@@ -150,6 +150,24 @@ norm concept. The OhdAB hierarchy is stored once in separate norm tables and is
 shown as context in occupation labels without duplicating the hierarchy text in
 every entry.
 
+## M4-R110: Assign HISCO code from English occupation label
+
+This rule is a final enrichment step after the occupation itself has been
+normalized. An existing HISCO code from a manually maintained normalization
+term, a site-managed mapping rule, or the imported OhdAB data is always
+preserved.
+
+If the HISCO code is still empty, the rule compares the English masculine
+occupation label with the English labels in the locally imported HISCO
+catalog. Matching is case-insensitive and normalizes whitespace. A code is
+assigned only when the label identifies exactly one HISCO occupation.
+Ambiguous labels that occur with more than one HISCO code are left unchanged
+for manual review.
+
+For existing module rows, an administrator can use **Re-run normalization** for
+the selected family tree. Reviewed or manually changed rows remain protected
+by the normal synchronization rules.
+
 ## M2-R090: Fallback for unknown terms
 
 If no specific rule applies, the original term is copied as the normalized occupation and the entry is marked as `unclear`.

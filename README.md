@@ -63,6 +63,7 @@ The module currently provides:
 * occupation profile pages for normalized occupations
 * OhdAB hierarchy browsing based on an imported tailored OhdAB extract
 * bundled HISCO catalog tables for local HISCO lookups
+* automatic assignment of unambiguous HISCO codes from English masculine occupation labels while preserving manually maintained codes
 * HISCO hierarchy browsing based on stored HISCO identifiers
 * top-10 frequency charts for normalized occupation and social-status entries
 * HISCLASS distributions and mean HISCAM U1 scores per visible individual

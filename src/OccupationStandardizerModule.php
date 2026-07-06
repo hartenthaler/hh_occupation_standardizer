@@ -254,7 +254,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $normalizer = new OccupationNormalizationService(
             $this->normalizationRules(),
             $this->activeBuiltinRuleOrder(),
-            $this->ohdabSpecialMappings()
+            $this->ohdabSpecialMappings(),
+            (new HiscoCatalogService())->normalizationIndex()
         );
         $hisco_classifications = new HiscoClassificationService();
         $results = [];
@@ -3212,7 +3213,12 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return;
         }
 
-        $normalizer = new OccupationNormalizationService($this->normalizationRules(), $this->activeBuiltinRuleOrder(), $this->ohdabSpecialMappings());
+        $normalizer = new OccupationNormalizationService(
+            $this->normalizationRules(),
+            $this->activeBuiltinRuleOrder(),
+            $this->ohdabSpecialMappings(),
+            (new HiscoCatalogService())->normalizationIndex()
+        );
         $tree_language = $this->occupationLanguage($tree);
         $now = date('Y-m-d H:i:s');
         $seen_keys = [];
@@ -3746,6 +3752,10 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             'M4-R100' => [
                 'label'       => I18N::translate('Normalize with external OhdAB special database'),
                 'description' => I18N::translate('Uses the imported German OhdAB special database for normalized occupation terms.'),
+            ],
+            'M4-R110' => [
+                'label'       => I18N::translate('Assign HISCO code from English occupation label'),
+                'description' => I18N::translate('Keeps an existing HISCO code or assigns one when the English masculine occupation label has exactly one match in the HISCO catalog.'),
             ],
             'M2-R090' => [
                 'label'       => I18N::translate('Fallback for unknown terms'),

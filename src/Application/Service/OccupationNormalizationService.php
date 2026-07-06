@@ -57,6 +57,9 @@ final class OccupationNormalizationService
     /** @var list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}> */
     private array $ohdab_special_mappings;
 
+    /** @var array<string,string|null> */
+    private array $hisco_codes_by_english_label = [];
+
     /** @var list<string> */
     private array $builtin_rule_order;
 
@@ -64,12 +67,19 @@ final class OccupationNormalizationService
      * @param list<array{language:string,original_text:string,social_status:string,occupation_normalized:string,occupation_de_male?:string,occupation_de_female?:string,occupation_de_neutral?:string,occupation_en_male?:string,occupation_en_female?:string,occupation_en_neutral?:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid?:string,code_wikidata?:string}> $normalization_rules
      * @param list<string> $builtin_rule_order
      * @param list<array{language:string,original_text:string,norm_concept_id:int,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string}> $ohdab_special_mappings
+     * @param array<string,string|null> $hisco_codes_by_english_label
      */
-    public function __construct(array $normalization_rules = [], array $builtin_rule_order = [], array $ohdab_special_mappings = [])
+    public function __construct(
+        array $normalization_rules = [],
+        array $builtin_rule_order = [],
+        array $ohdab_special_mappings = [],
+        array $hisco_codes_by_english_label = []
+    )
     {
         $this->normalization_rules = $normalization_rules;
         $this->builtin_rule_order = $builtin_rule_order !== [] ? $builtin_rule_order : self::defaultBuiltinRuleOrder();
         $this->ohdab_special_mappings = $ohdab_special_mappings;
+        $this->hisco_codes_by_english_label = $hisco_codes_by_english_label;
     }
 
     /**
@@ -90,6 +100,7 @@ final class OccupationNormalizationService
             'M2-R040',
             'M2-R050',
             'M4-R100',
+            'M4-R110',
             'M2-R090',
         ];
     }
@@ -106,6 +117,7 @@ final class OccupationNormalizationService
 
         foreach ($parts as $index => $part) {
             $entry = ['part_index' => $index] + $this->normalizePart($part['text'], $language, $context);
+            $entry = $this->assignHiscoCode($entry);
             $rules = [...$part['rules'], ...array_values(array_filter(array_map('trim', explode(',', $entry['rule_numbers']))))];
             $entry['rule_numbers'] = implode(', ', array_values(array_unique($rules)));
 
@@ -113,6 +125,33 @@ final class OccupationNormalizationService
         }
 
         return $entries;
+    }
+
+    /**
+     * @param array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string} $entry
+     *
+     * @return array{part_index:int,original_part_text:string,language:string,social_status:string,occupation_normalized:string,occupation_de_male:string,occupation_de_female:string,occupation_de_neutral:string,occupation_en_male:string,occupation_en_female:string,occupation_en_neutral:string,office:string,qualification:string,code_hisco:string,code_gnd:string,code_ohdab:string,code_factgrid:string,code_wikidata:string,norm_concept_id:int,status:string,rule_numbers:string}
+     */
+    private function assignHiscoCode(array $entry): array
+    {
+        if (
+            !in_array('M4-R110', $this->builtin_rule_order, true)
+            || trim($entry['code_hisco']) !== ''
+            || trim($entry['occupation_en_male']) === ''
+        ) {
+            return $entry;
+        }
+
+        $key = $this->matchKey($entry['occupation_en_male']);
+        $code = $this->hisco_codes_by_english_label[$key] ?? null;
+
+        if ($code === null || $code === '') {
+            return $entry;
+        }
+
+        $rules = array_values(array_filter(array_map('trim', explode(',', $entry['rule_numbers']))));
+
+        return $this->withRules($entry, ['code_hisco' => $code], [...$rules, 'M4-R110']);
     }
 
     /**
