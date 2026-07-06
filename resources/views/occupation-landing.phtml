@@ -11,6 +11,7 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
  * @var string $hierarchyUrl
  * @var string $inheritanceUrl
  * @var string $listUrl
+ * @var string $socialStatusUrl
  * @var string $title
  * @var list<array{label:string,count:int,weight:int,url:string}> $wordCloudRows
  */
@@ -98,6 +99,13 @@ use Hartenthaler\Webtrees\Module\OccupationStandardizer\Internationalization\Mor
             <a class="btn btn-primary w-100 text-start p-3" href="<?= e($inheritanceUrl) ?>">
                 <span class="d-block h4 mb-1 text-white"><?= I18N::translate('Inheritance analysis') ?></span>
                 <span class="d-block fw-normal text-white"><?= I18N::translate('Compare occupation or social-status entries between parents and children.') ?></span>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+            <a class="btn btn-primary w-100 text-start p-3" href="<?= e($socialStatusUrl) ?>">
+                <span class="d-block h4 mb-1 text-white"><?= I18N::translate('Social status analysis') ?></span>
+                <span class="d-block fw-normal text-white"><?= I18N::translate('Analyze HISCLASS distributions and HISCAM U1 scores in this family tree.') ?></span>
             </a>
         </div>
     </div>

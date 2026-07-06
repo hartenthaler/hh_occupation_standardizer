@@ -65,6 +65,7 @@ The module currently provides:
 * bundled HISCO catalog tables for local HISCO lookups
 * HISCO hierarchy browsing based on stored HISCO identifiers
 * top-10 frequency charts for normalized occupation and social-status entries
+* HISCLASS distributions and mean HISCAM U1 scores per visible individual
 * a graphical and tabular inheritance analysis for normalized occupation and social-status entries between parents and children
 * links to external identifiers such as OhdAB, FactGrid, GND, Wikidata, and HISCO
 * module settings for rules, tree languages, normalization mappings, norm-data import, and maintenance
@@ -80,7 +81,7 @@ Other possible places for occupation-related information, such as military rank,
 
 Visitors and members can use the list-menu entry and see occupation data that webtrees already allows them to see.
 The module respects webtrees privacy checks for individuals and occupation facts.
-They can browse the occupation landing page, occupation list, hierarchy views, and occupation profile pages.
+They can browse the occupation landing page, occupation list, hierarchy views, social-status analyses, and occupation profile pages.
 
 **Managers**
 
@@ -97,13 +98,14 @@ They can maintain built-in rule order and activation, tree language defaults, lo
 ## 🧭 Occupation Landing Page
 
 The list-menu entry opens a landing page for the active family tree.
-It provides five main action tiles:
+It provides six main action tiles:
 
 * **Occupations** - opens the list of original occupation facts.
 * **Occupation hierarchy (OhdAB)** - opens the hierarchy from imported OhdAB norm data.
 * **Occupation hierarchy (HISCO)** - opens the hierarchy from the bundled HISCO catalog.
 * **Frequency analysis** - shows top-10 charts for normalized occupations and social statuses.
 * **Inheritance analysis** - compares normalized occupation or social-status entries between parents and children.
+* **Social status analysis** - shows HISCLASS 12/5 distributions and HISCAM U1 scores for the active family tree.
 
 The frequency analysis shows top-10 charts of the most common visible normalized occupation and social-status entries in the active family tree.
 These charts are based on active module-owned normalization rows for the selected tree.
@@ -115,6 +117,14 @@ Repeated links between the same parent and child are counted only once.
 It can be switched between occupation inheritance and social-status inheritance.
 For occupations, the analysis level can be switched between normalized terms, OhdAB hierarchy levels, and HISCO hierarchy levels.
 For social statuses, normalized entries and OhdAB hierarchy levels are available.
+
+The social-status analysis counts every visible classified normalized
+occupation once in the HISCLASS histograms, independently of how many
+individuals have this occupation. For the person-based analysis, all visible
+occupation entries with an available HISCAM U1 value are collected per
+individual. The current first-stage score is their unweighted arithmetic mean.
+Individuals without an available HISCAM U1 value are omitted. A separate tree
+score is calculated as the arithmetic mean of the displayed individual scores.
 
 <a name="OccupationList"></a>
 ## 📋 Occupation List

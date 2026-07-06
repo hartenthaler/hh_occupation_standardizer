@@ -523,6 +523,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'hierarchyUrl'      => $this->listUrl($tree, ['view' => 'hierarchy']),
                 'inheritanceUrl'    => $this->listUrl($tree, ['view' => 'inheritance']),
                 'listUrl'           => $this->listUrl($tree, ['view' => 'list']),
+                'socialStatusUrl'   => $this->listUrl($tree, ['view' => 'social-status']),
                 'title'             => $this->listTitle(),
                 'tree'              => $tree,
                 'wordCloudRows'     => $this->topNormalizedOccupationRows($tree, 20),
@@ -571,6 +572,15 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
                 'title'               => I18N::translate('Frequency analysis'),
                 'topOccupationCharts' => $this->topNormalizedOccupationCharts($tree),
                 'tree'                => $tree,
+            ]);
+        }
+
+        if ($view === 'social-status') {
+            return $this->viewResponse($this->name() . '::occupation-social-status', [
+                'analysis' => $this->socialStatusAnalysis($tree),
+                'listUrl'  => fn (array $parameters = []): string => $this->listUrl($tree, $parameters),
+                'title'    => I18N::translate('Social status analysis'),
+                'tree'     => $tree,
             ]);
         }
 
@@ -2237,6 +2247,165 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         }
 
         return $charts;
+    }
+
+    /**
+     * @return array{
+     *     hisclass:array{total:int,rows:list<array{label:string,count:int,share:float,bar_percentage:float}>},
+     *     hisclass_5:array{total:int,rows:list<array{label:string,count:int,share:float,bar_percentage:float}>},
+     *     person_rows:list<array{individual:Individual,score:float,occupation_count:int}>,
+     *     person_count:int,
+     *     tree_score:float|null
+     * }
+     */
+    private function socialStatusAnalysis(Tree $tree): array
+    {
+        $empty = [
+            'hisclass'    => ['total' => 0, 'rows' => []],
+            'hisclass_5'  => ['total' => 0, 'rows' => []],
+            'person_rows' => [],
+            'person_count' => 0,
+            'tree_score'  => null,
+        ];
+
+        if (!DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            || !DBManager::schema()->hasTable(OccupationSchema::TABLE_HISCO_CLASSIFICATIONS)) {
+            return $empty;
+        }
+
+        $classifications = DBManager::table(OccupationSchema::TABLE_HISCO_CLASSIFICATIONS)
+            ->get(['hisco_id', 'hiscam_u1', 'hisclass', 'hisclass_5'])
+            ->keyBy(static fn (object $row): int => (int) $row->hisco_id);
+        $entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
+            ->where('tree_id', '=', $tree->id())
+            ->where('is_active', '=', true)
+            ->whereNotNull('code_hisco')
+            ->where('code_hisco', '<>', '')
+            ->get([
+                'individual_xref',
+                'fact_id',
+                'language',
+                'occupation_normalized',
+                'norm_concept_id',
+                'code_hisco',
+            ]);
+        $hisclass_counts = array_fill(1, 12, 0);
+        $hisclass_5_counts = array_fill(1, 5, 0);
+        $person_scores = [];
+        $individual_cache = [];
+        $fact_visibility = [];
+        $counted_occupations = [];
+
+        foreach ($entries as $entry) {
+            $hisco_id = (int) preg_replace('/[^0-9]/u', '', (string) $entry->code_hisco);
+            $classification = $classifications->get($hisco_id);
+
+            if ($hisco_id <= 0 || $classification === null) {
+                continue;
+            }
+
+            $xref = (string) $entry->individual_xref;
+            $individual_cache[$xref] ??= Registry::individualFactory()->make($xref, $tree);
+            $individual = $individual_cache[$xref];
+
+            if (!$individual instanceof Individual || !$individual->canShow()) {
+                continue;
+            }
+
+            $fact_key = $xref . "\0" . (string) $entry->fact_id;
+            $fact_visibility[$fact_key] ??= $this->occupationFactCanShow($individual, (string) $entry->fact_id);
+
+            if (!$fact_visibility[$fact_key]) {
+                continue;
+            }
+
+            $hisclass = $classification->hisclass !== null ? (int) $classification->hisclass : 0;
+            $hisclass_5 = $classification->hisclass_5 !== null ? (int) $classification->hisclass_5 : 0;
+            $concept_id = (int) ($entry->norm_concept_id ?? 0);
+            $occupation_key = $concept_id > 0
+                ? 'concept:' . $concept_id
+                : 'term:' . (string) ($entry->language ?? '') . "\0"
+                    . (string) ($entry->occupation_normalized ?? '') . "\0" . $hisco_id;
+
+            if (!isset($counted_occupations[$occupation_key])) {
+                $counted_occupations[$occupation_key] = true;
+
+                if (isset($hisclass_counts[$hisclass])) {
+                    ++$hisclass_counts[$hisclass];
+                }
+
+                if (isset($hisclass_5_counts[$hisclass_5])) {
+                    ++$hisclass_5_counts[$hisclass_5];
+                }
+            }
+
+            if ($classification->hiscam_u1 !== null) {
+                $person_scores[$xref] ??= [
+                    'individual' => $individual,
+                    'scores'     => [],
+                ];
+                $person_scores[$xref]['scores'][] = (float) $classification->hiscam_u1;
+            }
+        }
+
+        $person_rows = array_map(static function (array $person): array {
+            $scores = $person['scores'];
+
+            return [
+                'individual'       => $person['individual'],
+                'score'            => array_sum($scores) / count($scores),
+                'occupation_count' => count($scores),
+            ];
+        }, array_values($person_scores));
+
+        usort($person_rows, static fn (array $left, array $right): int =>
+            $right['score'] <=> $left['score']
+            ?: I18N::comparator()(
+                strip_tags($left['individual']->fullName()),
+                strip_tags($right['individual']->fullName())
+            )
+        );
+
+        $person_count = count($person_rows);
+
+        return [
+            'hisclass' => [
+                'total' => array_sum($hisclass_counts),
+                'rows'  => $this->socialClassHistogramRows($hisclass_counts, 'HISCLASS'),
+            ],
+            'hisclass_5' => [
+                'total' => array_sum($hisclass_5_counts),
+                'rows'  => $this->socialClassHistogramRows($hisclass_5_counts, 'HISCLASS 5'),
+            ],
+            'person_rows' => $person_rows,
+            'person_count' => $person_count,
+            'tree_score' => $person_count > 0
+                ? array_sum(array_column($person_rows, 'score')) / $person_count
+                : null,
+        ];
+    }
+
+    /**
+     * @param array<int,int> $counts
+     *
+     * @return list<array{label:string,count:int,share:float,bar_percentage:float}>
+     */
+    private function socialClassHistogramRows(array $counts, string $scheme): array
+    {
+        $total = array_sum($counts);
+        $maximum = max($counts);
+        $rows = [];
+
+        foreach ($counts as $class => $count) {
+            $rows[] = [
+                'label'          => I18N::translate('%s class %s', $scheme, I18N::number($class)),
+                'count'          => $count,
+                'share'          => $total > 0 ? $count / $total : 0.0,
+                'bar_percentage' => $maximum > 0 ? $count / $maximum * 100 : 0.0,
+            ];
+        }
+
+        return $rows;
     }
 
     /**

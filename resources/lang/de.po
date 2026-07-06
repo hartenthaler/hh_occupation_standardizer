@@ -1517,3 +1517,63 @@ msgstr ""
 "Aktive Regeln ohne Auslösung werden hervorgehoben, da sie für den "
 "ausgewählten Stammbaum möglicherweise nicht benötigt werden oder überprüft "
 "werden sollten."
+msgid "Social status analysis"
+msgstr "Analyse des sozialen Status"
+
+msgid ""
+"Analyze HISCLASS distributions and HISCAM U1 scores in this family tree."
+msgstr ""
+"HISCLASS-Verteilungen und HISCAM-U1-Werte in diesem Stammbaum analysieren."
+
+msgid "%s visible normalized occupation with a classification is included."
+msgid_plural ""
+"%s visible normalized occupations with a classification are included."
+msgstr[0] "%s sichtbarer normierter Beruf mit Klassifikation wird berücksichtigt."
+msgstr[1] ""
+"%s sichtbare normierte Berufe mit Klassifikation werden berücksichtigt."
+
+msgid "No classified occupation entries are available."
+msgstr "Es sind keine klassifizierten Berufsangaben verfügbar."
+
+#, php-format
+msgid "%s class %s"
+msgstr "%s-Klasse %s"
+
+msgid ""
+"The histograms count each visible classified normalized occupation once, "
+"independently of how many individuals have this occupation."
+msgstr ""
+"Die Histogramme zählen jeden sichtbaren klassifizierten normierten Beruf "
+"einmal, unabhängig davon, wie viele Personen diesen Beruf haben."
+
+msgid "HISCLASS distribution (12 classes)"
+msgstr "HISCLASS-Verteilung (12 Klassen)"
+
+msgid "HISCLASS distribution (5 classes)"
+msgstr "HISCLASS-Verteilung (5 Klassen)"
+
+msgid "HISCAM U1 score per individual"
+msgstr "HISCAM-U1-Wert pro Person"
+
+msgid ""
+"The score for an individual is the arithmetic mean of all visible "
+"occupation entries with an available HISCAM U1 value. Higher values indicate "
+"higher social status."
+msgstr ""
+"Der Wert einer Person ist das arithmetische Mittel aller sichtbaren "
+"Berufsangaben mit einem verfügbaren HISCAM-U1-Wert. Höhere Werte zeigen einen "
+"höheren sozialen Status an."
+
+msgid "Evaluated individuals"
+msgstr "Ausgewertete Personen"
+
+msgid "Mean score for the family tree"
+msgstr "Mittlerer Wert des Stammbaums"
+
+msgid "No individuals with a visible HISCAM U1 occupation value are available."
+msgstr ""
+"Es sind keine Personen mit einem sichtbaren HISCAM-U1-Wert für einen Beruf "
+"verfügbar."
+
+msgid "HISCAM U1 score"
+msgstr "HISCAM-U1-Wert"
