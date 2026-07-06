@@ -1085,3 +1085,62 @@ msgstr ""
 
 msgid "Former"
 msgstr ""
+msgid "Normalization diagnostics"
+msgstr ""
+
+msgid ""
+"This analysis identifies active occupation entries that are still unclear "
+"or have not yet been assigned to OhdAB or HISCO. Select one family tree to "
+"evaluate."
+msgstr ""
+
+msgid ""
+"The values are recalculated from the current module tables after "
+"synchronization or re-normalization."
+msgstr ""
+
+msgid "Analyze"
+msgstr ""
+
+msgid "Active occupation entries"
+msgstr ""
+
+msgid "Assigned to OhdAB and HISCO"
+msgstr ""
+
+msgid "Without OhdAB assignment"
+msgstr ""
+
+msgid "Without HISCO assignment"
+msgstr ""
+
+msgid "Unclear entries"
+msgstr ""
+
+msgid "Occupations requiring further normalization"
+msgstr ""
+
+msgid ""
+"All active occupation entries in this family tree are recognized and "
+"assigned to both OhdAB and HISCO."
+msgstr ""
+
+msgid "Share"
+msgstr ""
+
+msgid "Unclear"
+msgstr ""
+
+msgid "Without OhdAB"
+msgstr ""
+
+msgid "Without HISCO"
+msgstr ""
+
+msgid "Rule triggers in the selected family tree"
+msgstr ""
+
+msgid ""
+"Active rules without a trigger are highlighted because they may be "
+"unnecessary for the selected family tree or may require review."
+msgstr ""
