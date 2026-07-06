@@ -21,6 +21,7 @@ After a release, move the entries from `Unreleased` into a versioned section and
 
 ### Fixed
 
+- Use centrally maintained OhdAB and HISCO identifiers from normalized occupation terms in diagnostics and social-status analysis when an entry-specific identifier is empty.
 - Restrict database-backed occupation labels to the current individual and remove redundant automatically generated normalization rows.
 - Continue from independent master compounds such as `Bürgermeister` to site-managed and OhdAB classification rules.
 - Do not split gender-neutral occupation suffixes such as `/in`, `/innen`, or `/r` into spurious occupation labels.

@@ -1605,6 +1605,17 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         return trim((string) ($entry_row->term_code_hisco ?? ''));
     }
 
+    private function ohdabCodeForEntry(object $entry_row): string
+    {
+        $entry_code = trim((string) ($entry_row->code_ohdab ?? ''));
+
+        if ($entry_code !== '') {
+            return $entry_code;
+        }
+
+        return trim((string) ($entry_row->term_code_ohdab ?? ''));
+    }
+
     private function hiscoEntryMatchesHierarchy(string $code_hisco, string $level, string $code): bool
     {
         $hierarchy = (new HiscoCatalogService())->occupation($code_hisco, I18N::languageTag());
@@ -2277,19 +2288,28 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $classifications = DBManager::table(OccupationSchema::TABLE_HISCO_CLASSIFICATIONS)
             ->get(['hisco_id', 'hiscam_u1', 'hisclass', 'hisclass_5'])
             ->keyBy(static fn (object $row): int => (int) $row->hisco_id);
-        $entries = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
-            ->where('tree_id', '=', $tree->id())
-            ->where('is_active', '=', true)
-            ->whereNotNull('code_hisco')
-            ->where('code_hisco', '<>', '')
-            ->get([
-                'individual_xref',
-                'fact_id',
-                'language',
-                'occupation_normalized',
-                'norm_concept_id',
-                'code_hisco',
-            ]);
+        $entries_query = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.tree_id', '=', $tree->id())
+            ->where('entries.is_active', '=', true);
+        $entry_select = [
+            'entries.individual_xref',
+            'entries.fact_id',
+            'entries.language',
+            'entries.occupation_normalized',
+            'entries.norm_concept_id',
+            'entries.code_hisco',
+        ];
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $entries_query->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', function ($join): void {
+                $join
+                    ->on('terms.language', '=', 'entries.language')
+                    ->on('terms.occupation_de_male', '=', 'entries.occupation_de_male');
+            });
+            $entry_select[] = 'terms.code_hisco AS term_code_hisco';
+        }
+
+        $entries = $entries_query->get($entry_select);
         $hisclass_counts = array_fill(1, 12, 0);
         $hisclass_5_counts = array_fill(1, 5, 0);
         $person_scores = [];
@@ -2298,7 +2318,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         $counted_occupations = [];
 
         foreach ($entries as $entry) {
-            $hisco_id = (int) preg_replace('/[^0-9]/u', '', (string) $entry->code_hisco);
+            $hisco_id = (int) preg_replace('/[^0-9]/u', '', $this->hiscoCodeForEntry($entry));
             $classification = $classifications->get($hisco_id);
 
             if ($hisco_id <= 0 || $classification === null) {
@@ -3599,18 +3619,30 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             return $empty;
         }
 
-        $rows = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES)
-            ->where('tree_id', '=', $tree_id)
-            ->where('is_active', '=', true)
-            ->get([
-                'original_part_text',
-                'language',
-                'occupation_normalized',
-                'status',
-                'code_ohdab',
-                'code_hisco',
-                'rule_numbers',
-            ]);
+        $rows_query = DBManager::table(OccupationSchema::TABLE_NORMALIZED_ENTRIES . ' AS entries')
+            ->where('entries.tree_id', '=', $tree_id)
+            ->where('entries.is_active', '=', true);
+        $row_select = [
+            'entries.original_part_text',
+            'entries.language',
+            'entries.occupation_normalized',
+            'entries.status',
+            'entries.code_ohdab',
+            'entries.code_hisco',
+            'entries.rule_numbers',
+        ];
+
+        if (DBManager::schema()->hasTable(OccupationSchema::TABLE_NORMALIZATION_TERMS)) {
+            $rows_query->leftJoin(OccupationSchema::TABLE_NORMALIZATION_TERMS . ' AS terms', function ($join): void {
+                $join
+                    ->on('terms.language', '=', 'entries.language')
+                    ->on('terms.occupation_de_male', '=', 'entries.occupation_de_male');
+            });
+            $row_select[] = 'terms.code_ohdab AS term_code_ohdab';
+            $row_select[] = 'terms.code_hisco AS term_code_hisco';
+        }
+
+        $rows = $rows_query->get($row_select);
         $terms = [];
         $rule_counts = [];
 
@@ -3628,8 +3660,8 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
             }
 
             ++$empty['total'];
-            $missing_ohdab = trim((string) ($row->code_ohdab ?? '')) === '';
-            $missing_hisco = trim((string) ($row->code_hisco ?? '')) === '';
+            $missing_ohdab = $this->ohdabCodeForEntry($row) === '';
+            $missing_hisco = $this->hiscoCodeForEntry($row) === '';
             $unclear = (string) $row->status === OccupationNormalizationService::STATUS_UNCLEAR;
 
             if (!$missing_ohdab && !$missing_hisco) {
