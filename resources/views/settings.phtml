@@ -200,41 +200,47 @@ $ohdabCategoryChartColors = [
                 </div>
             </div>
 
-            <h3 class="h5"><?= I18N::translate('Occupations requiring further normalization') ?></h3>
-
             <?php if ($normalizationDiagnostics['terms'] === []) : ?>
+                <h3 class="h5"><?= I18N::translate('Occupations requiring further normalization') ?></h3>
                 <p class="alert alert-success">
                     <?= I18N::translate('All active occupation entries in this family tree are recognized and assigned to both OhdAB and HISCO.') ?>
                 </p>
             <?php else : ?>
-                <div class="table-responsive mb-4">
-                    <table class="table table-striped table-bordered table-sm">
-                        <thead>
-                            <tr>
-                                <th><?= I18N::translate('Original occupation') ?></th>
-                                <th><?= MoreI18N::xlate('Language') ?></th>
-                                <th class="text-end"><?= MoreI18N::xlate('Entries') ?></th>
-                                <th class="text-end"><?= I18N::translate('Share') ?></th>
-                                <th class="text-end"><?= I18N::translate('Unclear') ?></th>
-                                <th class="text-end"><?= I18N::translate('Without OhdAB') ?></th>
-                                <th class="text-end"><?= I18N::translate('Without HISCO') ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($normalizationDiagnostics['terms'] as $term) : ?>
+                <details class="mb-4">
+                    <summary class="h5">
+                        <?= I18N::translate('Occupations requiring further normalization') ?>
+                        (<?= I18N::number(count($normalizationDiagnostics['terms'])) ?>)
+                    </summary>
+
+                    <div class="table-responsive mt-3">
+                        <table class="table table-striped table-bordered table-sm mb-0">
+                            <thead>
                                 <tr>
-                                    <td><?= e($term['original_text']) ?></td>
-                                    <td><?= e($term['language'] !== '' ? $term['language'] : '-') ?></td>
-                                    <td class="text-end"><?= I18N::number($term['count']) ?></td>
-                                    <td class="text-end"><?= I18N::percentage($term['percentage'], 1) ?></td>
-                                    <td class="text-end"><?= I18N::number($term['unclear']) ?></td>
-                                    <td class="text-end"><?= I18N::number($term['missing_ohdab']) ?></td>
-                                    <td class="text-end"><?= I18N::number($term['missing_hisco']) ?></td>
+                                    <th><?= I18N::translate('Original occupation') ?></th>
+                                    <th><?= MoreI18N::xlate('Language') ?></th>
+                                    <th class="text-end"><?= MoreI18N::xlate('Entries') ?></th>
+                                    <th class="text-end"><?= I18N::translate('Share') ?></th>
+                                    <th class="text-end"><?= I18N::translate('Unclear') ?></th>
+                                    <th class="text-end"><?= I18N::translate('Without OhdAB') ?></th>
+                                    <th class="text-end"><?= I18N::translate('Without HISCO') ?></th>
                                 </tr>
-                            <?php endforeach ?>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($normalizationDiagnostics['terms'] as $term) : ?>
+                                    <tr>
+                                        <td><?= e($term['original_text']) ?></td>
+                                        <td><?= e($term['language'] !== '' ? $term['language'] : '-') ?></td>
+                                        <td class="text-end"><?= I18N::number($term['count']) ?></td>
+                                        <td class="text-end"><?= I18N::percentage($term['percentage'], 1) ?></td>
+                                        <td class="text-end"><?= I18N::number($term['unclear']) ?></td>
+                                        <td class="text-end"><?= I18N::number($term['missing_ohdab']) ?></td>
+                                        <td class="text-end"><?= I18N::number($term['missing_hisco']) ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
             <?php endif ?>
 
             <h3 class="h5"><?= I18N::translate('Rule triggers in the selected family tree') ?></h3>
