@@ -183,7 +183,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
     /**
      * Privacy information consumed by hh_legal_notice.
      *
-     * @return array{third_party_services:list<array{name:string,url:string,country:string,privacy_url:string,description:string,data:list<string>}>,security_measures:list<string>}
+     * @return array{third_party_services:list<array{service_id?:string,name:string,url:string,country:string,privacy_url:string,description:string,data:list<string>}>,security_measures:list<string>}
      */
     public function privacyNotices(): array
     {
@@ -192,6 +192,7 @@ final class OccupationStandardizerModule extends AbstractModule implements Modul
         return [
             'third_party_services' => [
                 [
+                    'service_id'  => 'wikimedia-foundation',
                     'name'        => 'Wikimedia Foundation (Wikidata and Wikipedia)',
                     'url'         => 'https://www.wikimedia.org/',
                     'country'     => 'United States',
